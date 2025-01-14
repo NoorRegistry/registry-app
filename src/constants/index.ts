@@ -1,0 +1,16 @@
+const constants = {
+  HEADER_HEIGHT: 96,
+  ACCESS_TOKEN: "access_token",
+  ONBOARDING_STORAGE_KEY: "onboard",
+  USER_SELECTED_LANGUAGE_STORAGE_KEY: "selected_language",
+
+  SERIES_CARD_WIDTH: 200,
+  SERIES_CARD_HEIGHT: 200,
+
+  STORY_CARD_WIDTH: 160,
+  STORY_CARD_HEIGHT: 160,
+
+  STORY_IMAGE_WIDTH_TO_HEIGHT_RATIO: 1,
+};
+
+export default constants;
