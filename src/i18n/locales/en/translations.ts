@@ -62,6 +62,8 @@ const translations = {
     globalSearch: "Search stores, products, guides & registries",
     emptySearchDescription:
       "Search our curated list of stores and products, or browse through our guides.",
+    save: "Save",
+    required: "Required",
   },
   onboard: {
     title1: "Discover Open Tales.",
@@ -121,6 +123,10 @@ const translations = {
     greetingsPlaceholder: "Write a note to your family and friends",
     registryCreateError: "Something went wrong. Try again",
     addtoShiftGift: "Add to ShiftGiftMe",
+    iPurchased: "I purchased this",
+    someoneElsePurchased: "Someone else purchased this",
+    qtyPurchased: "Quantity Purchased",
+    purchaserName: "Purchaser's Name",
   },
 } as const;
 

@@ -1,14 +1,27 @@
+import { queryClient } from "@/api/queryClient";
 import { IconButton } from "@/components/Button";
 import { LoadingScreen } from "@/components/Loader/customLoader";
 import QtyButton from "@/components/QtyButton";
+import Radio from "@/components/Radio";
 import Typography from "@/components/Typography";
 import { RegistryIcon } from "@/components/icons";
 import { CloseIcon } from "@/components/icons/close";
 import { PlusCircleIcon } from "@/components/icons/pluscircle";
 import { Colors } from "@/constants/Colors";
-import { fetchRegistryItemById } from "@/services/registries.service";
-import { formatPrice, getEnArName, getImageUrl } from "@/utils/helper";
-import { useQuery } from "@tanstack/react-query";
+import {
+  fetchRegistryItemById,
+  postRegistryItemPurchase,
+} from "@/services/registries.service";
+import { useGlobalStore } from "@/store";
+import { ICreateRegistryItemPurchase } from "@/types";
+import {
+  formatPrice,
+  getEnArName,
+  getImageUrl,
+  getUserEmail,
+  getUserFirstLastName,
+} from "@/utils/helper";
+import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
@@ -33,10 +46,12 @@ function RegistryItemDetails() {
   }>();
   const [itemNote, setItemNote] = useState<string>();
   const [qty, setItemQty] = useState<number>();
+  const [showPurchasedSection, setShowPurchasedSection] = useState(false);
 
   const { data: registryItem, isFetching: isFetchingRegistryItem } = useQuery({
     queryKey: ["registries", "items", id],
     queryFn: () => fetchRegistryItemById(id),
+    placeholderData: keepPreviousData,
   });
 
   useEffect(() => {
@@ -54,7 +69,7 @@ function RegistryItemDetails() {
 
   return (
     <ScrollView>
-      <View className="flex-1">
+      <View className="flex-1 mb-10">
         <IconButton
           icon={<CloseIcon />}
           onPress={() => {
@@ -148,6 +163,7 @@ function RegistryItemDetails() {
             </View>
           </View>
 
+          {/* Purchased information */}
           <View className="gap-6 mt-6 border-b border-neutral-200 pb-6">
             <View className="justify-between flex-row">
               <View className="flex-row gap-2 items-center">
@@ -186,14 +202,28 @@ function RegistryItemDetails() {
                 ))}
               </View>
             ) : null}
-            <TouchableOpacity className="flex-row gap-3 justify-center items-center bg-neutral-100 rounded-full p-3">
-              <PlusCircleIcon />
-              <Typography.Text className="text-center" weight="medium">
-                {t("registry.markAnotherPurchase", {
-                  count: registryItem?.purchase?.length ?? 0,
-                })}
-              </Typography.Text>
-            </TouchableOpacity>
+            {showPurchasedSection ? (
+              <View>
+                <MarkPurchasedForm
+                  id={id}
+                  toggleShowMarkPurchaseSection={() =>
+                    setShowPurchasedSection(!showPurchasedSection)
+                  }
+                />
+              </View>
+            ) : (
+              <TouchableOpacity
+                onPress={() => setShowPurchasedSection(!showPurchasedSection)}
+                className="flex-row gap-3 justify-center items-center bg-neutral-100 rounded-full p-3"
+              >
+                <PlusCircleIcon />
+                <Typography.Text className="text-center" weight="medium">
+                  {t("registry.markAnotherPurchase", {
+                    count: registryItem?.purchase?.length ?? 0,
+                  })}
+                </Typography.Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>
@@ -203,5 +233,131 @@ function RegistryItemDetails() {
     </ScrollView>
   );
 }
+
+const MarkPurchasedForm = ({
+  id,
+  toggleShowMarkPurchaseSection,
+}: {
+  id: string;
+  toggleShowMarkPurchaseSection: () => void;
+}) => {
+  const { t } = useTranslation();
+  const [selected, setselected] = useState<number>();
+  const [qty, setQty] = useState<number>(1);
+  const [name, setName] = useState<string>();
+  const [showError, setShowError] = useState(false);
+  const selectedRegistryId = useGlobalStore(
+    (state) => state.selectedRegistryId,
+  );
+
+  const createRegistryItemMutation = useMutation({
+    mutationFn: (data: ICreateRegistryItemPurchase) =>
+      postRegistryItemPurchase(data),
+    onSuccess: (data, variables) => {
+      try {
+        queryClient.invalidateQueries({
+          queryKey: ["registries", "items", id],
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    },
+  });
+
+  const createPurchaseItem = () => {
+    setShowError(true);
+    if (selected === 2 && !name) return;
+    const data: ICreateRegistryItemPurchase = {
+      registryId: selectedRegistryId!,
+      registryItemsId: id,
+      email: getUserEmail(),
+      name: selected === 1 ? getUserFirstLastName() : name!,
+      platform: " ",
+      platformOrderId: " ",
+      qty,
+    };
+    createRegistryItemMutation.mutate(data);
+  };
+
+  return (
+    <>
+      <View className="ms-4 mb-6 gap-4">
+        <View className="gap-4">
+          <View className="flex-row items-center">
+            <Radio.Radio
+              value={1}
+              selectedValue={selected}
+              onChange={setselected}
+            />
+            <Typography.Text>{t("registry.iPurchased")}</Typography.Text>
+          </View>
+          {selected === 1 && (
+            <View className="ms-6 flex-row justify-between items-center">
+              <Typography.Text size="xs" weight="light">
+                {t("registry.qtyPurchased")}
+              </Typography.Text>
+              <QtyButton qty={qty ?? 1} updateQty={setQty} />
+            </View>
+          )}
+        </View>
+        <View className="gap-4">
+          <View className="flex-row items-center">
+            <Radio.Radio
+              value={2}
+              selectedValue={selected}
+              onChange={setselected}
+            />
+            <Typography.Text>
+              {t("registry.someoneElsePurchased")}
+            </Typography.Text>
+          </View>
+          {selected === 2 && (
+            <View className="ms-6 gap-3">
+              <View className="gap-1">
+                <Typography.Text size="xs" weight="light">
+                  {t("registry.purchaserName")}
+                </Typography.Text>
+                <TextInput
+                  placeholder={t("registry.purchaserName")}
+                  className="rounded-lg p-4 bg-neutral-100 font-Poppinsregular text-black text-xs"
+                  onChangeText={setName}
+                />
+                {showError && !name && (
+                  <Typography.Text size="xs" weight="light" type="danger">
+                    {t("common.required")}
+                  </Typography.Text>
+                )}
+              </View>
+              <View className="flex-row justify-between items-center">
+                <Typography.Text size="xs" weight="light">
+                  {t("registry.qtyPurchased")}
+                </Typography.Text>
+                <QtyButton qty={qty ?? 1} updateQty={setQty} />
+              </View>
+            </View>
+          )}
+        </View>
+      </View>
+      <View className="flex-row gap-3 justify-center items-center">
+        <TouchableOpacity
+          onPress={toggleShowMarkPurchaseSection}
+          className="flex-1 bg-neutral-100 rounded-full p-3"
+        >
+          <Typography.Text className="text-center" weight="medium">
+            {t("common.cancel")}
+          </Typography.Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={createPurchaseItem}
+          className="flex-1 bg-primary-500 rounded-full p-3"
+        >
+          <Typography.Text className="text-center !text-white" weight="medium">
+            {t("common.save")}
+          </Typography.Text>
+        </TouchableOpacity>
+      </View>
+    </>
+  );
+};
 
 export default RegistryItemDetails;

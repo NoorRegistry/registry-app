@@ -180,6 +180,16 @@ export interface ICreateRegistryItem {
   qty: number;
 }
 
+export interface ICreateRegistryItemPurchase {
+  registryItemsId: string;
+  registryId: string;
+  name: string;
+  email: string;
+  platform: string;
+  platformOrderId: string;
+  qty: number;
+}
+
 export interface IGlobalSearchResults {
   registries: {
     id: string;

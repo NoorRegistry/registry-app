@@ -27,6 +27,7 @@
         <data android:scheme="shiftgiftme"/>
         <data android:scheme="com.shiftgiftme.mobile"/>
         <data android:scheme="exp+shift-gift-me"/>
+        <data android:scheme="exp+registry-app"/>
       </intent-filter>
     </activity>
   </application>

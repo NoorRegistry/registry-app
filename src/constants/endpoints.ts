@@ -12,6 +12,7 @@ const endpoints = {
   },
   registries: {
     index: "/v1/api/users/registries",
+    purchase: "/v1/api/users/purchases",
   },
   upload: {
     index: "/v1/api/admin/upload",

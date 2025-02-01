@@ -3,7 +3,7 @@ import { ConfigContext, ExpoConfig } from "expo/config";
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "Shift Gift Me",
-  slug: "shift-gift-me",
+  slug: "registry-app",
   version: "1.0.0",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
@@ -45,5 +45,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ],
   experiments: {
     typedRoutes: true,
+  },
+  extra: {
+    eas: {
+      projectId: "483f2f7a-0bc9-4455-b068-30244a98643b",
+    },
   },
 });

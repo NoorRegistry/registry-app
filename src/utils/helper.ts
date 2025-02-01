@@ -39,12 +39,22 @@ export const clearSessionData = (): void => {
 
 export const getUserEmail = () => {
   const token = getStorageItem(constants.ACCESS_TOKEN);
-  return token ? jwtDecode<any>(token).email : "";
+  return token ? jwtDecode<any>(token).user.email : "";
 };
 
 export const getUserFirstName = () => {
   const token = getStorageItem(constants.ACCESS_TOKEN);
   return token ? jwtDecode<ITokenInfo>(token).user.firstName : "";
+};
+
+export const getUserFirstLastName = () => {
+  const token = getStorageItem(constants.ACCESS_TOKEN);
+  console.log("token", token);
+  return token
+    ? jwtDecode<ITokenInfo>(token).user.firstName +
+        " " +
+        jwtDecode<ITokenInfo>(token).user.lastName
+    : "";
 };
 
 /**

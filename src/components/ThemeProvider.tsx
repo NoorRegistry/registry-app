@@ -64,7 +64,7 @@ const returnThemeVariables = (
   return colorSchene === "dark" ? DarkTheme : LightTheme;
 };
 
-export default function ThemeProvider({ children }: PropsWithChildren) {
+const ThemeProvider = ({ children }: PropsWithChildren) => {
   const theme = useThemeVariables();
   const colorScheme = useColorScheme();
   const { i18n } = useTranslation();
@@ -76,4 +76,6 @@ export default function ThemeProvider({ children }: PropsWithChildren) {
       </View>
     </RNThemeProvider>
   );
-}
+};
+
+export default ThemeProvider;

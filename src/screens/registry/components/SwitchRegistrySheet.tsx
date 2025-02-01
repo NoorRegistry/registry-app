@@ -180,26 +180,21 @@ const SwitchRegistry = forwardRef<BottomSheetModal, SwitchRegistryProps>(
               {t("registry.yourList")}
             </Typography.Text>
           }
-          ListFooterComponent={
-            <View
-              style={{ paddingBottom: insets.bottom }}
-              className="pt-4 border-t border-neutral-200"
-            >
-              <TouchableOpacity
-                className="flex-row gap-2 items-center"
-                onPress={handleNewRegistry}
-              >
-                <PlusCircleIcon color={Colors[colorScheme ?? "light"].tint} />
-                <Typography.Text type="primary" size="base" weight="medium">
-                  {t("registry.newRegistry")}
-                </Typography.Text>
-              </TouchableOpacity>
-            </View>
-          }
-          ListFooterComponentClassName={
-            "bg-white flex-1 bottom-0 absolute px-4 start-0 end-0"
-          }
         />
+        <View
+          style={{ paddingBottom: insets.bottom }}
+          className="absolute bottom-0 pt-4 border-t border-neutral-200 bg-white flex-1 px-4 start-0 end-0"
+        >
+          <TouchableOpacity
+            className="flex-row gap-2 items-center"
+            onPress={handleNewRegistry}
+          >
+            <PlusCircleIcon color={Colors[colorScheme ?? "light"].tint} />
+            <Typography.Text type="primary" size="base" weight="medium">
+              {t("registry.newRegistry")}
+            </Typography.Text>
+          </TouchableOpacity>
+        </View>
       </BottomSheetModal>
     );
   },

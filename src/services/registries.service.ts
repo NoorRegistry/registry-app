@@ -2,6 +2,7 @@ import { http } from "@/api/http";
 import endpoints from "@/constants/endpoints";
 import {
   ICreateRegistryItem,
+  ICreateRegistryItemPurchase,
   ICreateRegistryPayload,
   IRegistry,
   IRegistryCategory,
@@ -40,4 +41,10 @@ export const addItemToRegistry = async (payload: ICreateRegistryItem) => {
 
 export const postRegistry = async (payload: ICreateRegistryPayload) => {
   return await http.post<IRegistry>(endpoints.registries.index, payload);
+};
+
+export const postRegistryItemPurchase = async (
+  payload: ICreateRegistryItemPurchase,
+) => {
+  return await http.post<IRegistry>(endpoints.registries.purchase, payload);
 };

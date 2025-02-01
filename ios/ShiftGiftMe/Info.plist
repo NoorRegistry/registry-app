@@ -34,7 +34,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>exp+shift-gift-me</string>
+          <string>exp+registry-app</string>
         </array>
       </dict>
     </array>
