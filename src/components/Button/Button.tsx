@@ -83,7 +83,6 @@ export default function Button(props: IButtonProps) {
         rounded ? "rounded-full" : "rounded-lg",
         className,
       )}
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       disabled={disabled || loading}
       onPress={onPress}
       {...rest}

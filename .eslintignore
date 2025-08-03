@@ -1,3 +1,60 @@
-/.expo
+# Dependencies
+node_modules/
 
-node_modules
+# Build outputs
+dist/
+build/
+.expo/
+.expo-shared/
+
+# Platform-specific build outputs
+ios/build/
+android/build/
+android/app/build/
+
+# Generated files
+*.d.ts
+coverage/
+
+# Cache directories
+.cache/
+.parcel-cache/
+
+# Environment files
+.env*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Metro bundler cache
+.metro-cache/
+
+# Expo
+.expo/
+.expo-shared/
+
+# CocoaPods
+ios/Pods/
+
+# Gradle
+android/.gradle/

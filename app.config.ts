@@ -26,6 +26,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     package: "com.shiftgiftme.mobile",
     softwareKeyboardLayoutMode: "pan",
+    edgeToEdgeEnabled: true,
   },
   web: {
     bundler: "metro",

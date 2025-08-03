@@ -102,6 +102,7 @@ export default function RootLayout() {
       setIsAppReady();
     };
     handleToken();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -110,7 +111,7 @@ export default function RootLayout() {
     }
   }, [loaded, isAppReady]);
 
-  if (!(loaded || isAppReady)) {
+  if (!loaded || !isAppReady) {
     return null;
   }
 

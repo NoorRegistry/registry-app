@@ -5,6 +5,7 @@ import axios, {
   AxiosRequestConfig,
   AxiosResponse,
   InternalAxiosRequestConfig,
+  isAxiosError,
 } from "axios";
 
 import constants from "@/constants";
@@ -125,7 +126,7 @@ class Http {
   private handleError(error: Error | AxiosError) {
     let apiError: IApiError;
     // console.error('error data', error);
-    if (axios.isAxiosError(error)) {
+    if (isAxiosError(error)) {
       console.error("error data", JSON.stringify(error));
       switch (error.status) {
         case StatusCode.InternalServerError: {

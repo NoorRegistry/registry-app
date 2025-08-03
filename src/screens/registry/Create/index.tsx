@@ -126,7 +126,7 @@ function CreateRegistryScreen() {
                 </Typography.Text>
                 <Form.Item
                   name="title"
-                  label={t("registry.title")}
+                  // label={t("registry.title")}
                   rules={{
                     required: t("login.enterEmail"),
                   }}

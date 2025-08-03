@@ -70,6 +70,7 @@ const SearchBar = ({ onSearchPress }: { onSearchPress: () => void }) => {
               }}
               type="secondary"
               weight="regular"
+              // eslint-disable-next-line react/no-children-prop
               children={word}
               className="absolute top-0"
             />
