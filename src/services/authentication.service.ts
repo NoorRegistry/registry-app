@@ -4,7 +4,11 @@ import { IAccessToken } from "@/types";
 
 export interface ILoginPayload {
   email: string;
-  password: string;
+}
+
+export interface IOtpVerifyPayload {
+  email: string;
+  otp: string;
 }
 
 export interface ISignupPayload {
@@ -12,8 +16,31 @@ export interface ISignupPayload {
   password: string;
 }
 
-export const login = async (payload: ILoginPayload): Promise<IAccessToken> => {
-  return await http.post<IAccessToken>(endpoints.authentication.login, payload);
+export const sendOtp = async (
+  payload: ILoginPayload,
+): Promise<{ message: string }> => {
+  return await http.post<{ message: string }>(
+    endpoints.authentication.login,
+    payload,
+  );
+};
+
+export const resendOtp = async (
+  payload: ILoginPayload,
+): Promise<{ message: string }> => {
+  return await http.post<{ message: string }>(
+    endpoints.authentication.login,
+    payload,
+  );
+};
+
+export const verifyOtp = async (
+  payload: IOtpVerifyPayload,
+): Promise<IAccessToken> => {
+  return await http.post<IAccessToken>(
+    endpoints.authentication.verifyOtp,
+    payload,
+  );
 };
 
 export const refreshToken = async (): Promise<IAccessToken> => {

@@ -1,9 +1,5 @@
 import Typography from "@/components/Typography";
-import constants from "@/constants";
-import { useGlobalStore } from "@/store";
-import { IAccessToken, TLoginMethod } from "@/types";
-import { setStorageItem } from "@/utils/storage";
-import { Link, router } from "expo-router";
+import { Link } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -15,26 +11,10 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Toast from "react-native-toast-message";
 import LoginForm from "./components/LoginForm";
 
 function LoginScreen() {
-  const signIn = useGlobalStore.use.signIn();
   const { t } = useTranslation();
-
-  const handleSignIn = (token: IAccessToken, method: TLoginMethod) => {
-    console.log("token :>> ", token);
-    setStorageItem(constants.ACCESS_TOKEN, JSON.stringify(token));
-    // analytics().logLogin({ method });
-    // crashlytics().setUserId(getUserId() ?? "");
-    signIn();
-    Toast.show({
-      text1: t("login.loginSuccessful"),
-      visibilityTime: 1000,
-    });
-
-    router.replace("/");
-  };
 
   return (
     <KeyboardAvoidingView
@@ -71,7 +51,7 @@ function LoginScreen() {
         </View>
         <View className="flex-shrink-0 rounded-t-2xl -mt-11 bg-white p-6">
           <SafeAreaView edges={["bottom"]}>
-            <LoginForm handleSignIn={handleSignIn} />
+            <LoginForm />
             <View
               style={{ direction: I18nManager.isRTL ? "rtl" : "ltr" }}
               className="flex-row gap-3 justify-center mt-8"

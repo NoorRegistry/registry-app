@@ -1,12 +1,11 @@
 import { Button } from "@/components/Button";
 import Form from "@/components/Form";
 import { Colors } from "@/constants/Colors";
-import { ILoginPayload, login } from "@/services/authentication.service";
-import { IAccessToken, TLoginMethod } from "@/types";
-import Feather from "@expo/vector-icons/Feather";
+import { ILoginPayload, sendOtp } from "@/services/authentication.service";
 
 import { useMutation } from "@tanstack/react-query";
-import React, { useState } from "react";
+import { router } from "expo-router";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import {
@@ -18,24 +17,24 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message";
 
-const LoginForm = ({
-  handleSignIn,
-}: {
-  handleSignIn: (token: IAccessToken, method: TLoginMethod) => void;
-}) => {
+const LoginForm = () => {
   const { t } = useTranslation();
   const colorScheme = useColorScheme();
   const { control, handleSubmit } = useForm<ILoginPayload>();
-  const [showPassword, setShowPassword] = useState(false);
 
-  const loginMutation = useMutation({
-    mutationFn: (data: ILoginPayload) => login(data),
-    onSuccess: (data) => {
-      console.log("OTP token exchange successful");
-      setTimeout(() => handleSignIn(data, "email"));
+  const sendOtpMutation = useMutation({
+    mutationFn: (data: ILoginPayload) => sendOtp(data as ILoginPayload),
+    onSuccess: (data, variables) => {
+      console.log("OTP sent successfully");
+
+      // Navigate to OTP verification screen with email
+      router.push({
+        pathname: "/verify-otp" as any,
+        params: { email: variables.email },
+      });
     },
     onError: (error) => {
-      console.log("OTP token exchange error", JSON.stringify(error));
+      console.log("Send OTP error", JSON.stringify(error));
       Toast.show({
         type: "error",
         text1: t("login.loginFailed"),
@@ -71,7 +70,7 @@ const LoginForm = ({
           />
         )}
       </Form.Item>
-      <Form.Item
+      {/* <Form.Item
         name="password"
         label={t("login.password")}
         rules={{
@@ -109,16 +108,16 @@ const LoginForm = ({
             />
           </View>
         )}
-      </Form.Item>
+      </Form.Item> */}
       <Button
-        loading={loginMutation.isPending}
+        loading={sendOtpMutation.isPending}
         type="primary"
         size="large"
         title={t("common.login")}
         rounded={false}
         onPress={() => {
           Keyboard.dismiss();
-          handleSubmit((data) => loginMutation.mutate(data))();
+          handleSubmit((data) => sendOtpMutation.mutate(data))();
         }}
       />
     </View>

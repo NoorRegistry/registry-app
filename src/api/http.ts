@@ -8,11 +8,8 @@ import axios, {
   isAxiosError,
 } from "axios";
 
-import constants from "@/constants";
-import { IAccessToken } from "@/types";
 import { handleRefreshToken } from "@/utils/auth-helper";
-import { isTokenExpired } from "@/utils/helper";
-import { getStorageItem } from "@/utils/storage";
+import { getAccessTokenString, isTokenExpired } from "@/utils/helper";
 import i18next from "i18next";
 
 enum StatusCode {
@@ -38,18 +35,17 @@ const injectToken = async (
   config: InternalAxiosRequestConfig,
 ): Promise<InternalAxiosRequestConfig> => {
   try {
-    let token = getStorageItem(constants.ACCESS_TOKEN);
+    let accessToken = getAccessTokenString();
 
-    if (token) {
-      let parsedToken = JSON.parse(token) as IAccessToken;
-      if (isTokenExpired(parsedToken.accessToken)) {
+    if (accessToken) {
+      if (isTokenExpired(accessToken)) {
         await handleRefreshToken();
-        token = getStorageItem(constants.ACCESS_TOKEN);
-        if (token) {
-          parsedToken = JSON.parse(token) as IAccessToken;
-        }
+        accessToken = getAccessTokenString();
       }
-      config.headers.Authorization = `Bearer ${parsedToken.accessToken}`;
+
+      if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
+      }
     }
     config.headers["Accept-Language"] = i18next.language ?? "en";
     return config;

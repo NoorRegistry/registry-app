@@ -34,3 +34,7 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# Translation backups
+src/i18n/backups/
+*.backup

@@ -3,10 +3,9 @@ import Form from "@/components/Form";
 import { Colors } from "@/constants/Colors";
 import { ILoginPayload, login } from "@/services/authentication.service";
 import { IAccessToken, TLoginMethod } from "@/types";
-import Feather from "@expo/vector-icons/Feather";
 
 import { useMutation } from "@tanstack/react-query";
-import React, { useState } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import {
@@ -26,7 +25,7 @@ const SignupForm = ({
   const { t } = useTranslation();
   const colorScheme = useColorScheme();
   const { control, handleSubmit } = useForm<ILoginPayload>();
-  const [showPassword, setShowPassword] = useState(false);
+  // const [showPassword, setShowPassword] = useState(false);
 
   const signupMutation = useMutation({
     mutationFn: (data: ILoginPayload) => login(data),
@@ -71,7 +70,7 @@ const SignupForm = ({
           />
         )}
       </Form.Item>
-      <Form.Item
+      {/* <Form.Item
         name="password"
         label={t("login.password")}
         rules={{
@@ -109,7 +108,7 @@ const SignupForm = ({
             />
           </View>
         )}
-      </Form.Item>
+      </Form.Item> */}
       <Button
         loading={signupMutation.isPending}
         type="primary"

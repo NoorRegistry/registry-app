@@ -17,9 +17,6 @@ export const isAuthenticated = (): boolean => {
   return Boolean(isValidToken);
 };
 
-export const getTokenExpireDate = (token: string) =>
-  (jwtDecode(token).exp || 0) * 1000;
-
 export const isTokenExpired = (token: string): boolean => {
   const jwtPayload = jwtDecode(token);
   // considering token expired before 60 seconds
@@ -37,32 +34,64 @@ export const clearSessionData = (): void => {
   queryClient.clear();
 };
 
+/**
+ * Function to get the decoded token info from storage
+ * Returns null if token doesn't exist or is invalid
+ */
+export const getDecodedToken = (): ITokenInfo | null => {
+  try {
+    const token = getStorageItem(constants.ACCESS_TOKEN);
+    if (!token) return null;
+
+    const parsedToken = JSON.parse(token) as IAccessToken;
+    return jwtDecode<ITokenInfo>(parsedToken.accessToken);
+  } catch (error) {
+    console.error("Error decoding token:", error);
+    return null;
+  }
+};
+
+/**
+ * Function to get the raw access token string from storage
+ * Uses the same parsing logic as getDecodedToken for consistency
+ */
+export const getAccessTokenString = (): string | null => {
+  try {
+    const token = getStorageItem(constants.ACCESS_TOKEN);
+    if (!token) return null;
+
+    const parsedToken = JSON.parse(token) as IAccessToken;
+    return parsedToken.accessToken;
+  } catch (error) {
+    console.error("Error getting access token:", error);
+    return null;
+  }
+};
+
 export const getUserEmail = () => {
-  const token = getStorageItem(constants.ACCESS_TOKEN);
-  return token ? jwtDecode<any>(token).user.email : "";
+  const decodedToken = getDecodedToken();
+  return decodedToken?.user?.email || "";
 };
 
 export const getUserFirstName = () => {
-  const token = getStorageItem(constants.ACCESS_TOKEN);
-  return token ? jwtDecode<ITokenInfo>(token).user.firstName : "";
+  const decodedToken = getDecodedToken();
+  return decodedToken?.user?.firstName || "";
 };
 
 export const getUserFirstLastName = () => {
-  const token = getStorageItem(constants.ACCESS_TOKEN);
-  console.log("token", token);
-  return token
-    ? jwtDecode<ITokenInfo>(token).user.firstName +
-        " " +
-        jwtDecode<ITokenInfo>(token).user.lastName
-    : "";
+  const decodedToken = getDecodedToken();
+  if (decodedToken?.user?.firstName && decodedToken?.user?.lastName) {
+    return `${decodedToken.user.firstName} ${decodedToken.user.lastName}`;
+  }
+  return "";
 };
 
 /**
  * Function to get the user sub /uid for user tracking
  */
 export const getUserSub = () => {
-  const token = getStorageItem(constants.ACCESS_TOKEN);
-  return token ? jwtDecode<any>(token).sub : "";
+  const decodedToken = getDecodedToken();
+  return decodedToken?.user?.id || "";
 };
 
 /**

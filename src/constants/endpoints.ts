@@ -1,6 +1,7 @@
 const endpoints = {
   authentication: {
-    login: "/v1/api/users/auth/login",
+    login: "/v1/api/users/auth/email/request",
+    verifyOtp: "/v1/api/users/auth/email/verify",
     register: "/v1/api/users/auth/register",
     refreshToken: "/v1/api/users/auth/refresh",
   },

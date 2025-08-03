@@ -12,11 +12,13 @@ export interface IPaginatedResponse<T> {
 
 export interface ITokenInfo {
   user: {
-    firstName: string;
-    lastName: string;
+    id: string;
+    firstName: string | null;
+    lastName: string | null;
     email: string;
     mobileNumber: string | null;
     countryCode: string | null;
+    getUserData: boolean;
   };
   iat: string;
   exp: string;
