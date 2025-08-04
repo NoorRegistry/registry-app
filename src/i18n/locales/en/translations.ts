@@ -97,6 +97,7 @@ const translations = {
     subtitle: "Curated by experts and tested by parents",
     searchPlaceholder: "Search for products",
     searchStoresPlaceholder: "Search for our curated stores",
+    relatedProducts: "Related Products",
   },
   registry: {
     emptyRegistry: "You haven't added anything to your registry, yet!",

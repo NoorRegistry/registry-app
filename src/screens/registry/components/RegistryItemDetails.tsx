@@ -84,14 +84,15 @@ function RegistryItemDetails() {
         </View>
         <View className="p-4">
           <View className="flex-row items-center gap-4 border-b border-neutral-200 pb-4">
-            {registryItem?.product?.images &&
-              registryItem.product.images.length > 0 && (
-                <Image
-                  source={getImageUrl(registryItem.product.images[0].path)}
-                  className="w-12 h-12 rounded-md mr-4"
-                  style={{ width: 100, height: 100 }}
-                />
-              )}
+            <Image
+              source={
+                registryItem?.product?.images?.[0]?.path
+                  ? getImageUrl(registryItem.product.images[0].path)
+                  : require("@assets/images/icon.png") // Fallback to app icon
+              }
+              className="w-12 h-12 rounded-md mr-4"
+              style={{ width: 100, height: 100 }}
+            />
             <View className="flex-1 gap-2">
               <Typography.Text size="sm">
                 {getEnArName(

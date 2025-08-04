@@ -41,7 +41,11 @@ function ProductImages({ images }: { images: IProduct["images"] }) {
         showsHorizontalScrollIndicator={false}
         renderItem={({ item }) => (
           <Image
-            source={getImageUrl(item.path)}
+            source={
+              item.path
+                ? getImageUrl(item.path)
+                : require("@assets/images/icon.png") // Fallback to app icon
+            }
             style={{ width: width, height: 288 }}
             contentFit="cover"
           />

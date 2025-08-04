@@ -18,11 +18,19 @@ const { width } = Dimensions.get("window");
 const cardWidth = width / 2 - 16 - 8;
 
 // Product Card component
-const ProductCard = ({ product }: { product: IProduct }) => {
+const ProductCard = ({
+  product,
+  width: customWidth,
+}: {
+  product: IProduct;
+  width?: number;
+}) => {
   const { t } = useTranslation();
   const selectedRegistryId = useGlobalStore(
     (state) => state.selectedRegistryId,
   );
+
+  const finalWidth = customWidth || cardWidth;
 
   const createRegistryItemMutation = useMutation({
     mutationFn: (data: ICreateRegistryItem) => addItemToRegistry(data),
@@ -57,17 +65,21 @@ const ProductCard = ({ product }: { product: IProduct }) => {
       asChild
     >
       <TouchableOpacity
-        style={{ width: cardWidth }}
+        style={{ width: finalWidth }}
         className="bg-white rounded-lg items-center mb-4"
       >
         <View className="w-full rounded-lg">
           <Image
-            source={getImageUrl(product.images[0].path)}
+            source={
+              product.images?.[0]?.path
+                ? getImageUrl(product.images[0].path)
+                : require("@assets/images/icon.png") // Fallback to app icon
+            }
             style={{
               flex: 1,
               borderRadius: 8,
-              width: cardWidth, // subtract 2 for border now
-              height: cardWidth,
+              width: finalWidth, // subtract 2 for border now
+              height: finalWidth,
             }}
             contentFit="cover"
           />

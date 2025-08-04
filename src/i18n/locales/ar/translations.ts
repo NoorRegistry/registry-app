@@ -81,6 +81,7 @@ const translations = {
     subtitle: "منتقى من قبل الخبراء ومختبر من قبل الآباء",
     searchPlaceholder: "ابحث عن المنتجات",
     searchStoresPlaceholder: "ابحث عن متاجرنا المنسقة",
+    relatedProducts: "منتجات ذات صلة",
   },
 } as const;
 

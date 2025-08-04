@@ -14,15 +14,16 @@ function RegistryItem({ registryItem }: { registryItem: IRegistryItem }) {
 
   return (
     <View className="flex-row items-center bg-white p-2 rounded-md mb-4 shadow shadow-neutral-200 mx-4 gap-4">
-      {registryItem.product.images &&
-        registryItem.product.images.length > 0 && (
-          <Link href={href}>
-            <Image
-              source={getImageUrl(registryItem.product.images[0].path)}
-              style={{ width: 80, height: 80, borderRadius: 6 }}
-            />
-          </Link>
-        )}
+      <Link href={href}>
+        <Image
+          source={
+            registryItem.product.images?.[0]?.path
+              ? getImageUrl(registryItem.product.images[0].path)
+              : require("@assets/images/icon.png") // Fallback to app icon
+          }
+          style={{ width: 80, height: 80, borderRadius: 6 }}
+        />
+      </Link>
       <View className="flex-1 gap-2">
         <Link href={href} asChild>
           <TouchableOpacity>

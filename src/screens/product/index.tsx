@@ -2,6 +2,7 @@ import { IApiError } from "@/api/http";
 import { queryClient } from "@/api/queryClient";
 import BackButton from "@/components/BackButton";
 import { Button } from "@/components/Button";
+import RelatedProducts from "@/components/RelatedProducts";
 import Typography from "@/components/Typography";
 import { fetchProductById } from "@/services/products.service";
 import { addItemToRegistry } from "@/services/registries.service";
@@ -197,6 +198,9 @@ function ProductScreen() {
               </Typography.Text>
             </View>
           </View>
+
+          {/* Related Products Carousel */}
+          <RelatedProducts productId={id} />
         </Animated.ScrollView>
         <SafeAreaView
           style={{ paddingBottom: insets.bottom }}

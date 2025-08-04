@@ -31,3 +31,9 @@ export const fetchProductById = async (productId: string) => {
     `${endpoints.products.index}/${productId}`,
   );
 };
+
+export const fetchRelatedProductById = async (productId: string) => {
+  return await http.get<IProduct[]>(
+    `${endpoints.products.index}/${productId}/related`,
+  );
+};
