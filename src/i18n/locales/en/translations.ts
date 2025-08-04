@@ -98,6 +98,10 @@ const translations = {
     searchPlaceholder: "Search for products",
     searchStoresPlaceholder: "Search for our curated stores",
     relatedProducts: "Related Products",
+    addedToRegistries: "Added to registries",
+    popularityStats: "{{count}} times in the last {{days}} days",
+    totalTimesAdded: "Added {{count}} times",
+    recentlyPopular: "{{count}} recent additions",
   },
   registry: {
     emptyRegistry: "You haven't added anything to your registry, yet!",

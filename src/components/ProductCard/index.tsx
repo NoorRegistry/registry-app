@@ -101,6 +101,7 @@ const ProductCard = ({
             ellipsizeMode="tail"
             weight="light"
             size="xs"
+            className="h-8" // Fixed height for exactly 2 lines (32px = h-8 in Tailwind)
           >
             {getEnArName(product.nameEn, product.nameAr)}
           </Typography.Text>

@@ -82,6 +82,10 @@ const translations = {
     searchPlaceholder: "ابحث عن المنتجات",
     searchStoresPlaceholder: "ابحث عن متاجرنا المنسقة",
     relatedProducts: "منتجات ذات صلة",
+    addedToRegistries: "تم إضافته إلى السجلات",
+    popularityStats: "{{count}} مرة في آخر {{days}} أيام",
+    totalTimesAdded: "تم إضافته {{count}} مرة",
+    recentlyPopular: "{{count}} إضافة حديثة",
   },
 } as const;
 

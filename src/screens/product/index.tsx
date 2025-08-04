@@ -2,6 +2,7 @@ import { IApiError } from "@/api/http";
 import { queryClient } from "@/api/queryClient";
 import BackButton from "@/components/BackButton";
 import { Button } from "@/components/Button";
+import ProductPopularityStats from "@/components/ProductPopularityStats";
 import RelatedProducts from "@/components/RelatedProducts";
 import Typography from "@/components/Typography";
 import { fetchProductById } from "@/services/products.service";
@@ -192,6 +193,14 @@ function ProductScreen() {
                 )}
               </Typography.Text>
             </View>
+
+            {/* Product Popularity Stats */}
+            {product?.addedInRegistryItemCount && (
+              <ProductPopularityStats
+                addedInRegistryItemCount={product.addedInRegistryItemCount}
+              />
+            )}
+
             <View className="py-4">
               <Typography.Text weight="medium" size="lg">
                 {formatPrice(product?.price, product?.currencyCode)}

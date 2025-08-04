@@ -74,6 +74,11 @@ export type TProductCard = Pick<
 export interface IProductDetails extends IProduct {
   descriptionEn: string;
   descriptionAr: string;
+  addedInRegistryItemCount: {
+    days: number;
+    lifetime: number;
+    recentlyAdded: number;
+  };
 }
 
 export interface IProductCategory {
