@@ -124,7 +124,8 @@ class Http {
     // console.error('error data', error);
     if (isAxiosError(error)) {
       console.error("error data", JSON.stringify(error));
-      switch (error.status) {
+      const status = error.response?.status;
+      switch (status) {
         case StatusCode.InternalServerError: {
           // Handle InternalServerError
           break;
