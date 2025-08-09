@@ -18,6 +18,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.shiftgiftme.mobile",
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
+    },
   },
   android: {
     adaptiveIcon: {
@@ -49,7 +52,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   extra: {
     eas: {
-      projectId: "483f2f7a-0bc9-4455-b068-30244a98643b",
+      projectId: "709b180f-5e71-4bce-97b7-ffa926f48904",
     },
   },
 });

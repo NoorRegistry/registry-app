@@ -71,7 +71,12 @@ const translations = {
     emptySearchDescription:
       "Search our curated list of stores and products, or browse through our guides.",
     save: "Save",
+    saved: "Saved successfully",
     required: "Required",
+    firstName: "First Name",
+    lastName: "Last Name",
+    completeProfile: "Complete Your Profile",
+    error: "Something went wrong",
   },
   onboard: {
     title1: "Discover Open Tales.",

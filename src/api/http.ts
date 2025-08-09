@@ -110,6 +110,14 @@ class Http {
     return this.handleRequest(this.http.put<TResponse>(url, data, config));
   }
 
+  patch<TResponse = any, TRequestBody = any>(
+    url: string,
+    data?: TRequestBody,
+    config?: AxiosRequestConfig,
+  ): Promise<TResponse> {
+    return this.handleRequest(this.http.patch<TResponse>(url, data, config));
+  }
+
   delete<TResponse = any>(
     url: string,
     config?: AxiosRequestConfig,

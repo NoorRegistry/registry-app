@@ -22,6 +22,7 @@ import { Colors } from "@/constants/Colors";
 import { resendOtp, verifyOtp } from "@/services/authentication.service";
 import { useGlobalStore } from "@/store";
 import { IAccessToken } from "@/types";
+import { getDecodedToken } from "@/utils/helper";
 import { setStorageItem } from "@/utils/storage";
 
 export default function VerifyOtpScreen() {
@@ -38,14 +39,21 @@ export default function VerifyOtpScreen() {
       verifyOtp({ email: email || "", otp: otpCode }),
     onSuccess: (data: IAccessToken) => {
       console.log("OTP verification successful");
-      // Store the authentication token
       setStorageItem(constants.ACCESS_TOKEN, JSON.stringify(data));
       Toast.show({
         type: "success",
         text1: t("login.loginSuccessful"),
       });
       signIn();
-      router.replace("/(protected)/(tabs)/" as any);
+      // Use helper to get decoded token
+      const decoded = getDecodedToken();
+      if (decoded?.user?.getUserData) {
+        router.dismissAll?.();
+        router.replace("/complete-profile" as any);
+        return;
+      }
+      router.dismissAll?.();
+      router.replace("/(protected)/(tabs)");
     },
     onError: (error) => {
       console.log("OTP verification error", JSON.stringify(error));

@@ -19,6 +19,7 @@ function AnimatedHeaderText({
       size="base"
       numberOfLines={1}
       ellipsizeMode="tail"
+      style={{ textAlignVertical: "center" }}
     >
       {title}
     </Typography.AnimatedText>

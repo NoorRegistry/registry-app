@@ -15,7 +15,7 @@ const AnimatedText = ({
   ...props
 }: AnimatedTextProps) => {
   return (
-    <Animated.Text style={[animatedStyle]} className={className}>
+    <Animated.Text style={[animatedStyle, style]} className={className}>
       <Text {...props} />
     </Animated.Text>
   );

@@ -10,7 +10,7 @@ import { getEnArName, getImageUrl } from "@/utils/helper";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { Stack, useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Animated, FlatList, RefreshControl, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import StoreSkeletonLoader from "./components/StoreSkeletonLoader";
@@ -35,22 +35,28 @@ export default function StoreScreen() {
     queryFn: () => fetchStore(id),
   });
 
-  const scrollY = new Animated.Value(0);
+  const scrollY = useRef(new Animated.Value(0)).current;
   const [headerHeight, setHeaderHeight] = useState(0);
 
+  // Initialize animated values
+  let headerOpacity: Animated.AnimatedInterpolation<number> =
+    new Animated.Value(0) as any;
+
+  // Remove elevation animation (not supported with native driver when animating shadow props)
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-    { useNativeDriver: true }, // Enable native thread animation
+    { useNativeDriver: true },
   );
 
-  const headerOpacity =
-    headerHeight > 150
-      ? scrollY.interpolate({
-          inputRange: [150, headerHeight - 150],
-          outputRange: [0, 1],
-          extrapolate: "clamp",
-        })
-      : 0;
+  if (headerHeight > 150) {
+    headerOpacity = scrollY.interpolate({
+      inputRange: [150, headerHeight - 150],
+      outputRange: [0, 1],
+      extrapolate: "clamp",
+    });
+  }
+
+  const headerShadowOpacity = headerOpacity; // reuse same interpolation
 
   const StoreHeader = () => (
     <View
@@ -83,6 +89,20 @@ export default function StoreScreen() {
       <Stack.Screen
         options={{
           headerTitleAlign: "left",
+          headerShadowVisible: false,
+          headerBackground: () => (
+            <Animated.View className="flex-1 bg-white">
+              <Animated.View
+                pointerEvents="none"
+                className="absolute left-0 right-0 bottom-0"
+                style={{
+                  height: 1,
+                  backgroundColor: "rgba(0,0,0,0.15)",
+                  opacity: headerShadowOpacity,
+                }}
+              />
+            </Animated.View>
+          ),
           headerTitle: () => (
             <AnimatedHeaderText
               opacity={headerOpacity}

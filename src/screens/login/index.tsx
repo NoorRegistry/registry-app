@@ -18,12 +18,13 @@ function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1"
     >
       <ScrollView
-        keyboardShouldPersistTaps="always"
+        keyboardShouldPersistTaps="handled"
         className="flex-1"
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1 }}
       >
         <View className="bg-dark-bg flex-1">
@@ -62,7 +63,7 @@ function LoginScreen() {
               >
                 {t("login.noAccount")}
               </Typography.Text>
-              <Link href="/signup">
+              <Link href={"/signup" as any}>
                 <Typography.Text
                   size="sm"
                   type="success"

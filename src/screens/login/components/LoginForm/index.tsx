@@ -5,7 +5,7 @@ import { ILoginPayload, sendOtp } from "@/services/authentication.service";
 
 import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
-import React from "react";
+import React, { useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import {
@@ -21,6 +21,7 @@ const LoginForm = () => {
   const { t } = useTranslation();
   const colorScheme = useColorScheme();
   const { control, handleSubmit } = useForm<ILoginPayload>();
+  const emailRef = useRef<TextInput | null>(null);
 
   const sendOtpMutation = useMutation({
     mutationFn: (data: ILoginPayload) => sendOtp(data as ILoginPayload),
@@ -59,6 +60,7 @@ const LoginForm = () => {
       >
         {({ field: { onChange, value } }) => (
           <TextInput
+            ref={emailRef}
             placeholder={t("login.emailPlaceholder")}
             onChangeText={onChange}
             value={value}
@@ -67,6 +69,12 @@ const LoginForm = () => {
             placeholderTextColor={
               Colors[colorScheme ?? "light"].placeholderTextColor
             }
+            returnKeyType="done"
+            onSubmitEditing={() => {
+              emailRef.current?.blur();
+              Keyboard.dismiss();
+              handleSubmit((data) => sendOtpMutation.mutate(data))();
+            }}
           />
         )}
       </Form.Item>

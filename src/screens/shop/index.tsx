@@ -67,8 +67,11 @@ export default function ShopScreen() {
           }} // Call refetch directly
         />
       }
-      ListFooterComponent={<GiftItUp />}
-      ListFooterComponentClassName="-mx-4"
+      ListFooterComponent={
+        <View className="-mx-4">
+          <GiftItUp />
+        </View>
+      }
     />
   );
 }

@@ -25,7 +25,7 @@ function NoRegistryCard() {
         />
       </View>
       <Button
-        onPress={() => router.navigate("/(protected)/registry")}
+        onPress={() => router.push("/(protected)/registry/create")}
         title={t("home.getStarted")}
         size="large"
         type="primary"

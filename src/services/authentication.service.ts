@@ -11,9 +11,12 @@ export interface IOtpVerifyPayload {
   otp: string;
 }
 
-export interface ISignupPayload {
-  email: string;
-  password: string;
+export interface IUserInfoUpdate {
+  firstName?: string;
+  lastName?: string;
+  mobileNumber?: string;
+  countryCode?: string;
+  gender?: "Male" | "Female";
 }
 
 export const sendOtp = async (
@@ -45,4 +48,13 @@ export const verifyOtp = async (
 
 export const refreshToken = async (): Promise<IAccessToken> => {
   return await http.get<IAccessToken>(endpoints.authentication.refreshToken);
+};
+
+export const updateUserInfo = async (
+  payload: IUserInfoUpdate,
+): Promise<IAccessToken> => {
+  return await http.patch<IAccessToken>(
+    endpoints.authentication.updateUserInfo,
+    payload,
+  );
 };
