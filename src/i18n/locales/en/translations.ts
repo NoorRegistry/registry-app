@@ -128,7 +128,7 @@ const translations = {
     newRegistry: "New registry",
     createregistry: "Create registry",
     letsCreateRegistry: "Let's create a registry that's uniquely yours!",
-    personalizaYourRegistry: "Personaliza your registry.",
+    personalizaYourRegistry: "Personalize your registry.",
     addPhotoGreeting: "Add a photo and a greeting.",
     title: "Title",
     titlePlaceholder: "Enter registry title",
