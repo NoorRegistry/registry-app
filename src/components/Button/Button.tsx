@@ -30,9 +30,9 @@ interface IButtonProps extends Omit<PressableProps, "children"> {
   loading?: boolean;
   /**
    * The size of the button.
-   * `large`: `44`
-   * `default`: `36`
-   * `small`: `28`
+   * `large`: `56px`
+   * `default`: `36px`
+   * `small`: `28px`
    * Defaults to `default`
    */
   size?: "large" | "small" | "default";
