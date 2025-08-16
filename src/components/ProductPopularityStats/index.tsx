@@ -15,17 +15,21 @@ const ProductPopularityStats = ({
 }: ProductPopularityStatsProps) => {
   const { t } = useTranslation();
 
-  // Don't show if no data or all counts are zero
-  if (
-    !addedInRegistryItemCount ||
-    (addedInRegistryItemCount.lifetime === 0 &&
-      addedInRegistryItemCount.days === 0 &&
-      addedInRegistryItemCount.recentlyAdded === 0)
-  ) {
+  // Don't show if no data
+  if (!addedInRegistryItemCount) {
     return null;
   }
 
   const { lifetime, days, recentlyAdded } = addedInRegistryItemCount;
+
+  // Determine what we'll actually show - prioritize recent stats
+  const showRecentStats = recentlyAdded >= 10 && days > 0;
+  const showLifetimeStats = !showRecentStats && lifetime > 0;
+
+  // Don't show the component at all if we have nothing meaningful to display
+  if (!showRecentStats && !showLifetimeStats) {
+    return null;
+  }
 
   return (
     <View className="py-4">
@@ -42,22 +46,25 @@ const ProductPopularityStats = ({
         </View>
 
         <View className="gap-1">
-          {/* Show most relevant stat first - prioritize recent activity only if it's significant (>=10) */}
-          {recentlyAdded >= 10 && days > 0 ? (
+          {/* Show recent stats if significant */}
+          {showRecentStats && (
             <View className="flex-row items-center">
               <View className="w-2 h-2 rounded-full bg-green-500 mr-2" />
               <Typography.Text size="xs" className="text-green-700">
                 {t("shop.popularityStats", { count: recentlyAdded, days })}
               </Typography.Text>
             </View>
-          ) : lifetime > 0 ? (
+          )}
+
+          {/* Show lifetime stats only when recent stats are not significant */}
+          {showLifetimeStats && (
             <View className="flex-row items-center">
               <UserIcon width={12} height={12} color="#16a34a" />
               <Typography.Text size="xs" className="ml-2 text-green-700">
                 {t("shop.totalTimesAdded", { count: lifetime })}
               </Typography.Text>
             </View>
-          ) : null}
+          )}
         </View>
       </View>
     </View>
