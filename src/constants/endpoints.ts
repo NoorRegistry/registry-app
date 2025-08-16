@@ -5,6 +5,8 @@ const endpoints = {
     register: "/v1/api/users/auth/register",
     refreshToken: "/v1/api/users/auth/refresh",
     updateUserInfo: "/v1/api/users/auth/info",
+    googleLogin: "/v1/api/users/auth/google",
+    appleLogin: "/v1/api/users/auth/apple",
   },
   stores: {
     index: "/v1/api/users/stores",

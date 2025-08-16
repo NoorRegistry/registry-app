@@ -1,17 +1,34 @@
 {
   "cli": {
-    "appVersionSource": "remote"
+    "appVersionSource": "remote",
+    "version": ">= 14.2.0"
   },
   "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "APP_VARIANT": "development",
+        "NODE_ENV": "development"
+      }
+    },
     "preview": {
       "distribution": "internal",
       "channel": "preview",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "APP_VARIANT": "preview",
+        "NODE_ENV": "preview"
+      }
     },
     "production": {
       "distribution": "store",
       "channel": "production",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "APP_VARIANT": "production",
+        "NODE_ENV": "production"
+      }
     }
   },
   "submit": {

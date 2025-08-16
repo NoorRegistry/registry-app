@@ -1,4 +1,5 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { QueryClientProvider, focusManager } from "@tanstack/react-query";
 import { reloadAppAsync } from "expo";
 import { useFonts } from "expo-font";
@@ -57,6 +58,12 @@ const configureLayoutDirection = async (language: string) => {
     await reloadAppAsync();
   }
 };
+
+GoogleSignin.configure({
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_LOGIN_WEBCLIENT,
+  scopes: ["profile", "email"],
+  offlineAccess: true, // Required to get serverAuthCode for backend verification
+});
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();

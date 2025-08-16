@@ -3,11 +3,12 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start",
-    "android": "expo run:android",
-    "android:java17": "export JAVA_HOME=\"/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home\" && expo run:android",
-    "ios": "expo run:ios",
-    "web": "expo start --web",
+    "start": "APP_VARIANT=development expo start",
+    "dev": "APP_VARIANT=development npx expo start",
+    "android": "APP_VARIANT=development expo run:android",
+    "android:java17": "export JAVA_HOME=\"/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home\" && APP_VARIANT=development expo run:android",
+    "ios": "APP_VARIANT=development expo run:ios",
+    "web": "APP_VARIANT=development expo start --web",
     "test": "jest --watchAll",
     "lint": "expo lint",
     "prepare": "husky"
@@ -19,6 +20,7 @@
     "@expo/vector-icons": "^14.1.0",
     "@gorhom/bottom-sheet": "^5.1.6",
     "@react-native-community/netinfo": "11.4.1",
+    "@react-native-google-signin/google-signin": "^15.0.0",
     "@react-navigation/native": "^7.0.0",
     "@tanstack/eslint-plugin-query": "^5.78.0",
     "@tanstack/react-query": "^5.80.6",
@@ -59,7 +61,9 @@
     "react-native-web": "^0.20.0",
     "tailwindcss": "^3.4.17",
     "use-debounce": "^10.0.5",
-    "zustand": "^5.0.5"
+    "zustand": "^5.0.5",
+    "expo-device": "~7.1.4",
+    "expo-apple-authentication": "~7.2.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

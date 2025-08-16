@@ -1,0 +1,71 @@
+{
+  "project_info": {
+    "project_number": "696560448549",
+    "project_id": "registry-app-80b12",
+    "storage_bucket": "registry-app-80b12.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:696560448549:android:f675f73f43a959c6a13bcc",
+        "android_client_info": {
+          "package_name": "com.shiftgiftme.mobile.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "696560448549-2qdp26e92vbml9hvb42vvp5lsrmvfheg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.shiftgiftme.mobile.dev",
+            "certificate_hash": "50b4ee21c87d07c0c07f660723ebd53657509deb"
+          }
+        },
+        {
+          "client_id": "696560448549-hm0n47ojd8fhbdgqiiemcjhsdbh29h4l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.shiftgiftme.mobile.dev",
+            "certificate_hash": "e5cc26959652be0f5dd754e16c0a7fadbe49e32b"
+          }
+        },
+        {
+          "client_id": "696560448549-sq7b58v0d6qf571r1dvakd23ec9rgcg9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.shiftgiftme.mobile.dev",
+            "certificate_hash": "6ee985ab80521d1483c5bc5d42a3d9b93c4eda31"
+          }
+        },
+        {
+          "client_id": "696560448549-5gh2mcdlcc52tajntp05olrri8j6atkr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwICE-PtnM5eIKdmlbllB12xZHqtr7B_8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "696560448549-5gh2mcdlcc52tajntp05olrri8j6atkr.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "696560448549-19ilrirupja8avsv2ojaeo68feg64n9k.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.shiftgiftme.mobile.dev",
+                "app_store_id": "6749792410"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

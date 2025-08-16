@@ -1,5 +1,10 @@
 import Typography from "@/components/Typography";
-import { Link } from "expo-router";
+import constants from "@/constants";
+import { useGlobalStore } from "@/store";
+import { IAccessToken, TLoginMethod } from "@/types";
+import { navigateAfterAuth } from "@/utils/helper";
+import { setStorageItem } from "@/utils/storage";
+import { Link, router } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -11,10 +16,25 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
+import AppleLoginButton from "./components/AppleLogin";
+import GoogleLogin from "./components/GoogleLogin";
 import LoginForm from "./components/LoginForm";
 
 function LoginScreen() {
   const { t } = useTranslation();
+  const signIn = useGlobalStore.use.signIn();
+
+  const handleSignIn = (token: IAccessToken, method: TLoginMethod) => {
+    setStorageItem(constants.ACCESS_TOKEN, JSON.stringify(token));
+    Toast.show({
+      type: "success",
+      text1: t("login.loginSuccessful"),
+    });
+    signIn();
+    // Navigate user based on profile completion status
+    navigateAfterAuth(router);
+  };
 
   return (
     <KeyboardAvoidingView
@@ -53,6 +73,21 @@ function LoginScreen() {
         <View className="flex-shrink-0 rounded-t-2xl -mt-11 bg-white p-6">
           <SafeAreaView edges={["bottom"]}>
             <LoginForm />
+
+            <View className="mt-6 flex w-full">
+              <Typography.Text size="sm" className="my-6">
+                {t("login.orLoginWith")}
+              </Typography.Text>
+            </View>
+
+            <View className="mb-6 flex-row items-center justify-center gap-6">
+              <GoogleLogin handleSignIn={handleSignIn} />
+              {/* <FacebookLogin handleSignIn={handleSignIn} /> */}
+              {Platform.OS === "ios" && (
+                <AppleLoginButton handleSignIn={handleSignIn} />
+              )}
+            </View>
+
             <View
               style={{ direction: I18nManager.isRTL ? "rtl" : "ltr" }}
               className="flex-row gap-3 justify-center mt-8"

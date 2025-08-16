@@ -4,10 +4,12 @@
   <dict>
     <key>CADisableMinimumFrameDurationOnPhone</key>
     <true/>
+    <key>CFBundleAllowMixedLocalizations</key>
+    <true/>
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>Shift Gift Me</string>
+    <string>Dev Shift Gift Me</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -28,7 +30,13 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>shiftgiftme</string>
-          <string>com.shiftgiftme.mobile</string>
+          <string>com.shiftgiftme.mobile.dev</string>
+        </array>
+      </dict>
+      <dict>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>com.googleusercontent.apps.696560448549-19ilrirupja8avsv2ojaeo68feg64n9k</string>
         </array>
       </dict>
       <dict>

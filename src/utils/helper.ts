@@ -6,6 +6,7 @@ import { queryClient } from "@/api/queryClient";
 import constants from "@/constants";
 import { IAccessToken, IProductCategory, ITokenInfo } from "@/types";
 import { getStorageItem, setStorageItem } from "@/utils/storage";
+import type { Router } from "expo-router";
 
 export const isAuthenticated = (): boolean => {
   const token = getStorageItem(constants.ACCESS_TOKEN);
@@ -145,3 +146,27 @@ export function formatPrice(price: number = 0, currencyCode?: string): string {
     return `${currencyCode} ${price.toFixed(2)}`;
   }
 }
+
+/**
+ * Navigate user after successful authentication based on profile completion status
+ * This function checks if user needs to complete profile and navigates accordingly
+ */
+export const navigateAfterAuth = (router: Router): void => {
+  const decoded = getDecodedToken();
+
+  // Determine target route
+  const targetRoute = decoded?.user?.getUserData
+    ? "/complete-profile"
+    : "/(protected)/(tabs)";
+
+  // Try dismissAll if available and safe, otherwise just replace
+  try {
+    if (router.canDismiss && router.canDismiss() && router.dismissAll) {
+      router.dismissAll();
+    }
+  } catch {
+    // Ignore dismissAll errors and continue with replace
+  }
+
+  router.replace(targetRoute as any);
+};

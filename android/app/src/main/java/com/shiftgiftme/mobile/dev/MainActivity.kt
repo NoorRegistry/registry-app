@@ -1,4 +1,4 @@
-package com.shiftgiftme.mobile
+package com.shiftgiftme.mobile.dev
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build
