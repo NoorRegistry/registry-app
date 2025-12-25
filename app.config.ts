@@ -2,12 +2,7 @@ import { ConfigContext, ExpoConfig } from "expo/config";
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   const APP_VARIANT = process.env.APP_VARIANT || "development";
-  console.log(
-    "env variables",
-    APP_VARIANT,
-    process.env.NODE_ENV,
-    process.env.MY_ENV,
-  );
+  console.log("env variables", APP_VARIANT, process.env.NODE_ENV);
   const IS_DEV = APP_VARIANT === "development";
 
   const getAppName = () => {

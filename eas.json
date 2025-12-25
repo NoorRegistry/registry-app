@@ -18,7 +18,7 @@
       "autoIncrement": true,
       "env": {
         "APP_VARIANT": "preview",
-        "NODE_ENV": "preview"
+        "NODE_ENV": "test"
       }
     },
     "production": {

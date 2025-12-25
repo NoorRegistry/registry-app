@@ -1,6 +1,6 @@
 declare namespace NodeJS {
   interface ProcessEnv {
-    NODE_ENV: "development" | "production" | "preview";
+    NODE_ENV: "development" | "production" | "test";
     APP_VARIANT: "development" | "production" | "preview";
     EXPO_PUBLIC_API_URL: string;
     EXPO_PUBLIC_ASSET_URL: string;
