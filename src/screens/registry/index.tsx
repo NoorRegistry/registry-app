@@ -15,6 +15,8 @@ function RegistryScreen() {
   const selectedRegistryId = useGlobalStore(
     (state) => state.selectedRegistryId,
   );
+  console.log("🚀 ~ RegistryScreen ~ selectedRegistryId:", selectedRegistryId);
+
   const setSelectedRegistryId = useGlobalStore(
     (state) => state.setSelectedRegistryId,
   );
@@ -25,7 +27,7 @@ function RegistryScreen() {
   });
 
   useEffect(() => {
-    if (registries && registries.length) {
+    if (registries?.length) {
       if (selectedRegistryId !== registries?.[0]?.id)
         setSelectedRegistryId(registries?.[0]?.id);
     }
@@ -44,30 +46,28 @@ function RegistryScreen() {
   if (isFetchingRegistries || isFetchingRegistryDetails)
     return <LoadingScreen />;
 
-  if (registries && registries.length === 0) return <RegistryCard />;
+  if (registries?.length === 0) return <RegistryCard />;
 
   if (!registryDetails)
     return <Typography.Text>No details found</Typography.Text>;
 
   return (
-    <>
-      <SectionList
-        sections={registryDetails.registryItems.items}
-        keyExtractor={(item) => item.id}
-        ListHeaderComponent={<RegistryHeader registry={registryDetails} />}
-        ListEmptyComponent={<EmptyRegistry />}
-        renderSectionHeader={({ section }) => (
-          <View className="px-4 py-2 mb-2 bg-white">
-            <Typography.Text type="secondary" size="base">
-              {getEnArName(section.nameEn, section.nameAr)} (
-              {section.data.length})
-            </Typography.Text>
-          </View>
-        )}
-        renderSectionFooter={() => <View className="mb-2" />}
-        renderItem={({ item }) => <RegistryItem registryItem={item} />}
-      />
-    </>
+    <SectionList
+      sections={registryDetails.registryItems.items}
+      keyExtractor={(item) => item.id}
+      ListHeaderComponent={<RegistryHeader registry={registryDetails} />}
+      ListEmptyComponent={<EmptyRegistry />}
+      renderSectionHeader={({ section }) => (
+        <View className="px-4 py-2 mb-2 bg-white">
+          <Typography.Text type="secondary" size="base">
+            {getEnArName(section.nameEn, section.nameAr)} ({section.data.length}
+            )
+          </Typography.Text>
+        </View>
+      )}
+      renderSectionFooter={() => <View className="mb-2" />}
+      renderItem={({ item }) => <RegistryItem registryItem={item} />}
+    />
   );
 }
 

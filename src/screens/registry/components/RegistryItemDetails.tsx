@@ -144,7 +144,7 @@ function RegistryItemDetails() {
                 placeholder={t("registry.noteForRegistryItemPlaceholder")}
                 onChangeText={(text) => setItemNote(text)}
                 value={itemNote}
-                className="min-h-20 rounded-lg bg-neutral-100 p-4 font-Poppinsregular text-black"
+                className="min-h-20 rounded bg-neutral-100 p-4 font-Poppinsregular text-black"
                 textAlign={I18nManager.isRTL ? "right" : "left"}
                 placeholderTextColor={
                   Colors[colorScheme ?? "light"].placeholderTextColor
@@ -320,7 +320,7 @@ const MarkPurchasedForm = ({
                 </Typography.Text>
                 <TextInput
                   placeholder={t("registry.purchaserName")}
-                  className="rounded-lg p-4 bg-neutral-100 font-Poppinsregular text-black text-xs"
+                  className="rounded p-4 bg-neutral-100 font-Poppinsregular text-black text-xs"
                   onChangeText={setName}
                 />
                 {showError && !name && (

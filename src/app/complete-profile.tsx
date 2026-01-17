@@ -20,12 +20,12 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
   TextInput,
   useColorScheme,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
 export default function CompleteProfileScreen() {
@@ -50,7 +50,7 @@ export default function CompleteProfileScreen() {
   });
 
   return (
-    <SafeAreaView className="flex-1 bg-white px-6 pt-10">
+    <SafeAreaView className="flex-1 bg-white px-6">
       <Stack.Screen
         options={{
           title: "",
@@ -68,7 +68,7 @@ export default function CompleteProfileScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Typography.Text size="xl" weight="bold" className="mb-6 text-center">
+          <Typography.Text size="xl" weight="bold" className="mb-6">
             {t("common.completeProfile")}
           </Typography.Text>
           <View className="gap-4 flex-1">
@@ -84,7 +84,7 @@ export default function CompleteProfileScreen() {
                   onChangeText={onChange}
                   value={value}
                   placeholder={t("common.firstName")}
-                  className="h-14 rounded-lg bg-neutral-100 px-4 font-Poppinsregular text-black"
+                  className="h-14 rounded bg-neutral-100 px-4 font-Poppinsregular text-black"
                   textAlign={I18nManager.isRTL ? "right" : "left"}
                   placeholderTextColor={
                     Colors[colorScheme ?? "light"].placeholderTextColor
@@ -106,7 +106,7 @@ export default function CompleteProfileScreen() {
                   onChangeText={onChange}
                   value={value}
                   placeholder={t("common.lastName")}
-                  className="h-14 rounded-lg bg-neutral-100 px-4 font-Poppinsregular text-black"
+                  className="h-14 rounded bg-neutral-100 px-4 font-Poppinsregular text-black"
                   textAlign={I18nManager.isRTL ? "right" : "left"}
                   placeholderTextColor={
                     Colors[colorScheme ?? "light"].placeholderTextColor

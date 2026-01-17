@@ -6,7 +6,6 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   TouchableOpacity,
   useColorScheme,
   View,
@@ -24,6 +23,7 @@ import { useGlobalStore } from "@/store";
 import { IAccessToken } from "@/types";
 import { navigateAfterAuth } from "@/utils/helper";
 import { setStorageItem } from "@/utils/storage";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function VerifyOtpScreen() {
   const { t } = useTranslation();
@@ -128,20 +128,12 @@ export default function VerifyOtpScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
-        <View className="flex-1 justify-center px-6">
+        <View className="flex-1 px-6">
           <View className="mb-8">
-            <Typography.Text
-              size="2xl"
-              weight="bold"
-              className="text-center mb-2"
-            >
+            <Typography.Text size="2xl" weight="bold" className="mb-2">
               {t("login.confirmationCode")}
             </Typography.Text>
-            <Typography.Text
-              size="base"
-              weight="regular"
-              className="text-center"
-            >
+            <Typography.Text size="base" weight="regular">
               <Trans
                 i18nKey="login.emailSentTo"
                 values={{ email }}
@@ -175,7 +167,7 @@ export default function VerifyOtpScreen() {
                 },
                 pinCodeContainerStyle: {
                   backgroundColor: Colors[colorScheme ?? "light"].background,
-                  borderColor: Colors[colorScheme ?? "light"].tabIconDefault,
+                  borderColor: Colors[colorScheme ?? "light"].neutral300,
                   borderWidth: 1,
                   borderRadius: 8,
                   width: 50,
@@ -190,7 +182,7 @@ export default function VerifyOtpScreen() {
                   backgroundColor: Colors[colorScheme ?? "light"].tint,
                 },
                 focusedPinCodeContainerStyle: {
-                  borderColor: Colors[colorScheme ?? "light"].tint,
+                  borderColor: Colors[colorScheme ?? "light"].neutral300,
                   borderWidth: 2,
                 },
               }}

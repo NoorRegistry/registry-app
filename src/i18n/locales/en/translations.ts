@@ -1,9 +1,9 @@
 const translations = {
   login: {
     loginToAccount: "Login to Your Account",
-    orLoginWith: "Or login with",
+    orLoginWith: "Or Sign in with",
     login: "Login",
-    confirmationCode: "Verification code",
+    confirmationCode: "Enter the OTP",
     emailSentTo:
       "Enter the verification code we sent to <bold>{{email}}</bold>",
     didNotGetCode: "Didn't receive the code?",
@@ -32,6 +32,7 @@ const translations = {
     enterValidOtp: "Please enter a valid 6-digit OTP",
     otpVerificationFailed: "OTP verification failed",
     didntReceiveOtp: "Didn't receive the code?",
+    signinMsg: "Sign in to your Account",
   },
   common: {
     login: "Log In",
@@ -79,15 +80,15 @@ const translations = {
     error: "Something went wrong",
   },
   onboard: {
-    title1: "Discover Open Tales.",
+    title1: "Gifting, Reimagined",
     description1:
-      "Therapeutic audio stories that help your child cope with difficult emotions.",
-    title2: "It's not just interesting stories.",
+      "Create thoughtful registries for weddings, baby showers, graduations, and more — all in one place.",
+    title2: "Your moments, your way.",
     description2:
-      "The stories have a therapeutic effect, regulating strong emotions and developing psychological skills.",
-    title3: "Discover the power of stories.",
+      "Customize your registry to match your style, preferences, and what truly matters most.",
+    title3: "Share the Joy",
     description3:
-      "Each story develops your child's imagination and encourages conversation and reflection.",
+      "Easily share your registry with friends and family, track gifts, and send thank-yous with ease.",
     letsStart: "Let's Get Started",
   },
   home: {
@@ -129,6 +130,26 @@ const translations = {
     markAnotherPurchase_zero: "Mark as purchased",
     markAnotherPurchase_other: "Mark another purchase",
     guestView: "Guest view",
+    visibilityPrivacy: "Visibility & Privacy",
+    visibilityPublicDescription:
+      "Visitors can search ShiftGiftMe to find your registry.",
+    visibilityPrivateDescription:
+      "Visitors must have the direct link to your registry.",
+    passwordRequired: "Visitors need a password to access your registry.",
+    registryPassword: "Registry password",
+    registryPasswordPlaceholder: "Enter a password",
+    recordPurchaseTitle: "Record your purchase",
+    recordPurchaseSubtitle: "Prevent others from purchasing the same item.",
+    giftFromQuestion: "Who is this gift from?",
+    guestNameLabel: "Name",
+    guestEmailLabel: "Email address",
+    purchaseRecorded: "Purchase recorded",
+    wantsCount: "Wants: {{count}}",
+    howManyPurchased: "How many did you buy?",
+    recordPurchaseCta: "Record purchase",
+    purchasedSection: "Purchased ({{count}})",
+    purchasedLabel: "Purchased",
+    purchasedByYouLabel: "Purchased by you",
     itemAddedToregistry: "Item added to registry",
     newRegistry: "New registry",
     createregistry: "Create registry",

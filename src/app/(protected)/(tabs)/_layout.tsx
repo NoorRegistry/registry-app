@@ -40,17 +40,17 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="registry"
-        options={{
-          title: t("common.registry"),
-          tabBarIcon: ({ color }) => <RegistryIcon color={color} />,
-        }}
-      />
-      <Tabs.Screen
         name="search"
         options={{
           title: t("common.search"),
           tabBarIcon: ({ color }) => <SearchIcon color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="registry"
+        options={{
+          title: t("common.registry"),
+          tabBarIcon: ({ color }) => <RegistryIcon color={color} />,
         }}
       />
       <Tabs.Screen

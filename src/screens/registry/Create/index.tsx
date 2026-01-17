@@ -197,7 +197,7 @@ function CreateRegistryScreen() {
                         placeholder={t("registry.titlePlaceholder")}
                         onChangeText={onChange}
                         value={value}
-                        className="h-14 rounded-lg bg-white px-4 font-Poppinsregular text-black"
+                        className="h-14 rounded bg-white px-4 font-Poppinsregular text-black"
                         textAlign={I18nManager.isRTL ? "right" : "left"}
                         placeholderTextColor={
                           Colors[colorScheme ?? "light"].placeholderTextColor
@@ -218,7 +218,7 @@ function CreateRegistryScreen() {
                           placeholder={t("registry.greetingsPlaceholder")}
                           onChangeText={onChange}
                           value={value}
-                          className="w-full h-28 rounded-lg bg-white p-4 font-Poppinsregular text-black"
+                          className="w-full h-28 rounded bg-white p-4 font-Poppinsregular text-black"
                           placeholderTextColor={
                             Colors[colorScheme ?? "light"].placeholderTextColor
                           }

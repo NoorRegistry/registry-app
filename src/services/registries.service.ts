@@ -8,6 +8,7 @@ import {
   IRegistryCategory,
   IRegistryDetails,
   IRegistryItemDetails,
+  IUpdateRegistryPayload,
 } from "@/types";
 
 export const fetchRegistries = async () => {
@@ -23,6 +24,15 @@ export const fetchRegistriesCategories = async () => {
 export const fetchRegistry = async (id: string) => {
   return await http.get<IRegistryDetails>(
     `${endpoints.registries.index}/${id}`,
+  );
+};
+
+export const fetchRegistryGuestView = async (id: string, code?: string) => {
+  const query = `id=${encodeURIComponent(id)}${
+    code ? `&code=${encodeURIComponent(code)}` : ""
+  }`;
+  return await http.get<IRegistryDetails>(
+    `${endpoints.registries.index}/guest-view?${query}`,
   );
 };
 
@@ -47,4 +57,14 @@ export const postRegistryItemPurchase = async (
   payload: ICreateRegistryItemPurchase,
 ) => {
   return await http.post<IRegistry>(endpoints.registries.purchase, payload);
+};
+
+export const updateRegistry = async (
+  id: string,
+  payload: IUpdateRegistryPayload,
+): Promise<IRegistryDetails> => {
+  return await http.patch<IRegistryDetails>(
+    `${endpoints.registries.index}/${id}`,
+    payload,
+  );
 };

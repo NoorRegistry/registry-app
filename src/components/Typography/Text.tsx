@@ -137,7 +137,7 @@ function getTextColor(type: IText["type"]): string {
       fontColor = "text-neutral-600";
       break;
     case "primary":
-      fontColor = "text-primary-600";
+      fontColor = "text-primary-500";
       break;
     case "success":
       fontColor = "text-success";

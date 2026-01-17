@@ -47,44 +47,36 @@ function LoginScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1 }}
       >
-        <View className="bg-dark-bg flex-1">
-          <Image
-            className="absolute"
-            source={require("@assets/images/login/login-bg.png")}
-          />
-          <SafeAreaView edges={["top"]} className="flex-1 pb-11">
-            <View className="flex-1 justify-end p-6">
-              <Typography.Text
-                weight="bold"
-                size="2xl"
-                className="text-white text-center"
-              >
-                {t("common.login")}
-              </Typography.Text>
-              <Typography.Text
-                size="base"
-                className="text-white text-center mt-2"
-              >
-                {t("login.signInToExistingAccount")}
-              </Typography.Text>
-            </View>
-          </SafeAreaView>
+        <View className="bg-primary-50 flex-1">
+          <View className="items-center justify-center pt-20 pb-10">
+            <Image
+              className="max-w-[320px]"
+              resizeMode="contain"
+              source={require("@assets/images/logo/fulllogo.png")}
+            />
+          </View>
         </View>
         <View className="flex-shrink-0 rounded-t-2xl -mt-11 bg-white p-6">
           <SafeAreaView edges={["bottom"]}>
             <LoginForm />
 
-            <View className="mt-6 flex w-full">
-              <Typography.Text size="sm" className="my-6">
+            <View className="my-6 flex-row items-center w-full">
+              <View className="h-px flex-1 bg-neutral-200" />
+              <Typography.Text size="sm" className="mx-4 text-neutral-500">
                 {t("login.orLoginWith")}
               </Typography.Text>
+              <View className="h-px flex-1 bg-neutral-200" />
             </View>
 
-            <View className="mb-6 flex-row items-center justify-center gap-6">
-              <GoogleLogin handleSignIn={handleSignIn} />
+            <View className="mb-6 flex-row items-center w-full gap-6">
+              <View className="flex-1">
+                <GoogleLogin handleSignIn={handleSignIn} />
+              </View>
               {/* <FacebookLogin handleSignIn={handleSignIn} /> */}
               {Platform.OS === "ios" && (
-                <AppleLoginButton handleSignIn={handleSignIn} />
+                <View className="flex-1">
+                  <AppleLoginButton handleSignIn={handleSignIn} />
+                </View>
               )}
             </View>
 

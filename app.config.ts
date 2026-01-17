@@ -8,11 +8,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const getAppName = () => {
     switch (APP_VARIANT) {
       case "preview":
-        return "Preview Shift Gift Me";
+        return "Preview Shop Simplist";
       case "production":
-        return "Shift Gift Me";
+        return "Shop Simplist";
       default:
-        return "Dev Shift Gift Me";
+        return "Dev Shop Simplist";
     }
   };
 
@@ -27,9 +27,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
     splash: {
-      image: "./assets/images/splash-icon.png",
+      image: "./assets/images/splash.png",
       resizeMode: "contain",
-      backgroundColor: "#ffffff",
+      backgroundColor: "#FAF2F0",
     },
     ios: {
       supportsTablet: true,
@@ -47,7 +47,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     android: {
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
-        backgroundColor: "#ffffff",
+        backgroundColor: "#FAF2F0",
       },
       package: IS_DEV ? "com.shiftgiftme.mobile.dev" : "com.shiftgiftme.mobile",
       softwareKeyboardLayoutMode: "pan",

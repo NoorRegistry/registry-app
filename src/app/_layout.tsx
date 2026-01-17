@@ -76,11 +76,11 @@ export default function RootLayout() {
   const { i18n } = useTranslation();
 
   const [loaded, error] = useFonts({
-    Poppinsextralight: require("@assets/fonts/Poppins-ExtraLight.ttf"),
-    Poppinslight: require("@assets/fonts/Poppins-Light.ttf"),
-    Poppinsregular: require("@assets/fonts/Poppins-Regular.ttf"),
-    Poppinsmedium: require("@assets/fonts/Poppins-Medium.ttf"),
-    Poppinsbold: require("@assets/fonts/Poppins-Bold.ttf"),
+    Poppinsextralight: require("@assets/fonts/OpenSans-Light.ttf"),
+    Poppinslight: require("@assets/fonts/OpenSans-Light.ttf"),
+    Poppinsregular: require("@assets/fonts/OpenSans-Regular.ttf"),
+    Poppinsmedium: require("@assets/fonts/OpenSans-Medium.ttf"),
+    Poppinsbold: require("@assets/fonts/OpenSans-Bold.ttf"),
     Tajawalextralight: require("@assets/fonts/Tajawal-ExtraLight.ttf"),
     Tajawallight: require("@assets/fonts/Tajawal-Light.ttf"),
     Tajawalregular: require("@assets/fonts/Tajawal-Regular.ttf"),

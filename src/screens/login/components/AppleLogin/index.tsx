@@ -1,4 +1,5 @@
 import { useLoadingOverlay } from "@/components/Loader/LoadingContext";
+import Typography from "@/components/Typography";
 import { appleLogin } from "@/services/authentication.service";
 import { IAccessToken, TLoginMethod } from "@/types";
 import { useMutation } from "@tanstack/react-query";
@@ -78,15 +79,16 @@ const AppleLoginButton = ({
   };
 
   return (
-    <>
-      <Pressable
-        disabled={appleLoginMutation.isPending}
-        className="h-14 w-20 items-center justify-center rounded-lg border border-primary-500 dark:border-black"
-        onPress={handlePress}
-      >
-        <Image source={require("@assets/icons/social-icons/apple.png")} />
-      </Pressable>
-    </>
+    <Pressable
+      disabled={appleLoginMutation.isPending}
+      className="h-14 w-full items-center justify-center flex-row rounded-lg border border-neutral-100 gap-3"
+      onPress={handlePress}
+    >
+      <Image source={require("@assets/icons/social-icons/apple.png")} />
+      <Typography.Text weight="bold" size="base">
+        Apple
+      </Typography.Text>
+    </Pressable>
   );
 };
 

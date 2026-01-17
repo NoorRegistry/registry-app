@@ -110,7 +110,7 @@ const StoresScreen = () => {
                   <TextInput
                     placeholder={t("shop.searchStoresPlaceholder")}
                     onChangeText={handleSearch}
-                    className="h-8 rounded-lg  px-4 font-Poppinsregular text-black"
+                    className="h-8 rounded  px-4 font-Poppinsregular text-black"
                     textAlign={I18nManager.isRTL ? "right" : "left"}
                     placeholderTextColor={
                       Colors[colorScheme ?? "light"].placeholderTextColor

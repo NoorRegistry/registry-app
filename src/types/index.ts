@@ -128,6 +128,7 @@ export interface IRegistry {
 export interface IRegistryDetails extends IRegistry {
   greeting: string | null;
   isProtected: boolean;
+  code?: string | null;
   purchased: {
     items: IRegistryPurchaseCategorySection[];
   };
@@ -154,6 +155,7 @@ export interface IPurchasedItem {
   id: string;
   product: TProductCard;
   qty: number;
+  purchasedByYou?: boolean;
 }
 
 export interface IRegistryItem {
@@ -228,6 +230,12 @@ export interface ICreateRegistryPayload {
   categoryId: string;
   logo?: string;
   greeting?: string;
+  code?: string;
+}
+
+export interface IUpdateRegistryPayload {
+  visibility?: "Private" | "Public";
+  isProtected?: boolean;
   code?: string;
 }
 

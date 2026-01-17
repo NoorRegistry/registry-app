@@ -1,5 +1,6 @@
 import { Button } from "@/components/Button";
 import Form from "@/components/Form";
+import Typography from "@/components/Typography";
 import { Colors } from "@/constants/Colors";
 import { ILoginPayload, sendOtp } from "@/services/authentication.service";
 
@@ -24,8 +25,8 @@ const LoginForm = () => {
   const emailRef = useRef<TextInput | null>(null);
 
   const sendOtpMutation = useMutation({
-    mutationFn: (data: ILoginPayload) => sendOtp(data as ILoginPayload),
-    onSuccess: (data, variables) => {
+    mutationFn: (data: ILoginPayload) => sendOtp(data),
+    onSuccess: (_, variables) => {
       console.log("OTP sent successfully");
 
       // Navigate to OTP verification screen with email
@@ -45,6 +46,9 @@ const LoginForm = () => {
 
   return (
     <View className="flex w-full gap-4">
+      <Typography.Text size="xl" weight="bold" className="my-0">
+        {t("login.signinMsg")}
+      </Typography.Text>
       <Form.Item
         name="email"
         label={t("common.email")}
@@ -64,7 +68,7 @@ const LoginForm = () => {
             placeholder={t("login.emailPlaceholder")}
             onChangeText={onChange}
             value={value}
-            className="h-14 rounded-lg bg-neutral-100 px-4 font-Poppinsregular text-black"
+            className="h-14 rounded bg-neutral-100 px-4 font-Poppinsregular text-black"
             textAlign={I18nManager.isRTL ? "right" : "left"}
             placeholderTextColor={
               Colors[colorScheme ?? "light"].placeholderTextColor
@@ -78,45 +82,7 @@ const LoginForm = () => {
           />
         )}
       </Form.Item>
-      {/* <Form.Item
-        name="password"
-        label={t("login.password")}
-        rules={{
-          required: t("login.enterValidPassword"),
-          pattern: {
-            value:
-              /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/,
-            message: t("login.enterValidPassword"),
-          },
-        }}
-        control={control}
-      >
-        {({ field: { onChange, value } }) => (
-          <View className="flex-row items-center">
-            <TextInput
-              placeholder={t("login.enterPassword")}
-              onChangeText={onChange}
-              secureTextEntry={!showPassword}
-              value={value}
-              className="w-full h-14 rounded-lg bg-neutral-100 ps-4 pe-10 font-Poppinsregular text-black"
-              placeholderTextColor={
-                Colors[colorScheme ?? "light"].placeholderTextColor
-              }
-              textAlign={I18nManager.isRTL ? "right" : "left"}
-            />
-            <Feather
-              name={showPassword ? "eye-off" : "eye"}
-              className="absolute end-3"
-              size={20}
-              color={Colors[colorScheme ?? "light"].tabIconDefault}
-              suppressHighlighting={true}
-              onPress={() => {
-                setShowPassword((prev) => !prev);
-              }}
-            />
-          </View>
-        )}
-      </Form.Item> */}
+
       <Button
         loading={sendOtpMutation.isPending}
         type="primary"

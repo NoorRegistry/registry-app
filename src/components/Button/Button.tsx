@@ -80,7 +80,7 @@ export default function Button(props: IButtonProps) {
         getHeight(size),
         getButtonColorSettings(type, ghost),
         (disabled || loading) && "opacity-65",
-        rounded ? "rounded-full" : "rounded-lg",
+        rounded ? "rounded-full" : "rounded",
         className,
       )}
       disabled={disabled || loading}

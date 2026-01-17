@@ -1,4 +1,5 @@
 import { useLoadingOverlay } from "@/components/Loader/LoadingContext";
+import Typography from "@/components/Typography";
 import { googleLogin } from "@/services/authentication.service";
 import { IAccessToken, TLoginMethod } from "@/types";
 import {
@@ -75,15 +76,16 @@ const GoogleLogin = ({
   };
 
   return (
-    <>
-      <Pressable
-        disabled={googleLoginMutation.isPending}
-        className="h-14 w-20 items-center justify-center rounded-lg border border-primary-500 dark:border-black"
-        onPress={handlePress}
-      >
-        <Image source={require("@assets/icons/social-icons/google.png")} />
-      </Pressable>
-    </>
+    <Pressable
+      disabled={googleLoginMutation.isPending}
+      className="h-14 w-full items-center justify-center flex-row rounded-lg border border-neutral-100 gap-3"
+      onPress={handlePress}
+    >
+      <Image source={require("@assets/icons/social-icons/google.png")} />
+      <Typography.Text weight="bold" size="base">
+        Google
+      </Typography.Text>
+    </Pressable>
   );
 };
 
