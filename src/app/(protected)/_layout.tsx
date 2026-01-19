@@ -10,7 +10,7 @@ const AuthLayout = () => {
   const isAuthenticated = useGlobalStore.use.isAuthenticated();
   const isOnboarded = getStorageItem(constants.ONBOARDING_STORAGE_KEY);
 
-  if (isOnboarded) {
+  if (!isOnboarded) {
     return <Redirect href="/onboard" />;
   }
 
