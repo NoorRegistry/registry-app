@@ -51,7 +51,6 @@ function CreateRegistryScreen() {
     queryKey: ["registryCategories"],
     queryFn: () => fetchRegistriesCategories(),
   });
-
   const createRegistryMutation = useMutation({
     mutationFn: (data: ICreateRegistryPayload) => postRegistry(data),
     onSuccess: (data) => {
@@ -140,14 +139,22 @@ function CreateRegistryScreen() {
                           <TouchableOpacity
                             key={category.id}
                             style={{ width: cardWidth }}
-                            className="mb-4 rounded-xl shadow-sm shadow-neutral-100 gap-2 p-2"
+                            className="mb-4 rounded-xl bg-primary-50 border border-primary-100 shadow-sm shadow-neutral-100 gap-2 px-4 py-8"
                             onPress={() => handleCardPress(category.id)}
                           >
-                            <View className="justify-center items-center py-6">
+                            <View className="justify-center items-center">
                               <Image
-                                source={{
-                                  uri: getImageUrl(category.registryBackground),
-                                }}
+                                source={
+                                  category.registryBackground ||
+                                  category.registryPlaceHolder
+                                    ? {
+                                        uri: getImageUrl(
+                                          category.registryBackground ??
+                                            category.registryPlaceHolder,
+                                        ),
+                                      }
+                                    : require("@assets/images/icon.png")
+                                }
                                 style={{
                                   width: 50,
                                   height: 50,
@@ -160,7 +167,7 @@ function CreateRegistryScreen() {
                               ellipsizeMode="tail"
                               weight="medium"
                               size="sm"
-                              className="text-center w-full text-gray-700 flex-1"
+                              className="text-center w-full text-gray-700 flex-1 mt-2"
                             >
                               {getEnArName(category.nameEn, category.nameAr)}
                             </Typography.Text>

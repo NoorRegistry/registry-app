@@ -112,6 +112,7 @@ export interface IRegistry {
   id: string;
   title: string;
   logo: string;
+  categoryId?: string;
   isActive: boolean;
   visibility: "Private" | "Public";
   _count: {
@@ -119,9 +120,10 @@ export interface IRegistry {
     totalPurchased: number;
   };
   category: {
-    id: string;
-    nameEn: string;
-    nameAr: string;
+    id?: string;
+    nameEn?: string;
+    nameAr?: string;
+    name?: string;
   };
 }
 
@@ -223,8 +225,8 @@ export interface IRegistryCategory {
   nameAr: string;
   descriptionEn: string;
   descriptionAr: string;
-  registryBackground: string;
-  registryPlaceHolder: string;
+  registryBackground: string | null;
+  registryPlaceHolder: string | null;
 }
 
 export interface ICreateRegistryPayload {

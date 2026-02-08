@@ -98,7 +98,8 @@ export const getUserSub = () => {
 /**
  * Function to get the image path prefixed with asset domain
  */
-export const getImageUrl = (path: string): string => {
+export const getImageUrl = (path?: string | null): string => {
+  if (!path) return "";
   const BASE_URL = process.env.EXPO_PUBLIC_ASSET_URL;
   return `${BASE_URL}${path}`;
 };

@@ -23,7 +23,7 @@ export const themes = {
     "--color-neutral-700": "#374151",
     "--color-neutral-800": "#1f2937",
     "--color-neutral-900": "#111827",
-    "--color-primary-50": "#FAF2F0",
+    "--color-primary-50": "#FAF7F6",
     "--color-primary-100": "#F0D8D1",
     "--color-primary-200": "#E9C5BA",
     "--color-primary-300": "#DFAB9B",
