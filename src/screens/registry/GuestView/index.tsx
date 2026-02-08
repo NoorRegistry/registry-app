@@ -482,6 +482,7 @@ function GuestPurchaseSheet({
         purchased: { items: purchasedSections },
       };
     },
+    [],
   );
 
   const purchaseMutation = useMutation({

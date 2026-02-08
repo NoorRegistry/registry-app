@@ -4,10 +4,10 @@ import { fetchRegistries } from "@/services/registries.service";
 import { useGlobalStore } from "@/store";
 import { IRegistry } from "@/types";
 import { useQuery } from "@tanstack/react-query";
+import { ImageBackground } from "expo-image";
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Dimensions, View } from "react-native";
-import Svg, { Defs, LinearGradient, Path, Rect, Stop } from "react-native-svg";
+import { View } from "react-native";
 import RegistrySkeleton from "./RegistryCardSkeleton";
 
 export default function RegistryCard() {
@@ -34,79 +34,31 @@ export default function RegistryCard() {
 
   return (
     <View className="relative">
-      <WiderHalfOval boxHeight={150} />
       <View className="w-full mb-6 items-center px-4">
         {isFetchingRegistries ? (
           <RegistrySkeleton />
         ) : (
-          <View className="p-6 w-full mt-12 bg-white rounded-2xl shadow-sm">
-            {registries && registries.length ? (
-              <DisplaySelectedRegistryInfo registry={registries?.[0]} />
-            ) : (
-              <NoRegistryCard />
-            )}
+          <View className="w-full mt-6 rounded-2xl shadow-sm overflow-hidden">
+            <ImageBackground
+              source={require("@assets/images/home/create-registry-background.jpg")}
+              contentFit="cover"
+              className="flex-1"
+              style={{ width: "100%" }}
+            >
+              <View className="p-6">
+                {registries?.length ? (
+                  <DisplaySelectedRegistryInfo registry={registries?.[0]} />
+                ) : (
+                  <NoRegistryCard />
+                )}
+              </View>
+            </ImageBackground>
           </View>
         )}
       </View>
     </View>
   );
 }
-
-const { width } = Dimensions.get("window");
-
-const WiderHalfOval = ({ boxHeight }: { boxHeight: number }) => {
-  const extendedWidth = width; // Use screen width
-  const ovalHeight = 100; // Fixed height for the curved part
-
-  return (
-    <View className="absolute">
-      <Svg
-        width={extendedWidth}
-        height={boxHeight + ovalHeight} // Combine the square height and the fixed curved height
-        viewBox={`0 0 ${extendedWidth} ${boxHeight + ovalHeight}`}
-      >
-        <Defs>
-          <LinearGradient id="gradient" x1="0" y1="0" x2="1" y2="0">
-            <Stop offset="0%" stopColor="#c3ccdd" />
-            <Stop offset="50%" stopColor="#788aad" />
-            <Stop offset="100%" stopColor="#3e598e" />
-          </LinearGradient>
-        </Defs>
-
-        {/* Gradient-Filled Square */}
-        <Rect
-          x="0"
-          y="0"
-          width={extendedWidth}
-          height={boxHeight}
-          fill="url(#gradient)"
-        />
-
-        {/* Transparent Curved Part */}
-        <Path
-          d={`M 0 ${boxHeight} 
-              L 0 ${boxHeight + ovalHeight}
-              Q ${extendedWidth / 2} ${boxHeight}, 
-              ${extendedWidth} ${boxHeight + ovalHeight}
-              L ${extendedWidth} ${boxHeight}
-              Z`}
-          fill="white" // Background color (transparent area)
-        />
-
-        {/* Gradient-Filled Overlay */}
-        <Path
-          d={`M 0 ${boxHeight} 
-              Q ${extendedWidth / 2} ${boxHeight + ovalHeight}, 
-              ${extendedWidth} ${boxHeight}
-              L ${extendedWidth} 0
-              L 0 0
-              Z`}
-          fill="url(#gradient)"
-        />
-      </Svg>
-    </View>
-  );
-};
 
 const DisplaySelectedRegistryInfo = ({ registry }: { registry: IRegistry }) => {
   const { t } = useTranslation();

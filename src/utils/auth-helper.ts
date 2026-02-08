@@ -34,6 +34,7 @@ export const handleRefreshToken = async () => {
       }
     }
   } catch (error) {
+    setStorageItem(constants.ACCESS_TOKEN, null);
     console.error("error", error);
     throw new Error("Problem retrieving refresh token");
   }

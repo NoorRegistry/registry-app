@@ -9,8 +9,9 @@ import {
 } from "@/services/registries.service";
 import { useGlobalStore } from "@/store";
 import { ICreateRegistryPayload } from "@/types";
-import { getEnArName } from "@/utils/helper";
+import { getEnArName, getImageUrl } from "@/utils/helper";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { Stack, router } from "expo-router";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -106,15 +107,15 @@ function CreateRegistryScreen() {
             </Typography.Text>
           ),
           headerTitleStyle: { fontWeight: "light" },
-          headerBackground: () => <View className="bg-primary-50 flex-1" />,
+          headerBackground: () => <View className="flex-1" />,
         }}
       />
-      <SafeAreaView className="bg-primary-50 flex-1" edges={["bottom"]}>
+      <SafeAreaView className="flex-1" edges={["bottom"]}>
         <View className="flex-1">
           {/* First step */}
           <Animated.View
             style={[firstStepStyle]}
-            className="absolute w-full bg-primary-50"
+            className="absolute w-full"
             onLayout={(event) =>
               setFirstStepHeight(event.nativeEvent.layout.height)
             }
@@ -139,22 +140,30 @@ function CreateRegistryScreen() {
                           <TouchableOpacity
                             key={category.id}
                             style={{ width: cardWidth }}
-                            className="mb-4 rounded-md bg-white border border-neutral-100 shadow-sm shadow-neutral-100"
+                            className="mb-4 rounded-xl shadow-sm shadow-neutral-100 gap-2 p-2"
                             onPress={() => handleCardPress(category.id)}
                           >
-                            <View
-                              style={{ width: cardWidth, height: cardWidth }}
-                            >
-                              <Typography.Text
-                                numberOfLines={1}
-                                ellipsizeMode="tail"
-                                weight="medium"
-                                size="sm"
-                                className="absolute bottom-4 text-center w-full text-gray-700 flex-1"
-                              >
-                                {getEnArName(category.nameEn, category.nameAr)}
-                              </Typography.Text>
+                            <View className="justify-center items-center py-6">
+                              <Image
+                                source={{
+                                  uri: getImageUrl(category.registryBackground),
+                                }}
+                                style={{
+                                  width: 50,
+                                  height: 50,
+                                }}
+                                contentFit="contain"
+                              />
                             </View>
+                            <Typography.Text
+                              numberOfLines={1}
+                              ellipsizeMode="tail"
+                              weight="medium"
+                              size="sm"
+                              className="text-center w-full text-gray-700 flex-1"
+                            >
+                              {getEnArName(category.nameEn, category.nameAr)}
+                            </Typography.Text>
                           </TouchableOpacity>
                         ))}
                       </View>
@@ -168,7 +177,7 @@ function CreateRegistryScreen() {
           {/* Second step */}
           <Animated.View
             style={[secondStepStyle]}
-            className="absolute w-full bg-primary-50"
+            className="absolute w-full"
             onLayout={(event) =>
               setSecondStepHeight(event.nativeEvent.layout.height)
             }

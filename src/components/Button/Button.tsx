@@ -58,7 +58,7 @@ export default function Button(props: IButtonProps) {
     size = "default",
     type = "default",
     ghost = false,
-    rounded = true,
+    rounded = false,
     loading = false,
     style,
     className,
@@ -111,7 +111,7 @@ const getHeight = (size: IButtonProps["size"]): string => {
   let classes = "";
   switch (size) {
     case "default":
-      classes = "h-9";
+      classes = "h-10";
       break;
     case "large":
       classes = "h-14";

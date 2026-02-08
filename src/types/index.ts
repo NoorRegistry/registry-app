@@ -223,6 +223,8 @@ export interface IRegistryCategory {
   nameAr: string;
   descriptionEn: string;
   descriptionAr: string;
+  registryBackground: string;
+  registryPlaceHolder: string;
 }
 
 export interface ICreateRegistryPayload {
