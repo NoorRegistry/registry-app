@@ -16,6 +16,7 @@ const endpoints = {
   },
   registries: {
     index: "/v1/api/users/registries",
+    publicGuestView: "/v1/api/public/registries/guest-view",
     purchase: "/v1/api/users/purchases",
   },
   upload: {

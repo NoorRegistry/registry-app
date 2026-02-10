@@ -33,7 +33,7 @@ export const fetchRegistryGuestView = async (id: string, code?: string) => {
     code ? `&code=${encodeURIComponent(code)}` : ""
   }`;
   return await http.get<IRegistryDetails>(
-    `${endpoints.registries.index}/guest-view?${query}`,
+    `${endpoints.registries.publicGuestView}?${query}`,
   );
 };
 
