@@ -1,7 +1,11 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, View } from "react-native";
 
-const RegistrySkeleton: React.FC = () => {
+type RegistrySkeletonVariant = "registry" | "noRegistry";
+
+const RegistrySkeleton: React.FC<{ variant?: RegistrySkeletonVariant }> = ({
+  variant = "registry",
+}) => {
   const shimmerAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -44,39 +48,72 @@ const RegistrySkeleton: React.FC = () => {
   );
 
   return (
-    <>
-      {/* Skeleton Container */}
-      <View className="p-6 w-full mt-12 bg-white rounded-2xl shadow-sm">
-        {/* Title Skeleton */}
-        <View className="relative h-6 w-4/5 self-center bg-gray-300 rounded-md overflow-hidden mb-4">
-          {renderShimmer()}
-        </View>
-
-        {/* Stats Row */}
-        <View className="flex-row justify-between gap-6 mt-4">
-          {/* First Column */}
-          <View className="flex-1 items-center gap-1">
-            <View className="h-8 w-1/2 bg-gray-300 rounded-md relative overflow-hidden">
+    <View className="p-6 w-full mt-6 rounded-2xl shadow-sm bg-[#F3F3F3]">
+      {variant === "registry" ? (
+        <>
+          <View className="flex-row items-center gap-4">
+            <View className="relative w-14 h-14 rounded-full bg-gray-300 overflow-hidden">
               {renderShimmer()}
             </View>
-            <View className="h-4 w-4/5 bg-gray-300 rounded-md relative overflow-hidden">
-              {renderShimmer()}
+            <View className="flex-1 gap-2">
+              <View className="relative h-7 w-4/5 bg-gray-300 rounded-md overflow-hidden">
+                {renderShimmer()}
+              </View>
+              <View className="relative h-4 w-2/3 bg-gray-300 rounded-md overflow-hidden">
+                {renderShimmer()}
+              </View>
             </View>
           </View>
 
-          {/* Second Column */}
-          <View className="flex-1 items-center gap-1">
-            <View className="h-8 w-1/2 bg-gray-300 rounded-md relative overflow-hidden">
+          <View className="flex-row gap-8 mt-8">
+            <View className="flex-1 gap-2">
+              <View className="relative h-4 w-3/4 bg-gray-300 rounded-md overflow-hidden">
+                {renderShimmer()}
+              </View>
+              <View className="relative h-14 w-2/3 bg-gray-300 rounded-md overflow-hidden">
+                {renderShimmer()}
+              </View>
+            </View>
+            <View className="flex-1 gap-2">
+              <View className="relative h-4 w-3/4 bg-gray-300 rounded-md overflow-hidden">
+                {renderShimmer()}
+              </View>
+              <View className="relative h-14 w-2/3 bg-gray-300 rounded-md overflow-hidden">
+                {renderShimmer()}
+              </View>
+            </View>
+          </View>
+        </>
+      ) : (
+        <View className="gap-6">
+          <View className="gap-3">
+            <View className="relative h-7 w-4/5 bg-gray-300 rounded-md overflow-hidden">
               {renderShimmer()}
             </View>
-            <View className="h-4 w-4/5 bg-gray-300 rounded-md relative overflow-hidden">
+            <View className="relative h-4 w-full bg-gray-300 rounded-md overflow-hidden">
+              {renderShimmer()}
+            </View>
+            <View className="relative h-4 w-5/6 bg-gray-300 rounded-md overflow-hidden">
               {renderShimmer()}
             </View>
           </View>
+          <View className="relative h-12 w-full bg-gray-300 rounded-lg overflow-hidden">
+            {renderShimmer()}
+          </View>
         </View>
-      </View>
-    </>
+      )}
+    </View>
   );
+};
+
+export const resolveRegistrySkeletonVariant = (
+  registries?: unknown[],
+): RegistrySkeletonVariant => {
+  if (Array.isArray(registries) && registries.length === 0) {
+    return "noRegistry";
+  }
+
+  return "registry";
 };
 
 export default RegistrySkeleton;

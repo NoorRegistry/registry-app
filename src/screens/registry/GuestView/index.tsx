@@ -22,7 +22,7 @@ import {
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import clsx from "clsx";
+import cx from "clsx";
 import { Image } from "expo-image";
 import { Stack, useLocalSearchParams } from "expo-router";
 import React, {
@@ -61,21 +61,77 @@ type GuestSection = {
   data: GuestSectionItem[];
 };
 
+const getErrorDetail = (error: unknown): string => {
+  if (
+    error &&
+    typeof error === "object" &&
+    "detail" in error &&
+    typeof (error as { detail?: unknown }).detail === "string"
+  ) {
+    return ((error as { detail: string }).detail || "").toLowerCase();
+  }
+  return "";
+};
+
+const canBePasswordError = (error: unknown, hasCode: boolean): boolean => {
+  if (hasCode) return true;
+  const detail = getErrorDetail(error);
+  return (
+    detail.includes("password") ||
+    detail.includes("code") ||
+    detail.includes("protected") ||
+    detail.includes("unauthorized") ||
+    detail.includes("forbidden")
+  );
+};
+
 function GuestViewScreen() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ id?: string; code?: string }>();
   const registryId = Array.isArray(params.id) ? params.id[0] : params.id;
-  const registryCode = Array.isArray(params.code)
+  const initialRegistryCode = Array.isArray(params.code)
     ? params.code[0]
     : params.code;
+  const [registryCode, setRegistryCode] = useState(initialRegistryCode ?? "");
+  const [passwordInput, setPasswordInput] = useState("");
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [showPasswordRequired, setShowPasswordRequired] = useState(false);
+  const [showInvalidPassword, setShowInvalidPassword] = useState(false);
   const purchaseSheetRef = useRef<BottomSheetModal>(null);
   const [selectedItem, setSelectedItem] = useState<IRegistryItem | null>(null);
 
-  const { data: registry, isFetching } = useQuery({
+  const {
+    data: registry,
+    isFetching,
+    error,
+    isError,
+  } = useQuery({
     queryKey: ["registryGuestView", registryId, registryCode ?? ""],
     queryFn: () => fetchRegistryGuestView(registryId, registryCode),
     enabled: !!registryId,
+    retry: false,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: "always",
   });
+
+  useEffect(() => {
+    if (!registry) return;
+    setShowPasswordPrompt(false);
+    setShowPasswordRequired(false);
+    setShowInvalidPassword(false);
+  }, [registry]);
+
+  useEffect(() => {
+    if (!isError) return;
+    if (!canBePasswordError(error, Boolean(registryCode))) {
+      return;
+    }
+
+    setShowPasswordPrompt(true);
+    setShowPasswordRequired(false);
+    setShowInvalidPassword(Boolean(registryCode));
+  }, [error, isError, registryCode]);
 
   const cacheKey = ["registryGuestView", registryId, registryCode ?? ""];
 
@@ -87,6 +143,17 @@ function GuestViewScreen() {
   const handleSheetDismiss = useCallback(() => {
     setSelectedItem(null);
   }, []);
+
+  const handlePasswordSubmit = useCallback(() => {
+    const normalizedPassword = passwordInput.trim();
+    if (!normalizedPassword) {
+      setShowPasswordRequired(true);
+      return;
+    }
+    setShowPasswordRequired(false);
+    setShowInvalidPassword(false);
+    setRegistryCode(normalizedPassword);
+  }, [passwordInput]);
 
   const sections = useMemo<GuestSection[]>(() => {
     if (!registry) return [];
@@ -137,6 +204,61 @@ function GuestViewScreen() {
 
   if (isFetching) {
     return <LoadingScreen />;
+  }
+
+  if (!registry && showPasswordPrompt) {
+    return (
+      <>
+        <Stack.Screen
+          options={{
+            headerTitle: () => (
+              <Typography.Text size="base" weight="medium">
+                {t("registry.guestView")}
+              </Typography.Text>
+            ),
+          }}
+        />
+        <SafeAreaView className="flex-1" edges={["bottom"]}>
+          <View className="flex-1 px-4 pt-8 gap-5">
+            <View className="gap-2">
+              <Typography.Text size="xl" weight="bold">
+                {t("registry.registryPassword")}
+              </Typography.Text>
+              <Typography.Text type="secondary">
+                {t("registry.passwordRequired")}
+              </Typography.Text>
+            </View>
+
+            <View className="gap-2">
+              <TextInput
+                placeholder={t("registry.registryPasswordPlaceholder")}
+                secureTextEntry
+                value={passwordInput}
+                onChangeText={setPasswordInput}
+                className="h-12 rounded bg-neutral-100 px-4 font-Poppinsregular text-black"
+              />
+              {showPasswordRequired && (
+                <Typography.Text size="xs" type="danger">
+                  {t("common.required")}
+                </Typography.Text>
+              )}
+              {showInvalidPassword && (
+                <Typography.Text size="xs" type="danger">
+                  {t("registry.invalidPassword")}
+                </Typography.Text>
+              )}
+            </View>
+
+            <Button
+              title={t("common.submit")}
+              type="primary"
+              onPress={handlePasswordSubmit}
+              loading={isFetching}
+            />
+          </View>
+        </SafeAreaView>
+      </>
+    );
   }
 
   if (!registry) {
@@ -293,7 +415,7 @@ function GuestRegistryItem({
         </View>
       </View>
       <TouchableOpacity
-        className={clsx(
+        className={cx(
           "flex-row items-center gap-3 border rounded-md px-3 py-3",
           isSoldOut ? "border-neutral-200 opacity-40" : "border-primary-500",
         )}
@@ -301,7 +423,7 @@ function GuestRegistryItem({
         disabled={isSoldOut}
       >
         <View
-          className={clsx(
+          className={cx(
             "h-5 w-5 rounded-sm border",
             isSoldOut ? "border-neutral-300" : "border-primary-500",
           )}

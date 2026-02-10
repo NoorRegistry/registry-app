@@ -2,39 +2,46 @@ import React, { useEffect, useRef } from "react";
 import { Animated, Dimensions, View } from "react-native";
 
 const { width } = Dimensions.get("window");
+const SHIMMER_COLORS = ["#E0E0E0", "#F0F0F0"] as const;
 
-const SkeletonLoader = ({ isVisible }: { isVisible: boolean }) => {
+const useShimmerColor = () => {
   const shimmerAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const startShimmer = () => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(shimmerAnim, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(shimmerAnim, {
-            toValue: 0,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-        ]),
-      ).start();
-    };
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
 
-    startShimmer();
+    animation.start();
+
+    return () => {
+      animation.stop();
+    };
   }, [shimmerAnim]);
+
+  return shimmerAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: SHIMMER_COLORS,
+  });
+};
+
+const SkeletonLoader = ({ isVisible }: { isVisible: boolean }) => {
+  const shimmerColor = useShimmerColor();
 
   if (!isVisible) {
     return null;
   }
-
-  const shimmerColor = shimmerAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["#E0E0E0", "#F0F0F0"], // Light shimmer effect colors
-  });
 
   const skeletonItems = Array.from({ length: 6 }, (_, index) => index); // 6 skeletons for the cards
   const cardWidth = width / 2 - 16 - 8; // Same width calculation as CategoryCard
@@ -89,33 +96,7 @@ const SkeletonLoader = ({ isVisible }: { isVisible: boolean }) => {
 export default SkeletonLoader;
 
 export const HeaderSkeleton = () => {
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const startShimmer = () => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(shimmerAnim, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(shimmerAnim, {
-            toValue: 0,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-        ]),
-      ).start();
-    };
-
-    startShimmer();
-  }, [shimmerAnim]);
-
-  const shimmerColor = shimmerAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["#E0E0E0", "#F0F0F0"], // Light shimmer effect colors
-  });
+  const shimmerColor = useShimmerColor();
 
   return (
     <View className="mb-6">
@@ -142,6 +123,61 @@ export const HeaderSkeleton = () => {
           backgroundColor: shimmerColor,
         }}
       />
+    </View>
+  );
+};
+
+export const ShopSkeletonLoader = ({ isVisible }: { isVisible: boolean }) => {
+  const shimmerColor = useShimmerColor();
+
+  if (!isVisible) {
+    return null;
+  }
+
+  const sectionItems = Array.from({ length: 4 }, (_, index) => index);
+  const subCategoryItems = Array.from({ length: 5 }, (_, index) => index);
+
+  return (
+    <View className="px-4">
+      {sectionItems.map((sectionIndex) => (
+        <View key={sectionIndex} className="mb-6">
+          <Animated.View
+            className="h-5 rounded mb-3"
+            style={{
+              width: sectionIndex % 2 === 0 ? 120 : 160,
+              backgroundColor: shimmerColor,
+            }}
+          />
+          <View className="flex-row">
+            {subCategoryItems.map((itemIndex) => (
+              <View key={itemIndex} className="items-center mr-3">
+                <Animated.View
+                  className="rounded-xl"
+                  style={{
+                    width: 80,
+                    height: 96,
+                    backgroundColor: shimmerColor,
+                  }}
+                />
+                <Animated.View
+                  className="mt-2 h-3 rounded"
+                  style={{
+                    width: 72,
+                    backgroundColor: shimmerColor,
+                  }}
+                />
+                <Animated.View
+                  className="mt-1 h-3 rounded"
+                  style={{
+                    width: 52,
+                    backgroundColor: shimmerColor,
+                  }}
+                />
+              </View>
+            ))}
+          </View>
+        </View>
+      ))}
     </View>
   );
 };

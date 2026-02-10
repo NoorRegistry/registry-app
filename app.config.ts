@@ -4,11 +4,22 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const APP_VARIANT = process.env.APP_VARIANT || "development";
   console.log("env variables", APP_VARIANT, process.env.NODE_ENV);
   const IS_DEV = APP_VARIANT === "development";
+  const SHARE_BASE_URL = process.env.EXPO_PUBLIC_SHARE_BASE_URL;
+  const parsedShareUrl = (() => {
+    if (!SHARE_BASE_URL) return null;
+    try {
+      return new URL(SHARE_BASE_URL);
+    } catch {
+      return null;
+    }
+  })();
+  const shareHost =
+    parsedShareUrl?.protocol === "https:" ? parsedShareUrl.host : null;
 
   const getAppName = () => {
     switch (APP_VARIANT) {
       case "preview":
-        return "Preview Shop Simplist";
+        return "Shop Simplist";
       case "production":
         return "Shop Simplist";
       default:
@@ -36,6 +47,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       bundleIdentifier: IS_DEV
         ? "com.shiftgiftme.mobile.dev"
         : "com.shiftgiftme.mobile",
+      ...(shareHost ? { associatedDomains: [`applinks:${shareHost}`] } : {}),
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
       },
@@ -43,6 +55,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         ? "./assets/firebaseconfig/development/GoogleService-Info.plist"
         : process.env.GOOGLE_SERVICE_INFO_PLIST,
       usesAppleSignIn: true,
+      
     },
     android: {
       adaptiveIcon: {
@@ -50,6 +63,24 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         backgroundColor: "#FAF2F0",
       },
       package: IS_DEV ? "com.shiftgiftme.mobile.dev" : "com.shiftgiftme.mobile",
+      ...(shareHost
+        ? {
+            intentFilters: [
+              {
+                action: "VIEW",
+                autoVerify: true,
+                category: ["BROWSABLE", "DEFAULT"],
+                data: [
+                  {
+                    scheme: "https",
+                    host: shareHost,
+                    pathPrefix: "/registry/guest-view",
+                  },
+                ],
+              },
+            ],
+          }
+        : {}),
       softwareKeyboardLayoutMode: "pan",
       edgeToEdgeEnabled: true,
       googleServicesFile: IS_DEV

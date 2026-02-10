@@ -132,6 +132,28 @@ class Http {
     // console.error('error data', error);
     if (isAxiosError(error)) {
       console.error("error data", JSON.stringify(error));
+      const responseData = error.response?.data as
+        | { detail?: unknown; message?: unknown }
+        | undefined;
+      const detailField = responseData?.detail;
+      const messageField = responseData?.message;
+      const normalizedDetail =
+        typeof detailField === "string"
+          ? detailField
+          : detailField !== undefined
+            ? JSON.stringify(detailField)
+            : "";
+      const normalizedMessage = Array.isArray(messageField)
+        ? messageField
+            .map((item) =>
+              typeof item === "string" ? item : JSON.stringify(item),
+            )
+            .join(", ")
+        : typeof messageField === "string"
+          ? messageField
+          : messageField !== undefined
+            ? JSON.stringify(messageField)
+            : "";
       switch (error.status) {
         case StatusCode.InternalServerError: {
           // Handle InternalServerError
@@ -152,7 +174,7 @@ class Http {
         }
       }
       apiError = {
-        detail: error.response?.data?.detail || error?.message,
+        detail: normalizedDetail || normalizedMessage || error?.message,
       };
     } else {
       apiError = {

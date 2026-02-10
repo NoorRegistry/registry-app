@@ -11,9 +11,15 @@ import { Colors } from "@/constants/Colors";
 import {
   fetchRegistryItemById,
   postRegistryItemPurchase,
+  updateRegistryItem,
 } from "@/services/registries.service";
 import { useGlobalStore } from "@/store";
-import { ICreateRegistryItemPurchase } from "@/types";
+import {
+  ICreateRegistryItemPurchase,
+  IRegistryDetails,
+  IRegistryItemDetails,
+  IUpdateRegistryItemPayload,
+} from "@/types";
 import {
   formatPrice,
   getEnArName,
@@ -22,7 +28,7 @@ import {
   getUserFirstLastName,
 } from "@/utils/helper";
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
-import clsx from "clsx";
+import cn from "clsx";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -37,6 +43,7 @@ import {
   View,
   useColorScheme,
 } from "react-native";
+import Toast from "react-native-toast-message";
 
 function RegistryItemDetails() {
   const { t } = useTranslation();
@@ -61,8 +68,95 @@ function RegistryItemDetails() {
     }
   }, [registryItem]);
 
+  const updateRegistryItemMutation = useMutation({
+    mutationFn: (payload: IUpdateRegistryItemPayload) =>
+      updateRegistryItem(id, payload),
+    onSuccess: (data, variables) => {
+      const updatedItem = queryClient.setQueryData<
+        IRegistryItemDetails | undefined
+      >(
+        ["registries", "items", id],
+        (old) =>
+          data ??
+          (old
+            ? {
+                ...old,
+                qty: variables.qty,
+                notes: variables.notes,
+              }
+            : old),
+      );
+      const normalizedQty = updatedItem?.qty ?? variables.qty;
+      const normalizedNotes = updatedItem?.notes ?? variables.notes;
+
+      setItemNote(normalizedNotes);
+      setItemQty(normalizedQty);
+
+      queryClient.setQueriesData<IRegistryDetails | undefined>(
+        {
+          queryKey: ["registryById"],
+        },
+        (old) => {
+          if (!old) return old;
+
+          const updatedSections = old.registryItems.items
+            .map((section) => {
+              const updatedData = section.data
+                .map((item) => {
+                  if (item.id !== id) return item;
+
+                  const purchasedQty = item.qty - item.qtyLeft;
+                  return {
+                    ...item,
+                    qty: normalizedQty,
+                    qtyLeft: Math.max(0, normalizedQty - purchasedQty),
+                  };
+                })
+                .filter((item) => item.qtyLeft > 0);
+
+              return {
+                ...section,
+                data: updatedData,
+              };
+            })
+            .filter((section) => section.data.length > 0);
+
+          return {
+            ...old,
+            registryItems: {
+              ...old.registryItems,
+              items: updatedSections,
+            },
+          };
+        },
+      );
+      router.back();
+      Toast.show({ type: "success", text1: t("common.changesSaved") });
+    },
+    onError: () => {
+      Toast.show({ type: "error", text1: t("common.error") });
+    },
+  });
+
   const updateQty = (qty: number) => {
     setItemQty(qty);
+  };
+
+  const originalNote = registryItem?.notes ?? "";
+  const originalQty = registryItem?.qty ?? 1;
+  const currentNote = itemNote ?? "";
+  const currentQty = qty ?? originalQty;
+  const hasChanges = currentNote !== originalNote || currentQty !== originalQty;
+  const saveDisabled =
+    !registryItem || !hasChanges || updateRegistryItemMutation.isPending;
+  const purchases = registryItem?.purchase ?? [];
+
+  const handleSave = () => {
+    if (!registryItem) return;
+    updateRegistryItemMutation.mutate({
+      notes: currentNote,
+      qty: currentQty,
+    });
   };
 
   if (isFetchingRegistryItem) return <LoadingScreen />;
@@ -70,17 +164,38 @@ function RegistryItemDetails() {
   return (
     <ScrollView>
       <View className="flex-1 mb-10">
-        <IconButton
-          icon={<CloseIcon />}
-          onPress={() => {
-            router.back();
-          }}
-          className="absolute top-0 right-0 p-4 z-10"
-        />
-        <View className="items-center border-b p-4 border-neutral-200">
-          <Typography.Text size="base" weight="medium">
-            {t("registry.itemDetails")}
-          </Typography.Text>
+        <View className="border-b p-4 border-neutral-200">
+          <View className="flex-row items-center">
+            <View className="w-14 items-start">
+              <IconButton
+                icon={<CloseIcon />}
+                onPress={() => {
+                  router.back();
+                }}
+              />
+            </View>
+            <View className="flex-1 items-center">
+              <Typography.Text size="base" weight="medium">
+                {t("registry.itemDetails")}
+              </Typography.Text>
+            </View>
+            <View className="w-14 items-end">
+              <TouchableOpacity
+                onPress={handleSave}
+                disabled={saveDisabled}
+                className={saveDisabled ? "opacity-50" : ""}
+              >
+                <Typography.Text
+                  weight="medium"
+                  className={cn(
+                    saveDisabled ? "text-[#8A8A8A]" : "!text-[#2A2A2A]",
+                  )}
+                >
+                  {t("common.save")}
+                </Typography.Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
         <View className="p-4">
           <View className="flex-row items-center gap-4 border-b border-neutral-200 pb-4">
@@ -181,13 +296,13 @@ function RegistryItemDetails() {
                 })}
               </Typography.Text>
             </View>
-            {registryItem?.purchase.length ? (
+            {purchases.length ? (
               <View className="mx-3">
-                {registryItem?.purchase.map((purchase, index) => (
+                {purchases.map((purchase, index) => (
                   <View
-                    className={clsx(
+                    className={cn(
                       "px-4 gap-2",
-                      registryItem?.purchase.length - 1 !== index &&
+                      purchases.length - 1 !== index &&
                         "pb-6 border-s border-primary-500",
                     )}
                     key={purchase.id}
@@ -254,11 +369,134 @@ const MarkPurchasedForm = ({
   const createRegistryItemMutation = useMutation({
     mutationFn: (data: ICreateRegistryItemPurchase) =>
       postRegistryItemPurchase(data),
-    onSuccess: (data, variables) => {
+    onSuccess: (_, variables) => {
       try {
-        queryClient.invalidateQueries({
-          queryKey: ["registries", "items", id],
+        const detailsQueryKey = ["registries", "items", id] as const;
+        const purchaseId = `local-${Date.now()}`;
+
+        const updatedItemDetails = queryClient.setQueryData<
+          IRegistryItemDetails | undefined
+        >(detailsQueryKey, (old) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            purchase: [
+              ...old.purchase,
+              {
+                id: purchaseId,
+                name: variables.name,
+                qty: variables.qty,
+              },
+            ],
+            qtyLeft: Math.max(0, old.qtyLeft - variables.qty),
+          };
         });
+
+        queryClient.setQueriesData<IRegistryDetails | undefined>(
+          {
+            queryKey: ["registryById"],
+          },
+          (old) => {
+            if (!old) return old;
+
+            const updatedRegistrySections = old.registryItems.items
+              .map((section) => {
+                const updatedData = section.data
+                  .map((item) => {
+                    if (item.id !== id) return item;
+                    return {
+                      ...item,
+                      qtyLeft: Math.max(0, item.qtyLeft - variables.qty),
+                    };
+                  })
+                  .filter((item) => item.qtyLeft > 0);
+
+                return {
+                  ...section,
+                  data: updatedData,
+                };
+              })
+              .filter((section) => section.data.length > 0);
+
+            const product = updatedItemDetails?.product;
+            const category = product?.category;
+            const purchasedItem = product
+              ? {
+                  id,
+                  qty: variables.qty,
+                  product: {
+                    id: product.id,
+                    nameEn: product.nameEn,
+                    nameAr: product.nameAr,
+                    images: product.images,
+                    price: product.price,
+                    currencyCode: product.currencyCode,
+                  },
+                }
+              : null;
+
+            let updatedPurchasedSections = old.purchased.items;
+            if (category && purchasedItem) {
+              const existingCategoryIndex = updatedPurchasedSections.findIndex(
+                (section) => section.id === category.id,
+              );
+
+              if (existingCategoryIndex === -1) {
+                updatedPurchasedSections = [
+                  ...updatedPurchasedSections,
+                  {
+                    id: category.id,
+                    nameEn: category.nameEn,
+                    nameAr: category.nameAr,
+                    data: [purchasedItem],
+                  },
+                ];
+              } else {
+                updatedPurchasedSections = updatedPurchasedSections.map(
+                  (section, sectionIndex) => {
+                    if (sectionIndex !== existingCategoryIndex) return section;
+
+                    const existingPurchasedItem = section.data.find(
+                      (item) => item.id === id,
+                    );
+
+                    if (!existingPurchasedItem) {
+                      return {
+                        ...section,
+                        data: [...section.data, purchasedItem],
+                      };
+                    }
+
+                    return {
+                      ...section,
+                      data: section.data.map((item) =>
+                        item.id === id
+                          ? {
+                              ...item,
+                              qty: item.qty + variables.qty,
+                            }
+                          : item,
+                      ),
+                    };
+                  },
+                );
+              }
+            }
+
+            return {
+              ...old,
+              registryItems: {
+                ...old.registryItems,
+                items: updatedRegistrySections,
+              },
+              purchased: {
+                ...old.purchased,
+                items: updatedPurchasedSections,
+              },
+            };
+          },
+        );
       } catch (error) {
         console.error(error);
       }

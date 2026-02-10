@@ -1,22 +1,29 @@
 import { queryClient } from "@/api/queryClient";
 import { Button } from "@/components/Button";
 import Form from "@/components/Form";
+import PencilIcon from "@/components/icons/pencil";
 import Typography from "@/components/Typography";
 import { Colors } from "@/constants/Colors";
 import {
   fetchRegistriesCategories,
   postRegistry,
 } from "@/services/registries.service";
+import {
+  deleteUploadedImageByPath,
+  uploadRegistryLogo,
+} from "@/services/upload.service";
 import { useGlobalStore } from "@/store";
 import { ICreateRegistryPayload } from "@/types";
 import { getEnArName, getImageUrl } from "@/utils/helper";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { Stack, router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import {
+  ActivityIndicator,
   Dimensions,
   I18nManager,
   Keyboard,
@@ -43,9 +50,15 @@ const cardWidth = width / 2 - 24 - 8;
 function CreateRegistryScreen() {
   const { t } = useTranslation();
   const colorScheme = useColorScheme();
-  const { control, handleSubmit, setValue } = useForm<ICreateRegistryPayload>();
+  const { control, handleSubmit, setValue, getValues } =
+    useForm<ICreateRegistryPayload>();
   const insets = useSafeAreaInsets();
   const selectedRegistryId = useGlobalStore.use.setSelectedRegistryId();
+  const registryCreatedRef = useRef(false);
+  const uploadedLogoPathRef = useRef<string | null>(null);
+  const [uploadedLogoPath, setUploadedLogoPath] = useState<string | null>(null);
+  const [logoPreviewUri, setLogoPreviewUri] = useState<string | null>(null);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   const { data: categories } = useQuery({
     queryKey: ["registryCategories"],
@@ -54,6 +67,7 @@ function CreateRegistryScreen() {
   const createRegistryMutation = useMutation({
     mutationFn: (data: ICreateRegistryPayload) => postRegistry(data),
     onSuccess: (data) => {
+      registryCreatedRef.current = true;
       selectedRegistryId(data.id);
       queryClient.invalidateQueries({ queryKey: ["registries"] });
       router.dismissTo("/(protected)/(tabs)/registry");
@@ -68,7 +82,6 @@ function CreateRegistryScreen() {
   });
 
   const [firstStepHeight, setFirstStepHeight] = useState(0);
-  const [secondStepHeight, setSecondStepHeight] = useState(0);
 
   const firstStepTranslateY = useSharedValue(0); // First step starts in place
   const secondStepTranslateY = useSharedValue(height + 100); // Second step starts offscreen
@@ -94,6 +107,83 @@ function CreateRegistryScreen() {
     // Animate back to the first step
     firstStepTranslateY.value = 0; // Bring the first step back
     secondStepTranslateY.value = height + 100; // Move the second step offscreen
+  };
+
+  useEffect(() => {
+    uploadedLogoPathRef.current = uploadedLogoPath;
+  }, [uploadedLogoPath]);
+
+  useEffect(() => {
+    return () => {
+      if (registryCreatedRef.current || !uploadedLogoPathRef.current) return;
+      deleteUploadedImageByPath(uploadedLogoPathRef.current).catch((error) => {
+        console.error("Failed to cleanup temporary registry logo", error);
+      });
+    };
+  }, []);
+
+  const handleUploadRegistryLogo = async () => {
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Toast.show({
+        type: "error",
+        text1: t("registry.photoPermissionRequired"),
+      });
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: "images",
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.9,
+      selectionLimit: 1,
+    });
+
+    if (result.canceled || !result.assets?.length) return;
+
+    const selectedAsset = result.assets[0];
+    const previousPreview = logoPreviewUri;
+    const previousPath = uploadedLogoPathRef.current;
+    const previousLogoValue = getValues("logo");
+
+    // Show selected photo immediately to avoid remote-image loading flash.
+    setLogoPreviewUri(selectedAsset.uri);
+    setIsUploadingLogo(true);
+
+    try {
+      const response = await uploadRegistryLogo({
+        uri: selectedAsset.uri,
+        fileName: selectedAsset.fileName ?? undefined,
+        mimeType: selectedAsset.mimeType ?? undefined,
+      });
+
+      const newPath = response.path;
+
+      setUploadedLogoPath(newPath);
+      setValue("logo", newPath);
+
+      if (previousPath && previousPath !== newPath) {
+        deleteUploadedImageByPath(previousPath).catch((error) => {
+          console.error(
+            "Failed to delete previously uploaded temporary logo",
+            error,
+          );
+        });
+      }
+    } catch (error) {
+      setLogoPreviewUri(previousPreview);
+      setUploadedLogoPath(previousPath);
+      setValue("logo", previousLogoValue);
+      console.error("Registry logo upload error", error);
+      Toast.show({
+        type: "error",
+        text1: t("registry.logoUploadFailed"),
+      });
+    } finally {
+      setIsUploadingLogo(false);
+    }
   };
 
   return (
@@ -182,13 +272,7 @@ function CreateRegistryScreen() {
           </Animated.View>
 
           {/* Second step */}
-          <Animated.View
-            style={[secondStepStyle]}
-            className="absolute w-full"
-            onLayout={(event) =>
-              setSecondStepHeight(event.nativeEvent.layout.height)
-            }
-          >
+          <Animated.View style={[secondStepStyle]} className="absolute w-full">
             <ScrollView>
               <View className="p-6">
                 <View className="py-6">
@@ -200,6 +284,58 @@ function CreateRegistryScreen() {
                   </Typography.Text>
                 </View>
                 <View className="gap-4">
+                  <TouchableOpacity
+                    activeOpacity={0.9}
+                    onPress={handleUploadRegistryLogo}
+                    className="items-center self-center mb-2"
+                    disabled={isUploadingLogo}
+                  >
+                    <View className="relative">
+                      <View
+                        className="rounded-full overflow-hidden items-center justify-center"
+                        style={{
+                          width: 132,
+                          height: 132,
+                          backgroundColor: "#D9EEF8",
+                        }}
+                      >
+                        {logoPreviewUri ? (
+                          <Image
+                            source={{ uri: logoPreviewUri }}
+                            style={{ width: 132, height: 132 }}
+                            contentFit="cover"
+                          />
+                        ) : (
+                          <Image
+                            source={require("@assets/images/icon.png")}
+                            style={{ width: 60, height: 60 }}
+                            contentFit="contain"
+                          />
+                        )}
+                      </View>
+                      <View className="absolute -right-1 -bottom-1 h-11 w-11 rounded-full bg-white border border-neutral-200 items-center justify-center">
+                        <PencilIcon
+                          size={20}
+                          color={Colors[colorScheme ?? "light"].tint}
+                        />
+                      </View>
+                    </View>
+                    <Typography.Text size="lg" className="mt-4">
+                      {t(
+                        logoPreviewUri
+                          ? "registry.changePhoto"
+                          : "registry.uploadPhoto",
+                      )}
+                    </Typography.Text>
+                    {isUploadingLogo && (
+                      <View className="mt-2">
+                        <ActivityIndicator
+                          size="small"
+                          color={Colors[colorScheme ?? "light"].tint}
+                        />
+                      </View>
+                    )}
+                  </TouchableOpacity>
                   <Form.Item
                     name="title"
                     label={t("registry.title")}
@@ -256,6 +392,7 @@ function CreateRegistryScreen() {
                     <Button
                       className="flex-1"
                       loading={createRegistryMutation.isPending}
+                      disabled={isUploadingLogo}
                       type="primary"
                       size="large"
                       title={t("common.create")}

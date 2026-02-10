@@ -201,6 +201,11 @@ export interface ICreateRegistryItemPurchase {
   qty: number;
 }
 
+export interface IUpdateRegistryItemPayload {
+  qty: number;
+  notes: string;
+}
+
 export interface IGlobalSearchResults {
   registries: {
     id: string;

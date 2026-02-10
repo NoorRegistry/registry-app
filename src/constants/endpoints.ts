@@ -19,7 +19,7 @@ const endpoints = {
     purchase: "/v1/api/users/purchases",
   },
   upload: {
-    index: "/v1/api/admin/upload",
+    index: "/v1/api/users/upload",
   },
   search: {
     index: "/v1/api/users/search",

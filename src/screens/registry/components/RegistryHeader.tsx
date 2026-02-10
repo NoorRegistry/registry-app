@@ -8,12 +8,14 @@ import { ShareIcon } from "@/components/icons/share";
 import { UnlockIcon } from "@/components/icons/unlockIcon";
 import { IRegistryDetails } from "@/types";
 import { getImageUrl } from "@/utils/helper";
+import { buildRegistryShareLink } from "@/utils/registry-share";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import React, { useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { TouchableOpacity, View } from "react-native";
+import { Share, TouchableOpacity, View } from "react-native";
+import Toast from "react-native-toast-message";
 import SwitchRegistry from "./SwitchRegistrySheet";
 import VisibilityPrivacySheet from "./VisibilityPrivacySheet";
 
@@ -37,6 +39,23 @@ const RegistryHeader = ({ registry }: { registry: IRegistryDetails }) => {
       },
     });
   }, [registry.code, registry.id]);
+  const handleSharePress = useCallback(async () => {
+    try {
+      const shareLink = buildRegistryShareLink(registry.id);
+      const message = `${t("registry.shareMessage", {
+        title: registry.title,
+      })}\n${shareLink}`;
+
+      await Share.share({
+        title: registry.title,
+        message,
+        url: shareLink,
+      });
+    } catch (error) {
+      console.error("Error sharing registry", error);
+      Toast.show({ type: "error", text1: t("common.error") });
+    }
+  }, [registry.id, registry.title, t]);
 
   return (
     <View className="px-4 pt-2 pb-3 mb-6 border-b border-neutral-200">
@@ -82,7 +101,10 @@ const RegistryHeader = ({ registry }: { registry: IRegistryDetails }) => {
                 : t("common.public")}
             </Typography.Text>
           </TouchableOpacity>
-          <TouchableOpacity className="flex-row gap-2 items-center">
+          <TouchableOpacity
+            className="flex-row gap-2 items-center"
+            onPress={handleSharePress}
+          >
             <ShareIcon size={18} />
             <Typography.Text type="secondary">
               {t("common.share")}

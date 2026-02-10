@@ -1,9 +1,7 @@
 import { queryClient } from "@/api/queryClient";
-import { Button } from "@/components/Button";
+import RegistryListItem from "@/components/RegistryListItem";
 import Typography from "@/components/Typography";
-import { CheckCircleIcon } from "@/components/icons/circle_check";
-import { PlusCircleIcon } from "@/components/icons/pluscircle";
-import { Colors } from "@/constants/Colors";
+import { PlusIcon } from "@/components/icons/plus";
 import { fetchRegistries } from "@/services/registries.service";
 import { useGlobalStore } from "@/store";
 import { IRegistry } from "@/types";
@@ -17,12 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Dimensions,
-  TouchableOpacity,
-  View,
-  useColorScheme,
-} from "react-native";
+import { Dimensions, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface SwitchRegistryProps extends Omit<BottomSheetModalProps, "children"> {
@@ -31,12 +24,14 @@ interface SwitchRegistryProps extends Omit<BottomSheetModalProps, "children"> {
 
 function SwitchRegistry({ ref, ...props }: SwitchRegistryProps) {
   const { t } = useTranslation();
-  const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
   const localRef = useRef<BottomSheetModal>(null);
   const [navigateToNewRegistry, setNavigateToNewRegistry] = useState(false);
   const setSelectedRegistryId = useGlobalStore(
     (state) => state.setSelectedRegistryId,
+  );
+  const selectedRegistryId = useGlobalStore(
+    (state) => state.selectedRegistryId,
   );
 
   // Compose the passed ref with the local ref
@@ -49,7 +44,7 @@ function SwitchRegistry({ ref, ...props }: SwitchRegistryProps) {
     }
   }, [ref]);
 
-  const snapPoints = useMemo(() => ["20%"], []);
+  const snapPoints = useMemo(() => ["55%"], []);
 
   const handleSelectRegistry = (registry: IRegistry) => {
     const id = registry.id;
@@ -89,33 +84,20 @@ function SwitchRegistry({ ref, ...props }: SwitchRegistryProps) {
     />
   );
 
-  const renderItem = ({ item, index }: { item: IRegistry; index: number }) => (
-    <View>
-      {!index && (
-        <Typography.Text className="px-4" size="base" weight="medium">
-          Current
-        </Typography.Text>
-      )}
-      <View className="px-4 py-2 flex-row items-center">
-        <View className="flex-1">
-          <Typography.Text size="base">{item.title}</Typography.Text>
-          <Typography.Text size="xs" weight="light" type="secondary">
-            {t("registry.items", { count: item._count.totalItems })}
-          </Typography.Text>
-        </View>
-        {index ? (
-          <Button
-            className="!px-0"
-            type="text"
-            title={t("registry.switch")}
-            onPress={() => handleSelectRegistry(item)}
-          />
-        ) : (
-          <CheckCircleIcon width={32} height={32} />
-        )}
-      </View>
-    </View>
-  );
+  const renderItem = ({ item }: { item: IRegistry }) => {
+    const isSelected = item.id === selectedRegistryId;
+    return (
+      <RegistryListItem
+        registry={item}
+        selected={isSelected}
+        showBadge={isSelected}
+        badgeLabel={t("registry.currentList")}
+        actionLabel={t("registry.switch")}
+        subtitle={t("registry.items", { count: item._count.totalItems })}
+        onPress={isSelected ? undefined : handleSelectRegistry}
+      />
+    );
+  };
 
   const handleSheetChanges = useCallback((index: number) => {}, []);
 
@@ -137,7 +119,7 @@ function SwitchRegistry({ ref, ...props }: SwitchRegistryProps) {
       enableDynamicSizing
       maxDynamicContentSize={0.7 * Dimensions.get("screen").height}
       style={{
-        borderRadius: 24,
+        borderRadius: 32,
         shadowColor: "#000000",
         shadowOffset: {
           width: 0,
@@ -146,6 +128,13 @@ function SwitchRegistry({ ref, ...props }: SwitchRegistryProps) {
         shadowOpacity: 0.2,
         shadowRadius: 24,
         elevation: 6,
+      }}
+      backgroundStyle={{ backgroundColor: "#FAFAFA" }}
+      handleIndicatorStyle={{
+        backgroundColor: "#EFE7E2",
+        width: 51,
+        height: 3,
+        borderRadius: 999,
       }}
       backdropComponent={renderBackdrop}
       {...props}
@@ -156,28 +145,28 @@ function SwitchRegistry({ ref, ...props }: SwitchRegistryProps) {
         renderItem={renderItem}
         contentContainerStyle={{
           flexGrow: 1,
-          paddingBottom: insets.bottom, // Add enough padding for footer
+          paddingBottom: insets.bottom ? insets.bottom + 84 : 84,
+          paddingHorizontal: 16,
+          gap: 8,
         }}
         ListHeaderComponent={
-          <Typography.Text
-            weight="medium"
-            size="lg"
-            className="mb-3 text-center"
-          >
-            {t("registry.yourList")}
+          <Typography.Text weight="bold" size="lg" className="mb-4 text-center">
+            {t("registry.myRegistries")}
           </Typography.Text>
         }
       />
       <View
         style={{ paddingBottom: insets.bottom }}
-        className="pt-4 border-t border-neutral-200 bg-white flex-1 px-4"
+        className="pt-3 border-t border-[#EFE7E2] bg-white px-4"
       >
         <TouchableOpacity
-          className="flex-row gap-2 items-center"
+          className="flex-row gap-3 items-center"
           onPress={handleNewRegistry}
         >
-          <PlusCircleIcon color={Colors[colorScheme ?? "light"].tint} />
-          <Typography.Text type="primary" size="base" weight="medium">
+          <View className="bg-[#CF8169] rounded-lg items-center justify-center w-[26px] h-[26px]">
+            <PlusIcon size={16} color="#FFFFFF" />
+          </View>
+          <Typography.Text size="base" weight="medium">
             {t("registry.newRegistry")}
           </Typography.Text>
         </TouchableOpacity>

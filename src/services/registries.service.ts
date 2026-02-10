@@ -8,6 +8,7 @@ import {
   IRegistryCategory,
   IRegistryDetails,
   IRegistryItemDetails,
+  IUpdateRegistryItemPayload,
   IUpdateRegistryPayload,
 } from "@/types";
 
@@ -39,6 +40,16 @@ export const fetchRegistryGuestView = async (id: string, code?: string) => {
 export const fetchRegistryItemById = async (id: string) => {
   return await http.get<IRegistryItemDetails>(
     `${endpoints.registries.index}/items/${id}`,
+  );
+};
+
+export const updateRegistryItem = async (
+  id: string,
+  payload: IUpdateRegistryItemPayload,
+) => {
+  return await http.patch<IRegistryItemDetails>(
+    `${endpoints.registries.index}/items/${id}`,
+    payload,
   );
 };
 

@@ -1,4 +1,5 @@
 import LoadingSpinner from "@/components/Loader/customLoader";
+import RegistryListItem from "@/components/RegistryListItem";
 import Typography from "@/components/Typography";
 import { fetchSearchResults } from "@/services/search.service";
 import { IGlobalSearchResults, TGlobalSearchResultsType } from "@/types";
@@ -208,14 +209,22 @@ function SearchScreen() {
                   return (
                     <Link
                       href={{
-                        pathname: "/(protected)/products/[id]",
+                        pathname: "/(protected)/registry/guest-view",
                         params: { id: item.id },
                       }}
                       asChild
                     >
-                      <TouchableOpacity className="py-3 border-b border-neutral-100">
-                        <Typography.Text>{item.name}</Typography.Text>
-                      </TouchableOpacity>
+                      <RegistryListItem
+                        registry={{
+                          id: item.id,
+                          title: item.name,
+                          logo: "",
+                          isActive: false,
+                          visibility: "Public",
+                          _count: { totalItems: 0, totalPurchased: 0 },
+                          category: {},
+                        }}
+                      />
                     </Link>
                   );
               }
