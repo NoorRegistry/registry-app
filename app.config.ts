@@ -19,7 +19,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const getAppName = () => {
     switch (APP_VARIANT) {
       case "preview":
-        return "Shop Simplist";
+        return "Preview Shop Simplist";
       case "production":
         return "Shop Simplist";
       default:
