@@ -6,6 +6,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const APP_VARIANT = process.env.APP_VARIANT || "development";
   console.log("env variables", APP_VARIANT, process.env.NODE_ENV);
   const IS_DEV = APP_VARIANT === "development";
+  const IS_PRODUCTION = APP_VARIANT === "production";
 
   const bundleIdentifier = IS_DEV
     ? "com.shiftgiftme.mobile.dev"
@@ -25,6 +26,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   })();
   const shareHost =
     parsedShareUrl?.protocol === "https:" ? parsedShareUrl.host : null;
+  const shouldEnableUniversalLinks = IS_PRODUCTION && shareHost;
 
   return {
     ...config,
@@ -45,7 +47,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ios: {
       supportsTablet: true,
       bundleIdentifier,
-      ...(shareHost ? { associatedDomains: [`applinks:${shareHost}`] } : {}),
+      ...(shouldEnableUniversalLinks
+        ? { associatedDomains: [`applinks:${shareHost}`] }
+        : {}),
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
         CFBundleDisplayName: APP_DISPLAY_NAME,
@@ -61,7 +65,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         backgroundColor: "#FAF2F0",
       },
       package: androidPackage,
-      ...(shareHost
+      ...(shouldEnableUniversalLinks
         ? {
             intentFilters: [
               {
