@@ -52,6 +52,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         : {}),
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
+        CFBundleName: APP_DISPLAY_NAME,
         CFBundleDisplayName: APP_DISPLAY_NAME,
       },
       googleServicesFile: IS_DEV
