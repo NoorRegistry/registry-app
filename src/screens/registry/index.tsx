@@ -1,5 +1,6 @@
 import { LoadingScreen } from "@/components/Loader/customLoader";
 import Typography from "@/components/Typography";
+import { useHeaderScrollState } from "@/hooks/useHeaderScrollState";
 import { fetchRegistries, fetchRegistry } from "@/services/registries.service";
 import { useGlobalStore } from "@/store";
 import { getEnArName } from "@/utils/helper";
@@ -12,6 +13,7 @@ import RegistryHeader from "./components/RegistryHeader";
 import RegistryItem from "./components/RegistryItem";
 
 function RegistryScreen() {
+  const handleHeaderScroll = useHeaderScrollState();
   const selectedRegistryId = useGlobalStore(
     (state) => state.selectedRegistryId,
   );
@@ -54,6 +56,8 @@ function RegistryScreen() {
   return (
     <SectionList
       sections={registryDetails.registryItems.items}
+      onScroll={handleHeaderScroll}
+      scrollEventThrottle={16}
       keyExtractor={(item) => item.id}
       ListHeaderComponent={<RegistryHeader registry={registryDetails} />}
       ListEmptyComponent={<EmptyRegistry />}

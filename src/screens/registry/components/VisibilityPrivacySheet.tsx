@@ -7,8 +7,6 @@ import { updateRegistry } from "@/services/registries.service";
 import { IRegistry, IRegistryDetails, IUpdateRegistryPayload } from "@/types";
 import {
   BottomSheetBackdrop,
-  BottomSheetFooter,
-  BottomSheetFooterProps,
   BottomSheetModal,
   BottomSheetModalProps,
   BottomSheetView,
@@ -23,7 +21,6 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  LayoutChangeEvent,
   Platform,
   Switch,
   TextInput,
@@ -59,7 +56,6 @@ function VisibilityPrivacySheet({
     registry.isProtected ? (registry.code ?? "") : "",
   );
   const [showErrors, setShowErrors] = useState(false);
-  const [footerHeight, setFooterHeight] = useState(110);
 
   // Compose the passed ref with the local ref
   useEffect(() => {
@@ -200,34 +196,6 @@ function VisibilityPrivacySheet({
     },
   });
 
-  const renderFooter = (footerProps: BottomSheetFooterProps) => (
-    <BottomSheetFooter {...footerProps} bottomInset={insets.bottom}>
-      <View
-        className="border-t border-[#EFE7E2] bg-white px-4 pt-3"
-        onLayout={(event: LayoutChangeEvent) => {
-          const nextHeight = Math.ceil(event.nativeEvent.layout.height);
-          if (nextHeight !== footerHeight) {
-            setFooterHeight(nextHeight);
-          }
-        }}
-      >
-        <TouchableOpacity
-          onPress={handleSave}
-          disabled={saveDisabled}
-          className="h-14 items-center justify-center rounded-md"
-          style={{
-            backgroundColor: "#cf8169",
-            opacity: saveDisabled ? 0.5 : 1,
-          }}
-        >
-          <Typography.Text size="base" weight="medium" className="text-white">
-            {t("common.save")}
-          </Typography.Text>
-        </TouchableOpacity>
-      </View>
-    </BottomSheetFooter>
-  );
-
   return (
     <BottomSheetModal
       ref={localRef}
@@ -247,11 +215,10 @@ function VisibilityPrivacySheet({
         borderRadius: 999,
       }}
       backdropComponent={renderBackdrop}
-      footerComponent={renderFooter}
       {...props}
     >
       <BottomSheetView
-        style={{ paddingBottom: footerHeight + insets.bottom + 20 }}
+        style={{ paddingBottom: insets.bottom + 20 }}
         className="px-4 pt-6"
       >
         <View>
@@ -264,7 +231,7 @@ function VisibilityPrivacySheet({
           <View className="mt-6 gap-4">
             <TouchableOpacity
               onPress={() => setVisibility("Public")}
-              className="bg-white rounded-[24px] px-5 py-4 flex-row items-center justify-between"
+              className="bg-white rounded-[24px] px-5 py-4 flex-row items-center justify-between gap-4"
               style={cardShadowStyle}
             >
               <View className="flex-row items-center gap-3 flex-1">
@@ -293,7 +260,7 @@ function VisibilityPrivacySheet({
 
             <TouchableOpacity
               onPress={() => setVisibility("Private")}
-              className="bg-white rounded-[24px] px-5 py-4 flex-row items-center justify-between"
+              className="bg-white rounded-[24px] px-5 py-4 flex-row items-center justify-between gap-4"
               style={cardShadowStyle}
             >
               <View className="flex-row items-center gap-3 flex-1">
@@ -332,6 +299,7 @@ function VisibilityPrivacySheet({
                 trackColor={{ false: "#e5e7eb", true: "#cf8169" }}
                 thumbColor="#ffffff"
                 ios_backgroundColor="#e5e7eb"
+                style={{ transform: [{ scale: 0.86 }] }}
               />
             </View>
 
@@ -360,6 +328,22 @@ function VisibilityPrivacySheet({
               </View>
             )}
           </View>
+        </View>
+
+        <View className="mt-6 border-t border-[#EFE7E2] pt-3">
+          <TouchableOpacity
+            onPress={handleSave}
+            disabled={saveDisabled}
+            className="h-14 items-center justify-center rounded-md"
+            style={{
+              backgroundColor: "#cf8169",
+              opacity: saveDisabled ? 0.5 : 1,
+            }}
+          >
+            <Typography.Text size="base" weight="medium" className="text-white">
+              {t("common.save")}
+            </Typography.Text>
+          </TouchableOpacity>
         </View>
       </BottomSheetView>
     </BottomSheetModal>

@@ -21,6 +21,7 @@ import { Colors } from "@/constants/Colors";
 import { resendOtp, verifyOtp } from "@/services/authentication.service";
 import { useGlobalStore } from "@/store";
 import { IAccessToken } from "@/types";
+import { getApiErrorMessage } from "@/utils/api-error";
 import { navigateAfterAuth } from "@/utils/helper";
 import { setStorageItem } from "@/utils/storage";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -30,6 +31,8 @@ export default function VerifyOtpScreen() {
   const colorScheme = useColorScheme();
   const { email } = useLocalSearchParams<{ email: string }>();
   const [otp, setOtp] = useState("");
+  const [otpInputKey, setOtpInputKey] = useState(0);
+  const [otpError, setOtpError] = useState("");
   const [resendTimer, setResendTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const signIn = useGlobalStore.use.signIn();
@@ -39,6 +42,7 @@ export default function VerifyOtpScreen() {
       verifyOtp({ email: email || "", otp: otpCode }),
     onSuccess: (data: IAccessToken) => {
       console.log("OTP verification successful");
+      setOtpError("");
       setStorageItem(constants.ACCESS_TOKEN, JSON.stringify(data));
       Toast.show({
         type: "success",
@@ -50,11 +54,18 @@ export default function VerifyOtpScreen() {
     },
     onError: (error) => {
       console.log("OTP verification error", JSON.stringify(error));
+      const message = getApiErrorMessage(
+        error,
+        t("login.otpVerificationFailed"),
+      );
+      setOtpError(message);
       Toast.show({
         type: "error",
-        text1: t("login.loginFailed"),
+        text1: t("login.otpVerificationFailed"),
+        text2: message,
       });
       setOtp("");
+      setOtpInputKey((key) => key + 1);
     },
   });
 
@@ -62,6 +73,9 @@ export default function VerifyOtpScreen() {
     mutationFn: (data: { email: string }) => resendOtp(data),
     onSuccess: () => {
       console.log("OTP resent successfully");
+      setOtpError("");
+      setOtp("");
+      setOtpInputKey((key) => key + 1);
       Toast.show({
         type: "success",
         text1: t("login.resendCodeSuccessful"),
@@ -72,9 +86,11 @@ export default function VerifyOtpScreen() {
     },
     onError: (error) => {
       console.log("Resend OTP error", JSON.stringify(error));
+      const message = getApiErrorMessage(error, t("login.resendCodeFailed"));
       Toast.show({
         type: "error",
         text1: t("login.resendCodeFailed"),
+        text2: message,
       });
     },
   });
@@ -102,7 +118,8 @@ export default function VerifyOtpScreen() {
 
   const handleOtpComplete = (otpCode: string) => {
     setOtp(otpCode);
-    if (otpCode.length === 6) {
+    setOtpError("");
+    if (otpCode.length === 6 && !verifyOtpMutation.isPending) {
       Keyboard.dismiss();
       verifyOtpMutation.mutate(otpCode);
     }
@@ -152,10 +169,14 @@ export default function VerifyOtpScreen() {
 
           <View className="mb-6">
             <OtpInput
+              key={otpInputKey}
               numberOfDigits={6}
               focusColor={Colors[colorScheme ?? "light"].tint}
               focusStickBlinkingDuration={500}
-              onTextChange={setOtp}
+              onTextChange={(value) => {
+                setOtp(value);
+                setOtpError("");
+              }}
               onFilled={handleOtpComplete}
               textInputProps={{
                 accessibilityLabel: "One-Time Password",
@@ -187,6 +208,11 @@ export default function VerifyOtpScreen() {
                 },
               }}
             />
+            {!!otpError && (
+              <Typography.Text size="sm" type="danger" className="text-center">
+                {otpError}
+              </Typography.Text>
+            )}
           </View>
 
           <View className="mb-4">
@@ -197,9 +223,11 @@ export default function VerifyOtpScreen() {
               title={t("login.verifyOtp")}
               rounded={false}
               onPress={() => {
-                if (otp.length === 6) {
+                if (otp.length === 6 && !verifyOtpMutation.isPending) {
+                  setOtpError("");
                   verifyOtpMutation.mutate(otp);
                 } else {
+                  setOtpError(t("login.enterValidOtp"));
                   Toast.show({
                     type: "error",
                     text1: t("login.enterValidOtp"),

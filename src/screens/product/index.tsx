@@ -1,16 +1,12 @@
-import { IApiError } from "@/api/http";
-import { queryClient } from "@/api/queryClient";
 import BackButton from "@/components/BackButton";
 import { Button } from "@/components/Button";
 import ProductPopularityStats from "@/components/ProductPopularityStats";
 import RelatedProducts from "@/components/RelatedProducts";
 import Typography from "@/components/Typography";
+import { useAddProductToRegistry } from "@/hooks/useAddProductToRegistry";
 import { fetchProductById } from "@/services/products.service";
-import { addItemToRegistry } from "@/services/registries.service";
-import { useGlobalStore } from "@/store";
-import { ICreateRegistryItem } from "@/types";
 import { formatPrice, getEnArName } from "@/utils/helper";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link, Stack, useLocalSearchParams } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -26,20 +22,21 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import Toast from "react-native-toast-message";
 import ProductImages from "./components/ProductImages";
 
 function ProductScreen() {
   const { t } = useTranslation();
-  const selectedRegistryId = useGlobalStore(
-    (state) => state.selectedRegistryId,
-  );
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { data: product, isFetching } = useQuery({
     queryKey: ["products", id],
     queryFn: () => fetchProductById(id),
   });
+  const {
+    addProductToRegistry,
+    addedToRegistryOverlay,
+    isAddingProductToRegistry,
+  } = useAddProductToRegistry(product);
 
   const scrollY = useSharedValue(0); // Shared value for scrolling
   const headerHeight = 288; // Height of the image slider
@@ -85,28 +82,6 @@ function ProductScreen() {
       [2, 0], // Lower elevation for subtle shadow effect
     ),
   }));
-
-  const createRegistryItemMutation = useMutation({
-    mutationFn: (data: ICreateRegistryItem) => addItemToRegistry(data),
-    onSuccess: (data, variables) => {
-      try {
-        queryClient.invalidateQueries({
-          queryKey: ["registryById", selectedRegistryId],
-        });
-        Toast.show({
-          text1: t("registry.itemAddedToregistry"),
-          visibilityTime: 2000,
-        });
-      } catch (error) {
-        console.error(error);
-      }
-    },
-    onError: (err: IApiError) => {
-      /* messageApi.error({
-        content: err.detail,
-      }); */
-    },
-  });
 
   if (isFetching)
     return (
@@ -217,19 +192,15 @@ function ProductScreen() {
           className="px-4 pt-4"
         >
           <Button
-            onPress={() => {
-              createRegistryItemMutation.mutate({
-                productId: id,
-                qty: 1,
-                registryId: selectedRegistryId!,
-              });
-            }}
+            onPress={() => addProductToRegistry()}
+            loading={isAddingProductToRegistry}
             size="large"
             type="primary"
             title={t("registry.addtoShiftGift")}
           />
         </SafeAreaView>
       </View>
+      {addedToRegistryOverlay}
     </View>
   );
 }

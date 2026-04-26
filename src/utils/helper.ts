@@ -79,6 +79,11 @@ export const getUserFirstName = () => {
   return decodedToken?.user?.firstName || "";
 };
 
+export const getUserGender = () => {
+  const decodedToken = getDecodedToken();
+  return decodedToken?.user?.gender || "Female";
+};
+
 export const getUserFirstLastName = () => {
   const decodedToken = getDecodedToken();
   if (decodedToken?.user?.firstName && decodedToken?.user?.lastName) {

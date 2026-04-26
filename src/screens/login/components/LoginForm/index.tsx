@@ -3,10 +3,11 @@ import Form from "@/components/Form";
 import Typography from "@/components/Typography";
 import { Colors } from "@/constants/Colors";
 import { ILoginPayload, sendOtp } from "@/services/authentication.service";
+import { getApiErrorMessage } from "@/utils/api-error";
 
 import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import {
@@ -23,11 +24,13 @@ const LoginForm = () => {
   const colorScheme = useColorScheme();
   const { control, handleSubmit } = useForm<ILoginPayload>();
   const emailRef = useRef<TextInput | null>(null);
+  const [loginError, setLoginError] = useState("");
 
   const sendOtpMutation = useMutation({
     mutationFn: (data: ILoginPayload) => sendOtp(data),
     onSuccess: (_, variables) => {
       console.log("OTP sent successfully");
+      setLoginError("");
 
       // Navigate to OTP verification screen with email
       router.push({
@@ -37,9 +40,12 @@ const LoginForm = () => {
     },
     onError: (error) => {
       console.log("Send OTP error", JSON.stringify(error));
+      const message = getApiErrorMessage(error, t("login.loginFailed"));
+      setLoginError(message);
       Toast.show({
         type: "error",
         text1: t("login.loginFailed"),
+        text2: message,
       });
     },
   });
@@ -66,7 +72,10 @@ const LoginForm = () => {
           <TextInput
             ref={emailRef}
             placeholder={t("login.emailPlaceholder")}
-            onChangeText={onChange}
+            onChangeText={(text) => {
+              setLoginError("");
+              onChange(text);
+            }}
             value={value}
             className="h-14 rounded bg-neutral-100 px-4 font-Poppinsregular text-black"
             textAlign={I18nManager.isRTL ? "right" : "left"}
@@ -82,6 +91,12 @@ const LoginForm = () => {
           />
         )}
       </Form.Item>
+
+      {!!loginError && (
+        <Typography.Text size="sm" type="danger">
+          {loginError}
+        </Typography.Text>
+      )}
 
       <Button
         loading={sendOtpMutation.isPending}

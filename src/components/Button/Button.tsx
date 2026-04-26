@@ -94,7 +94,7 @@ export default function Button(props: IButtonProps) {
       <Typography.Text
         weight="bold"
         className={clsx(
-          "uppercase",
+          "text-center uppercase",
           getTextColorSettings(type, ghost),
           labelClass,
           i18n.language === "ar" && "mt-1",

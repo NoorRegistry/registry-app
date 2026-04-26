@@ -1,6 +1,7 @@
 import { http } from "@/api/http";
 import endpoints from "@/constants/endpoints";
 import { IAccessToken } from "@/types";
+import { getApiErrorMessage } from "@/utils/api-error";
 import { type PlatformOSType } from "react-native";
 
 export interface ILoginPayload {
@@ -32,31 +33,78 @@ export interface IUserInfoUpdate {
   gender?: "Male" | "Female";
 }
 
+type AuthApiResponse<T> = T & {
+  success?: boolean;
+  status?: number;
+  detail?: unknown;
+  message?: unknown;
+  error?: unknown;
+};
+
+const assertSuccessfulAuthResponse = <T>(
+  response: AuthApiResponse<T>,
+): AuthApiResponse<T> => {
+  const failed =
+    response.success === false ||
+    (typeof response.status === "number" && response.status >= 400) ||
+    response.error !== undefined;
+
+  if (failed) {
+    throw {
+      detail: getApiErrorMessage(
+        response,
+        typeof response.message === "string"
+          ? response.message
+          : "Request failed",
+      ),
+    };
+  }
+
+  return response;
+};
+
+const assertAccessTokenResponse = (
+  response: AuthApiResponse<Partial<IAccessToken>>,
+): IAccessToken => {
+  assertSuccessfulAuthResponse(response);
+
+  if (!response.accessToken || !response.refreshToken) {
+    throw {
+      detail: getApiErrorMessage(response, "OTP verification failed"),
+    };
+  }
+
+  return response as IAccessToken;
+};
+
 export const sendOtp = async (
   payload: ILoginPayload,
 ): Promise<{ message: string }> => {
-  return await http.post<{ message: string }>(
+  const response = await http.post<AuthApiResponse<{ message: string }>>(
     endpoints.authentication.login,
     payload,
   );
+  return assertSuccessfulAuthResponse(response);
 };
 
 export const resendOtp = async (
   payload: ILoginPayload,
 ): Promise<{ message: string }> => {
-  return await http.post<{ message: string }>(
+  const response = await http.post<AuthApiResponse<{ message: string }>>(
     endpoints.authentication.login,
     payload,
   );
+  return assertSuccessfulAuthResponse(response);
 };
 
 export const verifyOtp = async (
   payload: IOtpVerifyPayload,
 ): Promise<IAccessToken> => {
-  return await http.post<IAccessToken>(
+  const response = await http.post<AuthApiResponse<Partial<IAccessToken>>>(
     endpoints.authentication.verifyOtp,
     payload,
   );
+  return assertAccessTokenResponse(response);
 };
 
 export const refreshToken = async (): Promise<IAccessToken> => {

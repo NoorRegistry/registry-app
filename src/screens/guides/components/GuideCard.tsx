@@ -9,9 +9,18 @@ import { Dimensions, Platform, TouchableOpacity, View } from "react-native";
 const { width } = Dimensions.get("window");
 const cardWidth = width - 32;
 
-function GuideCard({ guide }: { guide: IGuide }) {
+function GuideCard({
+  guide,
+  width: customWidth,
+}: {
+  guide: IGuide;
+  width?: number;
+}) {
+  const finalWidth = customWidth || cardWidth;
+
   return (
     <TouchableOpacity
+      style={{ width: finalWidth }}
       onPress={(e) => {
         if (Platform.OS !== "web") {
           // Prevent the default behavior of linking to the default browser on native.
@@ -28,19 +37,19 @@ function GuideCard({ guide }: { guide: IGuide }) {
         }
       }}
     >
-      <View className="mt-6 bg-white rounded-2xl shadow shadow-neutral-200">
+      <View className="mt-6 w-full rounded-2xl bg-white shadow shadow-neutral-200">
         <Image
           source={getImageUrl(guide.bannerImage)}
           style={{
-            width: cardWidth,
-            height: cardWidth / 2,
+            width: "100%",
+            height: finalWidth / 2,
             borderTopLeftRadius: 16,
             borderTopRightRadius: 16,
           }}
           contentFit="cover"
         />
         <View className="p-4 border-t border-neutral-100 rounded-b-2xl">
-          <Typography.Text size="base" weight="medium">
+          <Typography.Text size="base" weight="medium" className="w-full">
             {getEnArName(guide.nameEn, guide.nameAr)}
           </Typography.Text>
         </View>

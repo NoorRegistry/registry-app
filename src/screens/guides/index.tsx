@@ -1,5 +1,6 @@
 import { Button } from "@/components/Button";
 import Typography from "@/components/Typography";
+import { useHeaderScrollState } from "@/hooks/useHeaderScrollState";
 import { fetchGuidesHomeData } from "@/services/guides.service";
 import { getEnArName } from "@/utils/helper";
 import { useQuery } from "@tanstack/react-query";
@@ -11,6 +12,7 @@ import GuideCard from "./components/GuideCard";
 
 function GuidesHomeScreen() {
   const { t } = useTranslation();
+  const handleHeaderScroll = useHeaderScrollState();
   const { data } = useQuery({
     queryKey: ["guides", "home"],
     queryFn: fetchGuidesHomeData,
@@ -27,6 +29,8 @@ function GuidesHomeScreen() {
     <View className="flex-1">
       <SectionList
         sections={guideSections}
+        onScroll={handleHeaderScroll}
+        scrollEventThrottle={16}
         keyExtractor={(item) => item.id}
         renderSectionHeader={({ section }) => (
           <View className="py-2 border-b border-neutral-200">

@@ -1,25 +1,66 @@
-import { getUserFirstName } from "@/utils/helper";
+import { useGlobalStore } from "@/store";
+import { getUserFirstName, getUserGender } from "@/utils/helper";
 import { BottomTabHeaderProps } from "@react-navigation/bottom-tabs";
+import clsx from "clsx";
+import { Image } from "expo-image";
+import { router } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Typography from "../Typography";
-import HeaderRightButtons from "./HeaderRightButtons";
 
 const Header = ({ props }: { props?: BottomTabHeaderProps }) => {
   const { t } = useTranslation();
+  const isHeaderScrolled = useGlobalStore.use.isHeaderScrolled();
+  const firstName = getUserFirstName();
+  const gender = getUserGender();
+  const avatarSource =
+    gender === "Male"
+      ? require("@assets/images/login/male.png")
+      : require("@assets/images/login/female.png");
+
   return (
-    <SafeAreaView edges={["top"]}>
-      <View className="flex-row h-14 items-center justify-between ps-4 pe-3 gap-6 border-b border-neutral-200">
-        <Typography.Text
-          numberOfLines={1}
-          ellipsizeMode="tail"
-          weight="bold"
-          size="base"
-          className="flex-1"
-        >{`${t("common.welcome")}${getUserFirstName()}`}</Typography.Text>
-        <HeaderRightButtons />
+    <SafeAreaView edges={["top"]} className="w-full bg-white">
+      <View
+        className={clsx(
+          "h-[78px] w-full flex-row items-center justify-between gap-12 border-b px-4",
+          isHeaderScrolled ? "border-neutral-200" : "border-transparent",
+        )}
+      >
+        <View className="min-w-0 flex-1 gap-1">
+          <Typography.Text
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            weight="bold"
+            size="xl"
+            className="w-full max-w-full"
+          >
+            {t("common.goodMorning", { name: firstName })}
+          </Typography.Text>
+          <Typography.Text
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            size="sm"
+            weight="regular"
+            type="primary"
+            className="w-full max-w-full"
+          >
+            {t("common.welcomeBack")}
+          </Typography.Text>
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("common.me")}
+          onPress={() => router.push("/(protected)/profile")}
+          className="h-[54px] w-[54px] items-center justify-center rounded-full bg-primary-200"
+        >
+          <Image
+            source={avatarSource}
+            style={{ width: 54, height: 54 }}
+            contentFit="cover"
+          />
+        </Pressable>
       </View>
     </SafeAreaView>
   );

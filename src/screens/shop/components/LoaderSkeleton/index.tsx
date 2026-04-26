@@ -67,10 +67,10 @@ const SkeletonLoader = ({ isVisible }: { isVisible: boolean }) => {
           />
 
           {/* Bottom text and icon skeleton */}
-          <View className="flex-row items-center px-3 py-3 border-t border-neutral-200 rounded-b-xl">
+          <View className="flex-row items-center gap-2 px-3 py-3 border-t border-neutral-200 rounded-b-xl">
             {/* Text skeleton */}
             <Animated.View
-              className="rounded-md mr-2"
+              className="rounded-md"
               style={{
                 width: cardWidth * 0.6, // Approximate width for the text
                 height: 16,
@@ -148,9 +148,9 @@ export const ShopSkeletonLoader = ({ isVisible }: { isVisible: boolean }) => {
               backgroundColor: shimmerColor,
             }}
           />
-          <View className="flex-row">
+          <View className="flex-row gap-3">
             {subCategoryItems.map((itemIndex) => (
-              <View key={itemIndex} className="items-center mr-3">
+              <View key={itemIndex} className="items-center">
                 <Animated.View
                   className="rounded-xl"
                   style={{

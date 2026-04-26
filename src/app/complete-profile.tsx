@@ -11,15 +11,17 @@ import { useGlobalStore } from "@/store";
 import { IAccessToken } from "@/types";
 import { setStorageItem } from "@/utils/storage";
 import { useMutation } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { router, Stack } from "expo-router";
 import React, { useRef } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import {
   I18nManager,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   TextInput,
   useColorScheme,
@@ -32,7 +34,11 @@ export default function CompleteProfileScreen() {
   const { t } = useTranslation();
   const colorScheme = useColorScheme();
   const signIn = useGlobalStore.use.signIn();
-  const { control, handleSubmit } = useForm<IUserInfoUpdate>();
+  const { control, handleSubmit } = useForm<IUserInfoUpdate>({
+    defaultValues: {
+      gender: "Male",
+    },
+  });
   const firstNameRef = useRef<TextInput | null>(null);
   const lastNameRef = useRef<TextInput | null>(null);
 
@@ -68,8 +74,11 @@ export default function CompleteProfileScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Typography.Text size="xl" weight="bold" className="mb-6">
-            {t("common.completeProfile")}
+          <Typography.Text size="lg" weight="bold" className="mb-1">
+            {t("login.fillDetails")}
+          </Typography.Text>
+          <Typography.Text size="sm" weight="light" className="mb-6">
+            {t("login.helpsPersonliseExperience")}
           </Typography.Text>
           <View className="gap-4 flex-1">
             <Form.Item
@@ -119,6 +128,45 @@ export default function CompleteProfileScreen() {
                 />
               )}
             </Form.Item>
+            <Controller
+              control={control}
+              name="gender"
+              rules={{ required: t("common.required") }}
+              render={({ field: { onChange, value }, fieldState }) => (
+                <View className="gap-2">
+                  <Typography.Text
+                    size="base"
+                    weight="medium"
+                    className="text-center"
+                  >
+                    {t("common.selectGender")}
+                  </Typography.Text>
+                  <View className="flex-row gap-3">
+                    <GenderOption
+                      label={t("common.male")}
+                      value="Male"
+                      selected={value === "Male"}
+                      onPress={onChange}
+                      image={require("@assets/images/login/male.png")}
+                    />
+                    <GenderOption
+                      label={t("common.female")}
+                      value="Female"
+                      selected={value === "Female"}
+                      onPress={onChange}
+                      image={require("@assets/images/login/female.png")}
+                    />
+                  </View>
+                  <Typography.Text
+                    size="xs"
+                    type="danger"
+                    className="h-6 text-center leading-6"
+                  >
+                    {fieldState.error?.message ?? ""}
+                  </Typography.Text>
+                </View>
+              )}
+            />
             <Button
               loading={mutation.isPending}
               type="primary"
@@ -134,5 +182,44 @@ export default function CompleteProfileScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+}
+
+type GenderValue = NonNullable<IUserInfoUpdate["gender"]>;
+
+type GenderOptionProps = {
+  label: string;
+  value: GenderValue;
+  selected: boolean;
+  onPress: (value: GenderValue) => void;
+  image: number;
+};
+
+function GenderOption({
+  label,
+  value,
+  selected,
+  onPress,
+  image,
+}: GenderOptionProps) {
+  return (
+    <Pressable
+      accessibilityRole="radio"
+      accessibilityState={{ selected }}
+      accessibilityLabel={label}
+      onPress={() => onPress(value)}
+      className={`h-[152px] flex-1 items-center justify-center gap-3 rounded-xl border bg-primary-50 p-4 ${
+        selected ? "border-primary-500" : "border-[#FAF2F0]"
+      }`}
+    >
+      <Image
+        source={image}
+        style={{ width: 68, height: 68 }}
+        contentFit="contain"
+      />
+      <Typography.Text size="base" weight="medium" className="text-center">
+        {label}
+      </Typography.Text>
+    </Pressable>
   );
 }

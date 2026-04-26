@@ -12,6 +12,7 @@ const useGlobalStoreBase = create<IGlobalState & IGlobalActions>()(
   immer(
     devtools((set) => ({
       isAppReady: false,
+      isHeaderScrolled: false,
       isAuthenticated: isAuthenticated(),
 
       signIn: () =>
@@ -25,6 +26,10 @@ const useGlobalStoreBase = create<IGlobalState & IGlobalActions>()(
       setIsAppReady: () =>
         set((state) => {
           state.isAppReady = true;
+        }),
+      setHeaderScrolled: (isScrolled) =>
+        set((state) => {
+          state.isHeaderScrolled = isScrolled;
         }),
       setSelectedRegistryId: (id) =>
         set((state) => {

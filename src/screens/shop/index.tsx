@@ -2,6 +2,7 @@ import { queryClient } from "@/api/queryClient";
 import GiftItUp from "@/components/GiftItUp";
 import { View } from "@/components/Themed";
 import Typography from "@/components/Typography";
+import { useHeaderScrollState } from "@/hooks/useHeaderScrollState";
 import { fetchProductCategories } from "@/services/products.service";
 import { IProductCategory } from "@/types";
 import { getEnArName } from "@/utils/helper";
@@ -33,6 +34,7 @@ const Header = () => {
 };
 
 export default function ShopScreen() {
+  const handleHeaderScroll = useHeaderScrollState();
   const {
     data: categories,
     isFetching,
@@ -65,6 +67,8 @@ export default function ShopScreen() {
     <FlatList
       ListHeaderComponent={<Header />}
       data={topLevelCategories}
+      onScroll={handleHeaderScroll}
+      scrollEventThrottle={16}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => {
         const children = item.children as IProductCategory[];
@@ -86,7 +90,8 @@ export default function ShopScreen() {
         );
       }}
       horizontal={false}
-      className="flex-1 px-4 py-6"
+      className="flex-1"
+      contentContainerClassName="px-4 py-6"
       refreshControl={
         <RefreshControl
           refreshing={isRefetching} // Use isRefetching from React Query

@@ -1,246 +1,224 @@
 import LoadingSpinner from "@/components/Loader/customLoader";
+import ProductCard from "@/components/ProductCard";
 import RegistryListItem from "@/components/RegistryListItem";
 import Typography from "@/components/Typography";
+import { ChevronRightIcon } from "@/components/icons/chevron";
+import { CloseIcon } from "@/components/icons/close";
+import { SearchIcon } from "@/components/icons/search";
+import { Colors } from "@/constants/Colors";
+import { useHeaderScrollState } from "@/hooks/useHeaderScrollState";
+import GuideCard from "@/screens/guides/components/GuideCard";
 import { fetchSearchResults } from "@/services/search.service";
-import { IGlobalSearchResults, TGlobalSearchResultsType } from "@/types";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { Link, Stack, useFocusEffect } from "expo-router";
-import { t } from "i18next";
-import React, { useRef, useState } from "react";
 import {
+  IGlobalSearchResults,
+  ISearchGuide,
+  ISearchProduct,
+  ISearchStore,
+  TGlobalSearchResultsType,
+} from "@/types";
+import { getEnArName, getImageUrl } from "@/utils/helper";
+import { useQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
+import { Link, Stack, useFocusEffect } from "expo-router";
+import React, { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  FlatList,
   I18nManager,
-  SectionList,
+  Pressable,
+  ScrollView,
   TextInput,
   TouchableOpacity,
   View,
   useColorScheme,
+  useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Colors } from "react-native/Libraries/NewAppScreen";
 import { useDebounce } from "use-debounce";
 
-type CommonData = { id: string; name: string };
-
-type StoreItem = CommonData & { type: "store" };
-type ProductItem = CommonData & { type: "product" };
-type RegistryItem = CommonData & { type: "registry" };
-
-type SectionItem = StoreItem | ProductItem | RegistryItem;
-
-type SectionListDataType = {
+type SearchSection = {
   id: TGlobalSearchResultsType;
   title: string;
-  data: SectionItem[]; // A union type for all section data items
+  count: number;
 };
 
-type ConvertToSectionListDataReturn = SectionListDataType[];
-
-function returnEmptyResults(): ConvertToSectionListDataReturn {
-  return [
-    {
-      id: "stores" as TGlobalSearchResultsType,
-      title: t("common.stores"),
-      data: [], // Empty array for stores
-    },
-    {
-      id: "products" as TGlobalSearchResultsType,
-      title: t("common.products"),
-      data: [], // Empty array for products
-    },
-    {
-      id: "registries" as TGlobalSearchResultsType,
-      title: t("common.registries"),
-      data: [], // Empty array for registries
-    },
-  ];
-}
-
-function convertToSectionListData(
-  json: IGlobalSearchResults,
-): ConvertToSectionListDataReturn {
-  return [
-    {
-      id: "stores" as TGlobalSearchResultsType,
-      title: t("common.stores"),
-      data: json.stores.map(
-        (store) => ({ ...store, type: "store" }) as StoreItem,
-      ),
-    },
-    {
-      id: "products" as TGlobalSearchResultsType,
-      title: t("common.products"),
-      data: json.products.map(
-        (product) => ({ ...product, type: "product" }) as ProductItem,
-      ),
-    },
-    {
-      id: "registries" as TGlobalSearchResultsType,
-      title: t("common.registries"),
-      data: json.registries.map(
-        (registry) =>
-          ({
-            ...registry,
-            name: registry.title,
-            type: "registry",
-          }) as RegistryItem,
-      ),
-    },
-  ];
-}
-
 function SearchScreen() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme();
-  const [searchQuery, setSearchQuery] = useState(""); // State for search query
+  const { width } = useWindowDimensions();
+  const handleHeaderScroll = useHeaderScrollState();
+  const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery] = useDebounce(searchQuery, 500);
+  const [expandedSections, setExpandedSections] = useState<
+    Record<TGlobalSearchResultsType, boolean>
+  >({
+    stores: true,
+    products: true,
+    guides: true,
+    registries: true,
+  });
   const inputRef = useRef<TextInput>(null);
+  const trimmedSearchQuery = searchQuery.trim();
+  const debouncedTrimmedSearchQuery = debouncedSearchQuery.trim();
+  const sectionWidth = width - 32;
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
   };
 
+  const toggleSection = (sectionId: TGlobalSearchResultsType) => {
+    setExpandedSections((current) => ({
+      ...current,
+      [sectionId]: !current[sectionId],
+    }));
+  };
+
   useFocusEffect(
     React.useCallback(() => {
-      // Focus the TextInput when the screen is active
       inputRef.current?.focus();
     }, []),
   );
 
   const { data, isFetching } = useQuery({
-    queryKey: ["search", debouncedSearchQuery],
-    queryFn: () => fetchSearchResults(debouncedSearchQuery),
-    placeholderData: keepPreviousData,
-    enabled: Boolean(debouncedSearchQuery),
+    queryKey: ["search", debouncedTrimmedSearchQuery],
+    queryFn: () => fetchSearchResults(debouncedTrimmedSearchQuery),
+    enabled: Boolean(debouncedTrimmedSearchQuery),
   });
 
-  // Convert query results to SectionList data format
-  const sectionListData = data
-    ? convertToSectionListData(data)
-    : returnEmptyResults();
+  const totalResults = data?.total ?? 0;
+  const activeSearchTerm = debouncedTrimmedSearchQuery || trimmedSearchQuery;
+  const isWaitingForDebounce =
+    Boolean(trimmedSearchQuery) &&
+    trimmedSearchQuery !== debouncedTrimmedSearchQuery;
+  const isSearching = isWaitingForDebounce || isFetching;
+  const hasResolvedSearchResults =
+    Boolean(debouncedTrimmedSearchQuery) && data !== undefined;
+
+  const sections: SearchSection[] = [
+    {
+      id: "stores" as const,
+      title: t("common.stores"),
+      count: data?.counts.stores ?? 0,
+    },
+    {
+      id: "products" as const,
+      title: t("common.products"),
+      count: data?.counts.products ?? 0,
+    },
+    {
+      id: "guides" as const,
+      title: t("common.guides"),
+      count: data?.counts.guides ?? 0,
+    },
+    {
+      id: "registries" as const,
+      title: t("common.registries"),
+      count: data?.counts.registries ?? 0,
+    },
+  ].filter((section) => section.count > 0) as SearchSection[];
 
   return (
     <>
       <Stack.Screen options={{}} />
-      <View className="flex-row items-center bg-white shadow shadow-neutral-200 m-4 py-2 rounded-lg pe-2">
-        {/* Search Bar */}
-        <View className="flex-1 rounded-lg">
+      <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
+        <View className="mx-4 mt-4 mb-2 flex-row items-center rounded-2xl border border-neutral-200 bg-white px-4 py-4 shadow shadow-neutral-100">
+          <SearchIcon
+            width={22}
+            height={22}
+            color={Colors[colorScheme ?? "light"].tabIconDefault}
+          />
           <TextInput
             ref={inputRef}
             placeholder={t("common.globalSearch")}
             onChangeText={handleSearch}
-            className="h-8 rounded px-4 font-Poppinsregular text-black"
+            className="flex-1 px-3 font-Poppinsregular text-black"
             textAlign={I18nManager.isRTL ? "right" : "left"}
             placeholderTextColor={
               Colors[colorScheme ?? "light"].placeholderTextColor
             }
-            clearButtonMode="while-editing"
             value={searchQuery}
           />
-          {isFetching && (
-            <View className="absolute end-[2] top-1">
-              <LoadingSpinner size="large" />
-            </View>
-          )}
+          {isSearching ? <LoadingSpinner size="large" /> : null}
+          {!isSearching && trimmedSearchQuery ? (
+            <TouchableOpacity
+              onPress={() => setSearchQuery("")}
+              hitSlop={10}
+              className="p-1"
+            >
+              <CloseIcon
+                size={18}
+                color={Colors[colorScheme ?? "light"].tabIconDefault}
+              />
+            </TouchableOpacity>
+          ) : null}
         </View>
-      </View>
-      <SafeAreaView className="flex-1" edges={["bottom"]}>
-        {searchQuery ? (
-          <SectionList
-            sections={sectionListData}
-            keyExtractor={(item) => item.id}
-            renderSectionHeader={({ section: { title, id } }) => (
-              <View className="py-2 bg-white border-b border-neutral-200 flex-row justify-between">
+        {trimmedSearchQuery ? (
+          <ScrollView
+            className="flex-1"
+            onScroll={handleHeaderScroll}
+            scrollEventThrottle={16}
+            contentContainerClassName="px-4 pb-32"
+          >
+            {hasResolvedSearchResults ? (
+              <>
                 <Typography.Text
                   type="secondary"
-                  weight="light"
-                  className="font-bold"
+                  size="base"
+                  className="mb-6 mt-2"
                 >
-                  {title}
+                  {t("common.showingResultsFor", {
+                    count: totalResults,
+                    term: activeSearchTerm,
+                  })}
                 </Typography.Text>
-                <Link
-                  href={{
-                    pathname:
-                      id === "stores"
-                        ? "/(protected)/stores"
-                        : id === "products"
-                          ? "/(protected)/stores"
-                          : "/(protected)/stores",
-                  }}
-                  asChild
-                >
-                  <TouchableOpacity hitSlop={5}>
-                    <Typography.Text weight="medium" type="complementary">
-                      {t("common.seeAll")}
-                    </Typography.Text>
-                  </TouchableOpacity>
-                </Link>
-              </View>
+                {sections.length ? (
+                  sections.map((section) => (
+                    <View
+                      key={section.id}
+                      className="mb-6 self-start border-b border-neutral-200 pb-6"
+                      style={{ width: sectionWidth }}
+                    >
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={() => toggleSection(section.id)}
+                        className="w-full flex-row items-center justify-between py-1"
+                      >
+                        <Typography.Text weight="medium" size="lg">
+                          {section.title} ({section.count})
+                        </Typography.Text>
+                        <View
+                          style={{
+                            alignItems: "center",
+                            justifyContent: "center",
+                            transform: [
+                              { scaleX: I18nManager.isRTL ? -1 : 1 },
+                              {
+                                rotate: expandedSections[section.id]
+                                  ? "90deg"
+                                  : "0deg",
+                              },
+                            ],
+                          }}
+                        >
+                          <ChevronRightIcon width={24} height={24} />
+                        </View>
+                      </TouchableOpacity>
+                      {expandedSections[section.id] ? (
+                        <SearchSectionContent
+                          sectionId={section.id}
+                          data={data}
+                        />
+                      ) : null}
+                    </View>
+                  ))
+                ) : (
+                  <EmptySectionState />
+                )}
+              </>
+            ) : (
+              <SearchLoadingState />
             )}
-            renderItem={({ item, section }) => {
-              switch (item.type) {
-                case "store":
-                  return (
-                    <Link
-                      href={{
-                        pathname: "/(protected)/stores/[id]",
-                        params: { id: item.id },
-                      }}
-                      asChild
-                    >
-                      <TouchableOpacity className="py-3 border-b border-neutral-100">
-                        <Typography.Text>{item.name}</Typography.Text>
-                      </TouchableOpacity>
-                    </Link>
-                  );
-                case "product":
-                  return (
-                    <Link
-                      href={{
-                        pathname: "/(protected)/products/[id]",
-                        params: { id: item.id },
-                      }}
-                      asChild
-                    >
-                      <TouchableOpacity className="py-3 border-b border-neutral-100">
-                        <Typography.Text>{item.name}</Typography.Text>
-                      </TouchableOpacity>
-                    </Link>
-                  );
-                case "registry":
-                  return (
-                    <Link
-                      href={{
-                        pathname: "/(protected)/registry/guest-view",
-                        params: { id: item.id },
-                      }}
-                      asChild
-                    >
-                      <RegistryListItem
-                        registry={{
-                          id: item.id,
-                          title: item.name,
-                          logo: "",
-                          isActive: false,
-                          visibility: "Public",
-                          _count: { totalItems: 0, totalPurchased: 0 },
-                          category: {},
-                        }}
-                      />
-                    </Link>
-                  );
-              }
-            }}
-            renderSectionFooter={({ section }) =>
-              section.data.length === 0 ? (
-                <Typography.Text size="base" weight="light" className="py-4">
-                  {t("common.noResultsFound")}
-                </Typography.Text>
-              ) : (
-                <View className="pb-4" />
-              )
-            }
-            stickySectionHeadersEnabled
-            className="flex-1 px-4"
-          />
+          </ScrollView>
         ) : (
           <EmptySearch />
         )}
@@ -249,7 +227,187 @@ function SearchScreen() {
   );
 }
 
-const EmptySearch = () => {
+function SearchSectionContent({
+  sectionId,
+  data,
+}: {
+  sectionId: TGlobalSearchResultsType;
+  data?: IGlobalSearchResults;
+}) {
+  switch (sectionId) {
+    case "stores":
+      return <StoresSection stores={data?.stores ?? []} />;
+    case "products":
+      return <ProductsSection products={data?.products ?? []} />;
+    case "guides":
+      return <GuidesSection guides={data?.guides ?? []} />;
+    case "registries":
+      return <RegistriesSection results={data} />;
+    default:
+      return null;
+  }
+}
+
+function StoresSection({ stores }: { stores: ISearchStore[] }) {
+  const { width } = useWindowDimensions();
+
+  if (!stores.length) {
+    return <EmptySectionState />;
+  }
+
+  const viewportWidth = width - 32;
+  const visibleCardCount = width >= 390 ? 2.8 : 2.2;
+  const storeCardWidth = viewportWidth / visibleCardCount;
+
+  return (
+    <View className="mt-5 w-full">
+      <FlatList
+        horizontal
+        data={stores}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <Link
+            href={{
+              pathname: "/(protected)/stores/[id]",
+              params: {
+                id: item.id,
+                storeName: getEnArName(item.nameEn, item.nameAr),
+              },
+            }}
+            asChild
+          >
+            <Pressable
+              className="h-24 items-center justify-center rounded-3xl border border-neutral-200 p-2"
+              style={{ width: storeCardWidth }}
+            >
+              <View className="flex-1 w-full">
+                <Image
+                  source={{ uri: getImageUrl(item.storeLogo) }}
+                  style={{ flex: 1 }}
+                  contentFit="contain"
+                />
+              </View>
+            </Pressable>
+          </Link>
+        )}
+        showsHorizontalScrollIndicator={false}
+        ItemSeparatorComponent={() => <View className="w-3" />}
+        contentContainerStyle={{ paddingRight: 16 }}
+      />
+    </View>
+  );
+}
+
+function ProductsSection({ products }: { products: ISearchProduct[] }) {
+  const { width } = useWindowDimensions();
+
+  if (!products.length) {
+    return <EmptySectionState />;
+  }
+
+  const viewportWidth = width - 32;
+  const visibleCardCount = width >= 390 ? 2.2 : 1.7;
+  const productCardWidth = viewportWidth / visibleCardCount;
+
+  return (
+    <View className="mt-5 w-full">
+      <FlatList
+        horizontal
+        data={products}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <ProductCard
+            product={{ ...item, store: item.store ?? undefined }}
+            width={productCardWidth}
+          />
+        )}
+        showsHorizontalScrollIndicator={false}
+        ItemSeparatorComponent={() => <View className="w-3" />}
+        contentContainerStyle={{ paddingRight: 16 }}
+      />
+    </View>
+  );
+}
+
+function GuidesSection({ guides }: { guides: ISearchGuide[] }) {
+  const { width } = useWindowDimensions();
+
+  if (!guides.length) {
+    return <EmptySectionState />;
+  }
+
+  const viewportWidth = width - 32;
+  const guideCardWidth = viewportWidth / 1.3;
+
+  return (
+    <View className="mt-5 w-full">
+      <FlatList
+        horizontal
+        data={guides}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <GuideCard guide={item} width={guideCardWidth} />
+        )}
+        showsHorizontalScrollIndicator={false}
+        ItemSeparatorComponent={() => <View className="w-4" />}
+        contentContainerStyle={{ paddingRight: 16 }}
+      />
+    </View>
+  );
+}
+
+function RegistriesSection({ results }: { results?: IGlobalSearchResults }) {
+  const registries = results?.registries ?? [];
+
+  if (!registries.length) {
+    return <EmptySectionState />;
+  }
+
+  return (
+    <View className="mt-5 gap-3">
+      {registries.map((registry) => (
+        <Link
+          key={registry.id}
+          href={{
+            pathname: "/(protected)/registry/guest-view",
+            params: { id: registry.id },
+          }}
+          asChild
+        >
+          <RegistryListItem
+            registry={{
+              id: registry.id,
+              title: registry.title,
+              logo: registry.logo ?? "",
+              isActive: false,
+              visibility: "Public",
+              _count: { totalItems: 0, totalPurchased: 0 },
+              category: {},
+            }}
+          />
+        </Link>
+      ))}
+    </View>
+  );
+}
+
+function EmptySectionState() {
+  const { t } = useTranslation();
+
+  return (
+    <Typography.Text size="base" weight="light" className="pt-4">
+      {t("common.noResultsFound")}
+    </Typography.Text>
+  );
+}
+
+function SearchLoadingState() {
+  return <View className="h-24" />;
+}
+
+function EmptySearch() {
+  const { t } = useTranslation();
+
   return (
     <View className="flex-1 items-center justify-center p-10">
       <Typography.Text
@@ -262,6 +420,6 @@ const EmptySearch = () => {
       </Typography.Text>
     </View>
   );
-};
+}
 
 export default SearchScreen;

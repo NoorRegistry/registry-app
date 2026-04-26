@@ -21,12 +21,32 @@ import { useOnlineManager } from "@/hooks/useOnlineManager";
 import { useGlobalStore } from "@/store";
 import { handleRefreshToken } from "@/utils/auth-helper";
 import { isAuthenticated } from "@/utils/helper";
+import * as Sentry from "@sentry/react-native";
 import { useTranslation } from "react-i18next";
 
 import BottomSheetProvider from "@/components/BottomSheet";
 import "@/i18n";
 import "@/theme/global.css";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+
+const isSentryEnabled = !__DEV__;
+
+if (isSentryEnabled) {
+  Sentry.init({
+    enabled: !__DEV__,
+    dsn: "https://00748c57ce92541391fbc156f6dfebfb@o4511286988177408.ingest.us.sentry.io/4511286990471168",
+
+    // Adds more context data to events (IP address, cookies, user, etc.)
+    // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+    sendDefaultPii: true,
+
+    // Enable Logs
+    enableLogs: true,
+
+    // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+    // spotlight: __DEV__,
+  });
+}
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -68,7 +88,7 @@ GoogleSignin.configure({
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+function RootLayout() {
   const isAppReady = useGlobalStore.use.isAppReady();
   const signIn = useGlobalStore.use.signIn();
   const signOut = useGlobalStore.use.signOut();
@@ -161,3 +181,5 @@ function RootLayoutNav() {
     </GestureHandlerRootView>
   );
 }
+
+export default Sentry.wrap(RootLayout);

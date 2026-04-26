@@ -20,9 +20,16 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface SwitchRegistryProps extends Omit<BottomSheetModalProps, "children"> {
   ref?: React.Ref<BottomSheetModal>;
+  onSelectRegistry?: (registry: IRegistry) => void;
+  selectedRegistryId?: string;
 }
 
-function SwitchRegistry({ ref, ...props }: SwitchRegistryProps) {
+function SwitchRegistry({
+  ref,
+  onSelectRegistry,
+  selectedRegistryId: selectedRegistryIdProp,
+  ...props
+}: SwitchRegistryProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const localRef = useRef<BottomSheetModal>(null);
@@ -30,9 +37,10 @@ function SwitchRegistry({ ref, ...props }: SwitchRegistryProps) {
   const setSelectedRegistryId = useGlobalStore(
     (state) => state.setSelectedRegistryId,
   );
-  const selectedRegistryId = useGlobalStore(
+  const storeSelectedRegistryId = useGlobalStore(
     (state) => state.selectedRegistryId,
   );
+  const selectedRegistryId = selectedRegistryIdProp ?? storeSelectedRegistryId;
 
   // Compose the passed ref with the local ref
   React.useEffect(() => {
@@ -48,6 +56,12 @@ function SwitchRegistry({ ref, ...props }: SwitchRegistryProps) {
 
   const handleSelectRegistry = (registry: IRegistry) => {
     const id = registry.id;
+    if (onSelectRegistry) {
+      onSelectRegistry(registry);
+      localRef?.current?.close();
+      return;
+    }
+
     setSelectedRegistryId(id);
     queryClient.setQueryData<IRegistry[] | undefined>(["registries"], (old) => {
       if (old && old.length) {
@@ -150,9 +164,11 @@ function SwitchRegistry({ ref, ...props }: SwitchRegistryProps) {
           gap: 8,
         }}
         ListHeaderComponent={
-          <Typography.Text weight="bold" size="lg" className="mb-4 text-center">
-            {t("registry.myRegistries")}
-          </Typography.Text>
+          <View className="items-center pt-6 mb-4">
+            <Typography.Text weight="bold" size="xl">
+              {t("registry.myRegistries")}
+            </Typography.Text>
+          </View>
         }
       />
       <View

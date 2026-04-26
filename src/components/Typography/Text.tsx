@@ -2,9 +2,8 @@ import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 import {
   Text as DefaultText,
-  I18nManager,
-  // I18nManager,
   StyleProp,
+  StyleSheet,
   TextStyle,
   type TextProps,
 } from "react-native";
@@ -43,6 +42,15 @@ const getFontFamily = (weight: IText["weight"], language: string) => {
   return language === "en" ? `Poppins${weight}` : `Tajawal${weight}`;
 };
 
+const hasTextAlignClass = (className?: string) =>
+  /\b!?text-(left|right|center|justify|start|end)\b/.test(className ?? "");
+
+const hasTextAlignStyle = (style: CustomTextProps["style"]) => {
+  if (!style) return false;
+
+  return Boolean(StyleSheet.flatten(style)?.textAlign);
+};
+
 const Text = ({
   size = "sm",
   type = "default",
@@ -54,8 +62,11 @@ const Text = ({
   style,
   ...otherProps
 }: CustomTextProps) => {
-  const isRTL = I18nManager.getConstants().isRTL;
   const { i18n } = useTranslation();
+  const language = forceArabic ? "ar" : i18n.language;
+  const isRTL = i18n.dir(language) === "rtl";
+  const hasExplicitTextAlign =
+    hasTextAlignClass(className) || hasTextAlignStyle(style);
 
   const classes = clsx(
     getTextColor(type),
@@ -66,13 +77,19 @@ const Text = ({
   );
 
   const fontfamilyStyle: StyleProp<TextStyle> = {
-    fontFamily: getFontFamily(weight, forceArabic ? "ar" : i18n.language),
-    direction: isRTL ? "rtl" : "ltr",
+    fontFamily: getFontFamily(weight, language),
+    writingDirection: isRTL ? "rtl" : "ltr",
   };
+
+  const textAlignmentStyle: StyleProp<TextStyle> = hasExplicitTextAlign
+    ? undefined
+    : {
+        textAlign: "left",
+      };
 
   return (
     <DefaultText
-      style={[fontfamilyStyle, style]}
+      style={[fontfamilyStyle, style, textAlignmentStyle]}
       className={classes}
       {...otherProps}
     >

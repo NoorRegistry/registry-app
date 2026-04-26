@@ -1,4 +1,5 @@
 import { queryClient } from "@/api/queryClient";
+import BackButton from "@/components/BackButton";
 import { Button } from "@/components/Button";
 import Form from "@/components/Form";
 import PencilIcon from "@/components/icons/pencil";
@@ -16,6 +17,7 @@ import { useGlobalStore } from "@/store";
 import { ICreateRegistryPayload } from "@/types";
 import { getEnArName, getImageUrl } from "@/utils/helper";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { clsx } from "clsx";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { Stack, router } from "expo-router";
@@ -46,6 +48,8 @@ import Toast from "react-native-toast-message";
 
 const { width, height } = Dimensions.get("window");
 const cardWidth = width / 2 - 24 - 8;
+const registryInputClassName =
+  "rounded border border-primary-500 bg-[#fbfbfb] px-4 font-Poppinsregular text-base text-[#100E0E] shadow-sm shadow-neutral-100";
 
 function CreateRegistryScreen() {
   const { t } = useTranslation();
@@ -190,13 +194,9 @@ function CreateRegistryScreen() {
     <>
       <Stack.Screen
         options={{
-          headerTitle: () => (
-            <Typography.Text size="base" weight="medium">
-              {t("registry.createregistry")}
-            </Typography.Text>
-          ),
-          headerTitleStyle: { fontWeight: "light" },
-          headerBackground: () => <View className="flex-1" />,
+          headerTitle: "",
+          headerShadowVisible: false,
+          headerLeft: () => <BackButton filled />,
         }}
       />
       <SafeAreaView className="flex-1" edges={["bottom"]}>
@@ -211,18 +211,16 @@ function CreateRegistryScreen() {
           >
             <ScrollView>
               <View className="p-6">
-                <Typography.Text weight="bold" size="lg" className="py-6">
-                  {t("registry.letsCreateRegistry")}
-                </Typography.Text>
-                <Form.Item
-                  name="title"
-                  // label={t("registry.title")}
-                  rules={{
-                    required: t("login.enterEmail"),
-                  }}
-                  control={control}
-                >
-                  {({ field: { onChange, value } }) => {
+                <View className="py-6 gap-1">
+                  <Typography.Text size="sm" type="secondary">
+                    {t("registry.createregistry")}
+                  </Typography.Text>
+                  <Typography.Text weight="bold" size="lg">
+                    {t("registry.letsCreateRegistry")}
+                  </Typography.Text>
+                </View>
+                <Form.Item name="categoryId" control={control}>
+                  {() => {
                     return (
                       <View className="flex-row justify-between flex-wrap">
                         {categories?.map((category) => (
@@ -340,7 +338,7 @@ function CreateRegistryScreen() {
                     name="title"
                     label={t("registry.title")}
                     rules={{
-                      required: t("login.enterEmail"),
+                      required: t("common.required"),
                     }}
                     control={control}
                   >
@@ -349,7 +347,7 @@ function CreateRegistryScreen() {
                         placeholder={t("registry.titlePlaceholder")}
                         onChangeText={onChange}
                         value={value}
-                        className="h-14 rounded bg-white px-4 font-Poppinsregular text-black"
+                        className={clsx("h-[60px]", registryInputClassName)}
                         textAlign={I18nManager.isRTL ? "right" : "left"}
                         placeholderTextColor={
                           Colors[colorScheme ?? "light"].placeholderTextColor
@@ -370,11 +368,15 @@ function CreateRegistryScreen() {
                           placeholder={t("registry.greetingsPlaceholder")}
                           onChangeText={onChange}
                           value={value}
-                          className="w-full h-28 rounded bg-white p-4 font-Poppinsregular text-black"
+                          className={clsx(
+                            "h-28 w-full py-4",
+                            registryInputClassName,
+                          )}
                           placeholderTextColor={
                             Colors[colorScheme ?? "light"].placeholderTextColor
                           }
                           textAlign={I18nManager.isRTL ? "right" : "left"}
+                          textAlignVertical="top"
                           multiline
                           maxLength={200}
                         />

@@ -38,3 +38,5 @@ yarn-error.*
 # Translation backups
 src/i18n/backups/
 *.backup
+
+.env.local

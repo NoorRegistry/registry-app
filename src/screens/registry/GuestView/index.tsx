@@ -21,10 +21,11 @@ import {
   BottomSheetModalProps,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import cx from "clsx";
 import { Image } from "expo-image";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import React, {
   useCallback,
   useEffect,
@@ -35,6 +36,8 @@ import React, {
 import { useTranslation } from "react-i18next";
 import {
   Dimensions,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   SectionList,
   TextInput,
   TouchableOpacity,
@@ -48,6 +51,7 @@ import {
 import Toast from "react-native-toast-message";
 
 const MIN_PURCHASE_QTY = 1;
+const REGISTRY_HEADER_TITLE_SCROLL_THRESHOLD = 120;
 
 type GuestSectionItem =
   | { type: "needed"; item: IRegistryItem }
@@ -85,7 +89,11 @@ const canBePasswordError = (error: unknown, hasCode: boolean): boolean => {
   );
 };
 
-function GuestViewScreen() {
+interface GuestViewScreenProps {
+  onHeaderTitleChange?: (title: string) => void;
+}
+
+function GuestViewScreen({ onHeaderTitleChange }: GuestViewScreenProps) {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ id?: string; code?: string }>();
   const registryId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -97,6 +105,7 @@ function GuestViewScreen() {
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const [showPasswordRequired, setShowPasswordRequired] = useState(false);
   const [showInvalidPassword, setShowInvalidPassword] = useState(false);
+  const [showHeaderTitle, setShowHeaderTitle] = useState(false);
   const purchaseSheetRef = useRef<BottomSheetModal>(null);
   const [selectedItem, setSelectedItem] = useState<IRegistryItem | null>(null);
 
@@ -133,6 +142,14 @@ function GuestViewScreen() {
     setShowInvalidPassword(Boolean(registryCode));
   }, [error, isError, registryCode]);
 
+  useEffect(() => {
+    onHeaderTitleChange?.(showHeaderTitle && registry ? registry.title : "");
+
+    return () => {
+      onHeaderTitleChange?.("");
+    };
+  }, [onHeaderTitleChange, registry, showHeaderTitle]);
+
   const cacheKey = ["registryGuestView", registryId, registryCode ?? ""];
 
   const handlePurchasePress = useCallback((item: IRegistryItem) => {
@@ -143,6 +160,18 @@ function GuestViewScreen() {
   const handleSheetDismiss = useCallback(() => {
     setSelectedItem(null);
   }, []);
+
+  const handleGuestScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const nextShowHeaderTitle =
+        event.nativeEvent.contentOffset.y >
+        REGISTRY_HEADER_TITLE_SCROLL_THRESHOLD;
+      setShowHeaderTitle((current) =>
+        current === nextShowHeaderTitle ? current : nextShowHeaderTitle,
+      );
+    },
+    [],
+  );
 
   const handlePasswordSubmit = useCallback(() => {
     const normalizedPassword = passwordInput.trim();
@@ -208,56 +237,45 @@ function GuestViewScreen() {
 
   if (!registry && showPasswordPrompt) {
     return (
-      <>
-        <Stack.Screen
-          options={{
-            headerTitle: () => (
-              <Typography.Text size="base" weight="medium">
-                {t("registry.guestView")}
-              </Typography.Text>
-            ),
-          }}
-        />
-        <SafeAreaView className="flex-1" edges={["bottom"]}>
-          <View className="flex-1 px-4 pt-8 gap-5">
-            <View className="gap-2">
-              <Typography.Text size="xl" weight="bold">
-                {t("registry.registryPassword")}
-              </Typography.Text>
-              <Typography.Text type="secondary">
-                {t("registry.passwordRequired")}
-              </Typography.Text>
-            </View>
-
-            <View className="gap-2">
-              <TextInput
-                placeholder={t("registry.registryPasswordPlaceholder")}
-                secureTextEntry
-                value={passwordInput}
-                onChangeText={setPasswordInput}
-                className="h-12 rounded bg-neutral-100 px-4 font-Poppinsregular text-black"
-              />
-              {showPasswordRequired && (
-                <Typography.Text size="xs" type="danger">
-                  {t("common.required")}
-                </Typography.Text>
-              )}
-              {showInvalidPassword && (
-                <Typography.Text size="xs" type="danger">
-                  {t("registry.invalidPassword")}
-                </Typography.Text>
-              )}
-            </View>
-
-            <Button
-              title={t("common.submit")}
-              type="primary"
-              onPress={handlePasswordSubmit}
-              loading={isFetching}
-            />
+      <SafeAreaView className="flex-1" edges={["bottom"]}>
+        <View className="flex-1 px-4 pt-8 gap-5">
+          <View className="gap-2">
+            <Typography.Text size="xl" weight="bold">
+              {t("registry.registryPassword")}
+            </Typography.Text>
+            <Typography.Text type="secondary">
+              {t("registry.passwordRequired")}
+            </Typography.Text>
           </View>
-        </SafeAreaView>
-      </>
+
+          <View className="gap-2">
+            <TextInput
+              placeholder={t("registry.registryPasswordPlaceholder")}
+              secureTextEntry
+              value={passwordInput}
+              onChangeText={setPasswordInput}
+              className="h-12 rounded bg-neutral-100 px-4 font-Poppinsregular text-black"
+            />
+            {showPasswordRequired && (
+              <Typography.Text size="xs" type="danger">
+                {t("common.required")}
+              </Typography.Text>
+            )}
+            {showInvalidPassword && (
+              <Typography.Text size="xs" type="danger">
+                {t("registry.invalidPassword")}
+              </Typography.Text>
+            )}
+          </View>
+
+          <Button
+            title={t("common.submit")}
+            type="primary"
+            onPress={handlePasswordSubmit}
+            loading={isFetching}
+          />
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -271,19 +289,12 @@ function GuestViewScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerTitle: () => (
-            <Typography.Text size="base" weight="medium">
-              {t("registry.guestView")}
-            </Typography.Text>
-          ),
-        }}
-      />
       <SafeAreaView className="flex-1" edges={["bottom"]}>
         <SectionList
           sections={sections}
           keyExtractor={(item) => item.item.id}
+          onScroll={handleGuestScroll}
+          scrollEventThrottle={16}
           ListHeaderComponent={<GuestRegistryHeader registry={registry} />}
           ListEmptyComponent={
             <View className="px-4 py-8">
@@ -322,6 +333,7 @@ function GuestViewScreen() {
               <GuestRegistryItem
                 registryItem={item.item}
                 onPurchase={() => handlePurchasePress(item.item)}
+                disabled={Boolean(registry.isOwner)}
               />
             );
           }}
@@ -347,7 +359,7 @@ function GuestRegistryHeader({ registry }: GuestRegistryHeaderProps) {
     <View className="px-4 pt-5 pb-2 items-center gap-2">
       <Image
         source={getImageUrl(registry.logo)}
-        style={{ width: 72, height: 72 }}
+        style={{ width: 72, height: 72, borderRadius: 36 }}
         contentFit="cover"
       />
       <Typography.Text weight="medium" size="lg">
@@ -365,14 +377,17 @@ function GuestRegistryHeader({ registry }: GuestRegistryHeaderProps) {
 interface GuestRegistryItemProps {
   registryItem: IRegistryItem;
   onPurchase: () => void;
+  disabled?: boolean;
 }
 
 function GuestRegistryItem({
   registryItem,
   onPurchase,
+  disabled = false,
 }: GuestRegistryItemProps) {
   const { t } = useTranslation();
   const isSoldOut = registryItem.qtyLeft <= 0;
+  const isPurchaseDisabled = isSoldOut || disabled;
   const showWants = registryItem.qty > 1 && registryItem.qtyLeft > 0;
 
   return (
@@ -416,20 +431,21 @@ function GuestRegistryItem({
       </View>
       <TouchableOpacity
         className={cx(
-          "flex-row items-center gap-3 border rounded-md px-3 py-3",
-          isSoldOut ? "border-neutral-200 opacity-40" : "border-primary-500",
+          "h-11 flex-row items-center justify-center gap-2 rounded-md",
+          isPurchaseDisabled ? "opacity-40" : "bg-primary-50",
         )}
         onPress={onPurchase}
-        disabled={isSoldOut}
+        disabled={isPurchaseDisabled}
       >
-        <View
-          className={cx(
-            "h-5 w-5 rounded-sm border",
-            isSoldOut ? "border-neutral-300" : "border-primary-500",
-          )}
+        <MaterialCommunityIcons
+          name="check-circle-outline"
+          size={20}
+          color={isPurchaseDisabled ? "#8A8A8A" : "#CF8169"}
         />
         <Typography.Text
-          type={isSoldOut ? "secondary" : "primary"}
+          className={
+            isPurchaseDisabled ? "text-neutral-500" : "text-primary-500"
+          }
           weight="medium"
         >
           {t("registry.iPurchased")}

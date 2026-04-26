@@ -69,14 +69,18 @@ const Item = <T extends FieldValues>({
       {label && (
         <View className="flex-row gap-1">
           {typeof label === "string" ? (
-            <Typography.Text className={clsx("mb-2", labelClassName ?? "")}>
+            <Typography.Text
+              className={clsx("mb-2 w-auto", labelClassName ?? "")}
+            >
               {label}
             </Typography.Text>
           ) : (
             label
           )}
           {showRequiredMark && (
-            <Typography.Text type="danger">*</Typography.Text>
+            <Typography.Text type="danger" className="w-auto">
+              *
+            </Typography.Text>
           )}
         </View>
       )}

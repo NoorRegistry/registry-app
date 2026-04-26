@@ -62,7 +62,7 @@ const RegistryHeader = ({ registry }: { registry: IRegistryDetails }) => {
       <View className="gap-4 items-center">
         <Image
           source={getImageUrl(registry.logo)}
-          style={{ width: 80, height: 80 }}
+          style={{ width: 80, height: 80, borderRadius: 40 }}
           contentFit="cover"
         />
         <View className="flex-row gap-1 items-center">

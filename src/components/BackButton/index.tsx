@@ -2,7 +2,7 @@ import { Colors } from "@/constants/Colors";
 import clsx from "clsx";
 import { router } from "expo-router";
 import React from "react";
-import { TouchableOpacity, useColorScheme } from "react-native";
+import { I18nManager, TouchableOpacity, useColorScheme } from "react-native";
 import { ArrowLeftIcon } from "../icons/arrow_left_lg";
 
 type BackButtonProps = {
@@ -34,7 +34,12 @@ const BackButton = ({ size = 24, color, filled = false }: BackButtonProps) => {
         !filled && "ps-2 pe-3 py-1 -ms-2",
       )}
     >
-      <ArrowLeftIcon width={size} height={size} color={color} />
+      <ArrowLeftIcon
+        width={size}
+        height={size}
+        color={color}
+        style={{ transform: [{ scaleX: I18nManager.isRTL ? -1 : 1 }] }}
+      />
     </TouchableOpacity>
   );
 };

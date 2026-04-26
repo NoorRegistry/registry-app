@@ -18,6 +18,7 @@ export interface ITokenInfo {
     email: string;
     mobileNumber: string | null;
     countryCode: string | null;
+    gender: "Male" | "Female" | null;
     getUserData: boolean;
   };
   iat: string;
@@ -130,6 +131,7 @@ export interface IRegistry {
 export interface IRegistryDetails extends IRegistry {
   greeting: string | null;
   isProtected: boolean;
+  isOwner?: boolean;
   code?: string | null;
   purchased: {
     items: IRegistryPurchaseCategorySection[];
@@ -191,6 +193,16 @@ export interface ICreateRegistryItem {
   qty: number;
 }
 
+export interface ICreateRegistryItemResponse {
+  id: string;
+  qty: number;
+  registry: {
+    id: string;
+    title: string;
+    categoryId?: string;
+  };
+}
+
 export interface ICreateRegistryItemPurchase {
   registryItemsId: string;
   registryId: string;
@@ -206,23 +218,49 @@ export interface IUpdateRegistryItemPayload {
   notes: string;
 }
 
-export interface IGlobalSearchResults {
-  registries: {
-    id: string;
-    title: string;
-    isProtected: boolean;
-  }[];
-  products: {
-    id: string;
-    name: string;
-  }[];
-  stores: {
-    id: string;
-    name: string;
-  }[];
+export interface ISearchRegistry {
+  id: string;
+  title: string;
+  isProtected: boolean;
+  logo: string | null;
 }
 
-export type TGlobalSearchResultsType = "stores" | "products" | "registries";
+export type ISearchProduct = Pick<
+  IProduct,
+  "id" | "nameEn" | "nameAr" | "price" | "qty" | "images" | "currencyCode"
+> & {
+  store?: {
+    id: string;
+    nameEn: string;
+    nameAr: string;
+  } | null;
+};
+
+export type ISearchStore = IStore;
+
+export type ISearchGuide = IGuide;
+
+export interface IGlobalSearchCounts {
+  registries: number;
+  products: number;
+  stores: number;
+  guides: number;
+}
+
+export interface IGlobalSearchResults {
+  total: number;
+  counts: IGlobalSearchCounts;
+  registries: ISearchRegistry[];
+  products: ISearchProduct[];
+  stores: ISearchStore[];
+  guides: ISearchGuide[];
+}
+
+export type TGlobalSearchResultsType =
+  | "stores"
+  | "products"
+  | "guides"
+  | "registries";
 
 export interface IRegistryCategory {
   id: string;
