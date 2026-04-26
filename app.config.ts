@@ -1,9 +1,19 @@
 import { ConfigContext, ExpoConfig } from "expo/config";
 
+const APP_DISPLAY_NAME = "Shop Simplist";
+
 export default ({ config }: ConfigContext): ExpoConfig => {
   const APP_VARIANT = process.env.APP_VARIANT || "development";
   console.log("env variables", APP_VARIANT, process.env.NODE_ENV);
   const IS_DEV = APP_VARIANT === "development";
+
+  const bundleIdentifier = IS_DEV
+    ? "com.shiftgiftme.mobile.dev"
+    : "com.shiftgiftme.mobile";
+
+  const androidPackage = IS_DEV
+    ? "com.shiftgiftme.mobile.dev"
+    : "com.shiftgiftme.mobile";
   const SHARE_BASE_URL = process.env.EXPO_PUBLIC_SHARE_BASE_URL;
   const parsedShareUrl = (() => {
     if (!SHARE_BASE_URL) return null;
@@ -16,20 +26,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const shareHost =
     parsedShareUrl?.protocol === "https:" ? parsedShareUrl.host : null;
 
-  const getAppName = () => {
-    switch (APP_VARIANT) {
-      case "preview":
-        return "Preview Shop Simplist";
-      case "production":
-        return "Shop Simplist";
-      default:
-        return "Dev Shop Simplist";
-    }
-  };
-
   return {
     ...config,
-    name: getAppName(),
+    // Keep Expo `name` stable so EAS resolves the correct existing Xcode target (`ShiftGiftMe`).
+    name: "ShiftGiftMe",
     slug: "registry-app",
     version: "1.0.2",
     orientation: "portrait",
@@ -44,25 +44,23 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     ios: {
       supportsTablet: true,
-      bundleIdentifier: IS_DEV
-        ? "com.shiftgiftme.mobile.dev"
-        : "com.shiftgiftme.mobile",
+      bundleIdentifier,
       ...(shareHost ? { associatedDomains: [`applinks:${shareHost}`] } : {}),
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
+        CFBundleDisplayName: APP_DISPLAY_NAME,
       },
       googleServicesFile: IS_DEV
         ? "./assets/firebaseconfig/development/GoogleService-Info.plist"
         : process.env.GOOGLE_SERVICE_INFO_PLIST,
       usesAppleSignIn: true,
-      
     },
     android: {
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#FAF2F0",
       },
-      package: IS_DEV ? "com.shiftgiftme.mobile.dev" : "com.shiftgiftme.mobile",
+      package: androidPackage,
       ...(shareHost
         ? {
             intentFilters: [
@@ -93,6 +91,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       favicon: "./assets/images/favicon.png",
     },
     plugins: [
+      ["./plugins/withAndroidAppName", { name: APP_DISPLAY_NAME }],
       "expo-router",
       "expo-localization",
       "expo-secure-store",

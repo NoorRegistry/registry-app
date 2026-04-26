@@ -41,15 +41,6 @@
         "appleId": "noorregistryapp@gmail.com",
         "ascAppId": "6749792410"
       }
-    },
-    "preview": {
-      "android": {
-        "track": "internal"
-      },
-      "ios": {
-        "appleId": "noorregistryapp@gmail.com",
-        "ascAppId": "6749792410"
-      }
     }
   }
 }
