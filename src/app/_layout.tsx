@@ -35,6 +35,10 @@ if (isSentryEnabled) {
   Sentry.init({
     enabled: !__DEV__,
     dsn: "https://00748c57ce92541391fbc156f6dfebfb@o4511286988177408.ingest.us.sentry.io/4511286990471168",
+    integrations: (defaultIntegrations) =>
+      defaultIntegrations.filter(
+        (integration) => integration.name !== "ExpoUpdatesListener",
+      ),
 
     // Adds more context data to events (IP address, cookies, user, etc.)
     // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
