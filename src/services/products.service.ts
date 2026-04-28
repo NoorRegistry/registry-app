@@ -37,3 +37,7 @@ export const fetchRelatedProductById = async (productId: string) => {
     `${endpoints.products.index}/${productId}/related`,
   );
 };
+
+export const fetchMostAddedProducts = async () => {
+  return await http.get<IProduct[]>(endpoints.products.mostAdded);
+};

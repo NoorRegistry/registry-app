@@ -13,8 +13,9 @@ import { I18nManager, View } from "react-native";
 
 import Typography from "@/components/Typography";
 
-interface GenericFormItemProps<T extends FieldValues>
-  extends UseControllerProps<T> {
+interface GenericFormItemProps<
+  T extends FieldValues,
+> extends UseControllerProps<T> {
   /**
    * Passing a string will render as Text
    * Reactnode will be rendered as is

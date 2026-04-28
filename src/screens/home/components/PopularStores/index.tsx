@@ -1,5 +1,4 @@
 import { Button } from "@/components/Button";
-import Typography from "@/components/Typography";
 import { ChevronRightMDIcon } from "@/components/icons/chevron_md";
 import { Colors } from "@/constants/Colors";
 import { fetchStores } from "@/services/stores.service";
@@ -10,6 +9,7 @@ import { Link, router } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Animated, Pressable, View, useColorScheme } from "react-native";
+import SectionTitle from "../SectionTitle";
 
 /// Skeleton Component
 const SkeletonLoader = ({ isVisible }: { isVisible: boolean }) => {
@@ -75,9 +75,7 @@ function PopularStores() {
 
   return (
     <View className="px-4 py-4 bg-white gap-6">
-      <Typography.Text size="lg" weight="medium">
-        {t("home.browsePopularStores")}
-      </Typography.Text>
+      <SectionTitle>{t("home.browsePopularStores")}</SectionTitle>
       <SkeletonLoader isVisible={isFetching} />
       {!isFetching && (
         <>

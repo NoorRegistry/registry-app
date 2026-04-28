@@ -258,7 +258,7 @@ export default function VerifyOtpScreen() {
                 {resendOtpMutation.isPending
                   ? t("login.sending")
                   : !canResend
-                    ? t("login.resendIn", { seconds: resendTimer })
+                    ? t("login.resendIn", { seconds: String(resendTimer) })
                     : t("login.resend")}
               </Typography.Text>
             </TouchableOpacity>

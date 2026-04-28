@@ -130,6 +130,7 @@ export interface IRegistry {
 
 export interface IRegistryDetails extends IRegistry {
   greeting: string | null;
+  ownerName?: string | null;
   isProtected: boolean;
   isOwner?: boolean;
   code?: string | null;

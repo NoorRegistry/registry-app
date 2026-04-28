@@ -10,11 +10,30 @@ import { Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Typography from "../Typography";
 
+const getGreetingKey = () => {
+  const currentHour = new Date().getHours();
+
+  if (currentHour >= 5 && currentHour < 12) {
+    return "common.goodMorning";
+  }
+
+  if (currentHour >= 12 && currentHour < 17) {
+    return "common.goodAfternoon";
+  }
+
+  if (currentHour >= 17 && currentHour < 22) {
+    return "common.goodEvening";
+  }
+
+  return "common.niceToSeeYou";
+};
+
 const Header = ({ props }: { props?: BottomTabHeaderProps }) => {
   const { t } = useTranslation();
   const isHeaderScrolled = useGlobalStore.use.isHeaderScrolled();
   const firstName = getUserFirstName();
   const gender = getUserGender();
+  const greetingKey = getGreetingKey();
   const avatarSource =
     gender === "Male"
       ? require("@assets/images/login/male.png")
@@ -36,7 +55,7 @@ const Header = ({ props }: { props?: BottomTabHeaderProps }) => {
             size="xl"
             className="w-full max-w-full"
           >
-            {t("common.goodMorning", { name: firstName })}
+            {t(greetingKey, { name: firstName })}
           </Typography.Text>
           <Typography.Text
             numberOfLines={1}

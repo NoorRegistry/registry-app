@@ -137,7 +137,7 @@ function ProductScreen() {
         >
           <ProductImages images={product?.images ?? []} />
           <View className="px-4 py-6">
-            <View className="gap-1">
+            <View className="gap-2">
               <Link
                 href={{
                   pathname: "/stores/[id]",
@@ -147,38 +147,54 @@ function ProductScreen() {
               >
                 <TouchableOpacity>
                   <Typography.Text
-                    size="base"
-                    type="complementary"
-                    weight="medium"
+                    size="sm"
+                    className="underline"
+                    style={{ color: "#CF8169", lineHeight: 22 }}
                   >
-                    {getEnArName(
-                      product?.store?.nameEn ?? "",
-                      product?.store?.nameAr ?? "",
-                    )}
+                    {t("shop.visitStore", {
+                      store: getEnArName(
+                        product?.store?.nameEn ?? "",
+                        product?.store?.nameAr ?? "",
+                      ),
+                    })}
                   </Typography.Text>
                 </TouchableOpacity>
               </Link>
-              <Typography.Text size="base">
-                {getEnArName(product?.nameEn ?? "", product?.nameAr ?? "")}
-              </Typography.Text>
-              <Typography.Text className="mt-2" type="secondary" weight="light">
+
+              {product?.addedInRegistryItemCount && (
+                <View className="mt-1 mb-2">
+                  <ProductPopularityStats
+                    addedInRegistryItemCount={product.addedInRegistryItemCount}
+                  />
+                </View>
+              )}
+
+              <View className="gap-3">
+                <Typography.Text
+                  size="xl"
+                  weight="bold"
+                  style={{ lineHeight: 22 }}
+                >
+                  {getEnArName(product?.nameEn ?? "", product?.nameAr ?? "")}
+                </Typography.Text>
+                <Typography.Text
+                  size="xl"
+                  weight="bold"
+                  style={{ lineHeight: 22 }}
+                >
+                  {formatPrice(product?.price, product?.currencyCode)}
+                </Typography.Text>
+              </View>
+
+              <Typography.Text
+                size="sm"
+                className="mt-1"
+                style={{ color: "#000000", lineHeight: 22 }}
+              >
                 {getEnArName(
                   product?.descriptionEn ?? "",
                   product?.descriptionAr ?? "",
                 )}
-              </Typography.Text>
-            </View>
-
-            {/* Product Popularity Stats */}
-            {product?.addedInRegistryItemCount && (
-              <ProductPopularityStats
-                addedInRegistryItemCount={product.addedInRegistryItemCount}
-              />
-            )}
-
-            <View className="py-4">
-              <Typography.Text weight="medium" size="lg">
-                {formatPrice(product?.price, product?.currencyCode)}
               </Typography.Text>
             </View>
           </View>

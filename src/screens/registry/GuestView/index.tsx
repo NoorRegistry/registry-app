@@ -14,14 +14,20 @@ import {
   IRegistryDetails,
   IRegistryItem,
 } from "@/types";
-import { formatPrice, getEnArName, getImageUrl } from "@/utils/helper";
+import {
+  formatPrice,
+  getEnArName,
+  getImageUrl,
+  getUserEmail,
+  getUserFirstLastName,
+} from "@/utils/helper";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
   BottomSheetModalProps,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import cx from "clsx";
 import { Image } from "expo-image";
@@ -40,6 +46,7 @@ import {
   NativeSyntheticEvent,
   SectionList,
   TextInput,
+  TextLayoutEventData,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -64,6 +71,16 @@ type GuestSection = {
   nameAr?: string;
   data: GuestSectionItem[];
 };
+
+interface GuestPasswordGateProps {
+  registry?: IRegistryDetails;
+  passwordInput: string;
+  showPasswordRequired: boolean;
+  showInvalidPassword: boolean;
+  isSubmitting: boolean;
+  onChangePassword: (value: string) => void;
+  onSubmit: () => void;
+}
 
 const getErrorDetail = (error: unknown): string => {
   if (
@@ -101,8 +118,7 @@ function GuestViewScreen({ onHeaderTitleChange }: GuestViewScreenProps) {
     ? params.code[0]
     : params.code;
   const [registryCode, setRegistryCode] = useState(initialRegistryCode ?? "");
-  const [passwordInput, setPasswordInput] = useState("");
-  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [passwordInput, setPasswordInput] = useState(initialRegistryCode ?? "");
   const [showPasswordRequired, setShowPasswordRequired] = useState(false);
   const [showInvalidPassword, setShowInvalidPassword] = useState(false);
   const [showHeaderTitle, setShowHeaderTitle] = useState(false);
@@ -124,23 +140,26 @@ function GuestViewScreen({ onHeaderTitleChange }: GuestViewScreenProps) {
     refetchOnMount: "always",
   });
 
+  const hasRegistryDetails = Boolean(
+    registry?.registryItems || registry?.purchased,
+  );
+  const isLockedRegistry =
+    Boolean(registry?.isProtected) && !hasRegistryDetails;
+  const shouldShowPasswordPrompt =
+    isLockedRegistry ||
+    (isError && canBePasswordError(error, Boolean(registryCode)));
+
   useEffect(() => {
-    if (!registry) return;
-    setShowPasswordPrompt(false);
+    if (!hasRegistryDetails) return;
     setShowPasswordRequired(false);
     setShowInvalidPassword(false);
-  }, [registry]);
+  }, [hasRegistryDetails]);
 
   useEffect(() => {
-    if (!isError) return;
-    if (!canBePasswordError(error, Boolean(registryCode))) {
-      return;
-    }
-
-    setShowPasswordPrompt(true);
-    setShowPasswordRequired(false);
-    setShowInvalidPassword(Boolean(registryCode));
-  }, [error, isError, registryCode]);
+    if (!shouldShowPasswordPrompt) return;
+    if (!registryCode) return;
+    setShowInvalidPassword(true);
+  }, [registryCode, shouldShowPasswordPrompt]);
 
   useEffect(() => {
     onHeaderTitleChange?.(showHeaderTitle && registry ? registry.title : "");
@@ -235,47 +254,25 @@ function GuestViewScreen({ onHeaderTitleChange }: GuestViewScreenProps) {
     return <LoadingScreen />;
   }
 
-  if (!registry && showPasswordPrompt) {
+  if (shouldShowPasswordPrompt) {
     return (
-      <SafeAreaView className="flex-1" edges={["bottom"]}>
-        <View className="flex-1 px-4 pt-8 gap-5">
-          <View className="gap-2">
-            <Typography.Text size="xl" weight="bold">
-              {t("registry.registryPassword")}
-            </Typography.Text>
-            <Typography.Text type="secondary">
-              {t("registry.passwordRequired")}
-            </Typography.Text>
-          </View>
-
-          <View className="gap-2">
-            <TextInput
-              placeholder={t("registry.registryPasswordPlaceholder")}
-              secureTextEntry
-              value={passwordInput}
-              onChangeText={setPasswordInput}
-              className="h-12 rounded bg-neutral-100 px-4 font-Poppinsregular text-black"
-            />
-            {showPasswordRequired && (
-              <Typography.Text size="xs" type="danger">
-                {t("common.required")}
-              </Typography.Text>
-            )}
-            {showInvalidPassword && (
-              <Typography.Text size="xs" type="danger">
-                {t("registry.invalidPassword")}
-              </Typography.Text>
-            )}
-          </View>
-
-          <Button
-            title={t("common.submit")}
-            type="primary"
-            onPress={handlePasswordSubmit}
-            loading={isFetching}
-          />
-        </View>
-      </SafeAreaView>
+      <GuestRegistryPasswordGate
+        registry={registry}
+        passwordInput={passwordInput}
+        showPasswordRequired={showPasswordRequired}
+        showInvalidPassword={showInvalidPassword}
+        isSubmitting={isFetching}
+        onChangePassword={(value) => {
+          setPasswordInput(value);
+          if (showPasswordRequired && value.trim()) {
+            setShowPasswordRequired(false);
+          }
+          if (showInvalidPassword) {
+            setShowInvalidPassword(false);
+          }
+        }}
+        onSubmit={handlePasswordSubmit}
+      />
     );
   }
 
@@ -342,6 +339,7 @@ function GuestViewScreen({ onHeaderTitleChange }: GuestViewScreenProps) {
       <GuestPurchaseSheet
         ref={purchaseSheetRef}
         registryId={registry.id}
+        prefillPurchaserInfo={!Boolean(registry.isOwner)}
         item={selectedItem}
         queryKey={cacheKey}
         onDismiss={handleSheetDismiss}
@@ -355,22 +353,213 @@ interface GuestRegistryHeaderProps {
 }
 
 function GuestRegistryHeader({ registry }: GuestRegistryHeaderProps) {
+  const { t } = useTranslation();
+  const ownerName = registry.ownerName?.trim();
+  const greeting = registry.greeting?.trim();
+  const [isGreetingExpanded, setIsGreetingExpanded] = useState(false);
+  const [canExpandGreeting, setCanExpandGreeting] = useState(false);
+
+  useEffect(() => {
+    setIsGreetingExpanded(false);
+    setCanExpandGreeting(false);
+  }, [greeting]);
+
+  const handleGreetingLayout = useCallback(
+    (event: NativeSyntheticEvent<TextLayoutEventData>) => {
+      const hasOverflow = event.nativeEvent.lines.length > 2;
+      setCanExpandGreeting((current) =>
+        current === hasOverflow ? current : hasOverflow,
+      );
+    },
+    [],
+  );
+
   return (
-    <View className="px-4 pt-5 pb-2 items-center gap-2">
+    <View className="px-5 pt-5 pb-5 items-center gap-2.5 bg-white">
       <Image
         source={getImageUrl(registry.logo)}
         style={{ width: 72, height: 72, borderRadius: 36 }}
         contentFit="cover"
       />
-      <Typography.Text weight="medium" size="lg">
+      <Typography.Text
+        weight="medium"
+        size="base"
+        className="text-center mt-1"
+        numberOfLines={2}
+      >
         {registry.title}
       </Typography.Text>
-      {registry.greeting && (
-        <Typography.Text type="secondary" size="sm" className="text-center">
-          {registry.greeting}
-        </Typography.Text>
-      )}
+      {ownerName ? (
+        <View className="flex-row items-center justify-center gap-1.5">
+          <MaterialCommunityIcons
+            name="account-outline"
+            size={15}
+            color="#9CA3AF"
+          />
+          <Typography.Text
+            size="sm"
+            type="secondary"
+            className="text-center"
+            numberOfLines={1}
+          >
+            {ownerName}
+          </Typography.Text>
+        </View>
+      ) : null}
+      {greeting ? (
+        <View className="w-full max-w-[620px] pt-2">
+          <View className="flex-row items-start justify-center gap-2">
+            <MaterialCommunityIcons
+              name="message-outline"
+              size={16}
+              color="#D1A194"
+              style={{ marginTop: 2 }}
+            />
+            <View className="flex-shrink max-w-[92%] gap-1.5">
+              <Typography.Text
+                type="secondary"
+                size="sm"
+                className="text-center"
+                style={{ lineHeight: 20 }}
+                numberOfLines={isGreetingExpanded ? undefined : 2}
+                ellipsizeMode="tail"
+                onTextLayout={handleGreetingLayout}
+              >
+                {greeting}
+              </Typography.Text>
+              {canExpandGreeting ? (
+                <TouchableOpacity
+                  onPress={() => setIsGreetingExpanded((current) => !current)}
+                  className="self-center"
+                  activeOpacity={0.7}
+                >
+                  <Typography.Text size="sm" type="primary" weight="medium">
+                    {isGreetingExpanded
+                      ? t("common.showLess")
+                      : t("common.showMore")}
+                  </Typography.Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          </View>
+        </View>
+      ) : null}
     </View>
+  );
+}
+
+function GuestRegistryPasswordGate({
+  registry,
+  passwordInput,
+  showPasswordRequired,
+  showInvalidPassword,
+  isSubmitting,
+  onChangePassword,
+  onSubmit,
+}: GuestPasswordGateProps) {
+  const { t } = useTranslation();
+  const colorScheme = useColorScheme();
+
+  return (
+    <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
+      <View className="flex-1 px-6 pt-6 pb-10">
+        <View className="flex-1 justify-center gap-8">
+          <View className="items-center gap-5">
+            <View className="h-24 w-24 items-center justify-center rounded-full bg-primary-50">
+              {registry?.logo ? (
+                <Image
+                  source={getImageUrl(registry.logo)}
+                  style={{ width: 88, height: 88, borderRadius: 44 }}
+                  contentFit="cover"
+                />
+              ) : (
+                <MaterialCommunityIcons
+                  name="lock-outline"
+                  size={36}
+                  color="#CF8169"
+                />
+              )}
+            </View>
+
+            <View className="items-center gap-3">
+              <View className="flex-row items-center gap-2 rounded-full bg-[#FAF2F0] px-3 py-1.5">
+                <MaterialCommunityIcons
+                  name="shield-lock-outline"
+                  size={16}
+                  color="#CF8169"
+                />
+                <Typography.Text size="xs" className="text-primary-500">
+                  {t("registry.guestPasswordProtected")}
+                </Typography.Text>
+              </View>
+
+              {registry?.title ? (
+                <Typography.Text
+                  size="2xl"
+                  weight="bold"
+                  className="text-center"
+                >
+                  {registry.title}
+                </Typography.Text>
+              ) : null}
+
+              <Typography.Text
+                type="secondary"
+                className="text-center leading-6"
+              >
+                {t("registry.guestPasswordPromptSubtitle")}
+              </Typography.Text>
+            </View>
+          </View>
+
+          <View className="rounded-[24px] border border-[#F4E7E1] bg-white p-5 shadow shadow-neutral-200 gap-4">
+            <View className="gap-2">
+              <Typography.Text size="base" weight="medium">
+                {t("registry.registryPassword")}
+              </Typography.Text>
+              <Typography.Text size="sm" type="secondary">
+                {t("registry.guestPasswordPromptTitle")}
+              </Typography.Text>
+            </View>
+
+            <View className="gap-2">
+              <TextInput
+                placeholder={t("registry.registryPasswordPlaceholder")}
+                secureTextEntry
+                value={passwordInput}
+                onChangeText={onChangePassword}
+                onSubmitEditing={onSubmit}
+                editable={!isSubmitting}
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="done"
+                placeholderTextColor={
+                  Colors[colorScheme ?? "light"].placeholderTextColor
+                }
+                className="h-14 rounded-2xl bg-neutral-100 px-4 font-Poppinsregular text-black"
+              />
+              {showPasswordRequired && (
+                <Typography.Text size="xs" type="danger">
+                  {t("common.required")}
+                </Typography.Text>
+              )}
+              {showInvalidPassword && (
+                <Typography.Text size="xs" type="danger">
+                  {t("registry.invalidPassword")}
+                </Typography.Text>
+              )}
+            </View>
+
+            <Button
+              title={t("registry.unlockRegistry")}
+              type="primary"
+              onPress={onSubmit}
+              loading={isSubmitting}
+            />
+          </View>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -411,8 +600,8 @@ function GuestRegistryItem({
           {registryItem.qty - registryItem.qtyLeft > 0 && (
             <Typography.Text className="text-xs text-gray-400">
               {t("registry.purchasedOutOf", {
-                purchased: registryItem.qty - registryItem.qtyLeft,
-                total: registryItem.qty,
+                purchased: String(registryItem.qty - registryItem.qtyLeft),
+                total: String(registryItem.qty),
               })}
             </Typography.Text>
           )}
@@ -500,10 +689,13 @@ function PurchasedRegistryItem({
   );
 }
 
-interface GuestPurchaseSheetProps
-  extends Omit<BottomSheetModalProps, "children"> {
+interface GuestPurchaseSheetProps extends Omit<
+  BottomSheetModalProps,
+  "children"
+> {
   ref?: React.Ref<BottomSheetModal>;
   registryId: string;
+  prefillPurchaserInfo: boolean;
   item: IRegistryItem | null;
   queryKey: readonly unknown[];
 }
@@ -511,6 +703,7 @@ interface GuestPurchaseSheetProps
 function GuestPurchaseSheet({
   ref,
   registryId,
+  prefillPurchaserInfo,
   item,
   queryKey,
   onDismiss,
@@ -536,11 +729,14 @@ function GuestPurchaseSheet({
   }, [ref]);
 
   const resetForm = useCallback(() => {
-    setName("");
-    setEmail("");
+    const initialName = prefillPurchaserInfo ? getUserFirstLastName() : "";
+    const initialEmail = prefillPurchaserInfo ? getUserEmail() : "";
+
+    setName(initialName);
+    setEmail(initialEmail);
     setPurchaseQty(MIN_PURCHASE_QTY);
     setShowErrors(false);
-  }, []);
+  }, [prefillPurchaserInfo]);
 
   useEffect(() => {
     resetForm();

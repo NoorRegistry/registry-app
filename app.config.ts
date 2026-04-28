@@ -38,7 +38,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     icon: "./assets/images/icon.png",
     scheme: "shiftgiftme",
     userInterfaceStyle: "automatic",
-    newArchEnabled: true,
     splash: {
       image: "./assets/images/splash.png",
       resizeMode: "contain",
@@ -85,7 +84,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           }
         : {}),
       softwareKeyboardLayoutMode: "pan",
-      edgeToEdgeEnabled: true,
       googleServicesFile: IS_DEV
         ? "./assets/firebaseconfig/development/google-services.json"
         : process.env.GOOGLE_SERVICE_JSON,

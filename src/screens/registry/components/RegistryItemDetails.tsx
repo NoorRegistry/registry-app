@@ -290,9 +290,10 @@ function RegistryItemDetails() {
               </View>
               <Typography.Text weight="medium">
                 {t("registry.purchasedCount", {
-                  purchased:
+                  purchased: String(
                     (registryItem?.qty ?? 0) - (registryItem?.qtyLeft ?? 0),
-                  total: registryItem?.qty,
+                  ),
+                  total: String(registryItem?.qty ?? 0),
                 })}
               </Typography.Text>
             </View>

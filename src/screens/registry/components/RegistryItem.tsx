@@ -38,8 +38,8 @@ function RegistryItem({ registryItem }: { registryItem: IRegistryItem }) {
         {registryItem.qty - registryItem.qtyLeft > 0 && (
           <Typography.Text className="text-xs text-gray-400">
             {t("registry.purchasedOutOf", {
-              purchased: registryItem.qty - registryItem.qtyLeft,
-              total: registryItem.qty,
+              purchased: String(registryItem.qty - registryItem.qtyLeft),
+              total: String(registryItem.qty),
             })}
           </Typography.Text>
         )}

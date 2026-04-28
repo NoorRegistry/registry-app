@@ -74,7 +74,7 @@ export const themes = {
 export function useThemeVariables() {
   const colorScheme = useColorScheme() ?? "light";
 
-  const themeVariables = themes[colorScheme];
+  const themeVariables = themes[colorScheme === "dark" ? "dark" : "light"];
 
   return themeVariables;
 }

@@ -13,6 +13,7 @@ const endpoints = {
   },
   products: {
     index: "/v1/api/users/products",
+    mostAdded: "/v1/api/users/products/most-added",
   },
   registries: {
     index: "/v1/api/users/registries",

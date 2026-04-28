@@ -44,7 +44,7 @@ export default function RegistryCard() {
     "rgba(0,0,0,0.05)",
     "rgba(0,0,0,0.5)",
     "rgba(0,0,0,0.9)",
-  ];
+  ] as const;
 
   return (
     <View className="relative">

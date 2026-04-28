@@ -17,6 +17,11 @@ module.exports = defineConfig([
       "ios/*",
       "android/*",
       ".expo/*",
+      ".expo-shared/*",
+      ".cache/*",
+      ".parcel-cache/*",
+      ".metro-cache/*",
+      "*.d.ts",
     ],
   },
 ]);

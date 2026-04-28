@@ -32,8 +32,10 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
-interface VisibilityPrivacySheetProps
-  extends Omit<BottomSheetModalProps, "children"> {
+interface VisibilityPrivacySheetProps extends Omit<
+  BottomSheetModalProps,
+  "children"
+> {
   ref?: React.Ref<BottomSheetModal>;
   registry: IRegistryDetails;
 }
