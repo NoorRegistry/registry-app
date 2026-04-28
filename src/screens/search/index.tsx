@@ -319,6 +319,7 @@ function ProductsSection({ products }: { products: ISearchProduct[] }) {
           <ProductCard
             product={{ ...item, store: item.store ?? undefined }}
             width={productCardWidth}
+            reserveNameSpace
           />
         )}
         showsHorizontalScrollIndicator={false}

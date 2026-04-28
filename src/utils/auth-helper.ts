@@ -1,3 +1,4 @@
+import { getApiBaseUrl } from "@/api/base-url";
 import constants from "@/constants";
 import endpoints from "@/constants/endpoints";
 import { IAccessToken } from "@/types";
@@ -15,7 +16,7 @@ export const handleRefreshToken = async () => {
         !isTokenExpired(parsedToken.refreshToken)
       ) {
         const response = await axios.post<IAccessToken>(
-          `${process.env.EXPO_PUBLIC_API_URL}${endpoints.authentication.refreshToken}`,
+          `${getApiBaseUrl()}${endpoints.authentication.refreshToken}`,
           parsedToken,
           {
             headers: {

@@ -1,3 +1,6 @@
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import "react-native-reanimated";
+
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { QueryClientProvider, focusManager } from "@tanstack/react-query";
@@ -8,8 +11,6 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { AppStateStatus, I18nManager, Platform } from "react-native";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { queryClient } from "@/api/queryClient";
@@ -154,7 +155,7 @@ function RootLayoutNav() {
   useAppState(onAppStateChange);
 
   return (
-    <GestureHandlerRootView>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <LoadingProvider>

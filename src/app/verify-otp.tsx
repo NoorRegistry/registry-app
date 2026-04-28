@@ -197,7 +197,7 @@ export default function VerifyOtpScreen() {
                 pinCodeTextStyle: {
                   color: Colors[colorScheme ?? "light"].text,
                   fontSize: 18,
-                  fontFamily: "Poppins-Medium",
+                  fontFamily: "Poppinsmedium",
                 },
                 focusStickStyle: {
                   backgroundColor: Colors[colorScheme ?? "light"].tint,

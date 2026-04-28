@@ -48,8 +48,8 @@ export default function RegistryCard() {
 
   return (
     <View className="relative">
-      <View className="w-full mb-6 items-center px-4">
-        {isFetchingRegistries ? (
+      <View className="w-full pb-4 items-center px-4">
+        {isFetchingRegistries && !registries ? (
           <RegistrySkeleton
             variant={resolveRegistrySkeletonVariant(registries)}
           />

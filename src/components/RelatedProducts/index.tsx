@@ -44,7 +44,7 @@ const RelatedProducts = ({ productId }: RelatedProductsProps) => {
               marginRight: index === relatedProducts.length - 1 ? 0 : 12,
             }}
           >
-            <ProductCard product={product} width={140} />
+            <ProductCard product={product} width={140} reserveNameSpace />
           </View>
         ))}
       </ScrollView>

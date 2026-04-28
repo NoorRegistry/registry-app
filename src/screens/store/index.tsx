@@ -20,6 +20,18 @@ const AnimatedFlatList = Animated.createAnimatedComponent(
   FlatList<TProductCard>,
 );
 
+const PRODUCT_NAME_WRAP_THRESHOLD = 22;
+
+const shouldReserveProductNameSpace = (
+  rowProducts: { nameEn: string; nameAr: string }[],
+) => {
+  return rowProducts.some(
+    (product) =>
+      getEnArName(product.nameEn, product.nameAr).length >
+      PRODUCT_NAME_WRAP_THRESHOLD,
+  );
+};
+
 export default function StoreScreen() {
   const { id, storeName } = useLocalSearchParams<{
     id: string;
@@ -123,11 +135,26 @@ export default function StoreScreen() {
           ListHeaderComponent={<StoreHeader />}
           data={store?.products ?? []}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <ProductCard product={item as IProduct} />}
+          renderItem={({ item, index }) => {
+            const products = store?.products ?? [];
+            const rowStartIndex = index - (index % 2);
+            const rowProducts = products.slice(
+              rowStartIndex,
+              rowStartIndex + 2,
+            );
+
+            return (
+              <ProductCard
+                product={item as IProduct}
+                reserveNameSpace={shouldReserveProductNameSpace(rowProducts)}
+              />
+            );
+          }}
           numColumns={2}
           horizontal={false}
           className="flex-1"
           columnWrapperClassName="justify-between px-4"
+          ItemSeparatorComponent={() => <View className="h-4" />}
           onScroll={handleScroll}
           refreshControl={
             <RefreshControl

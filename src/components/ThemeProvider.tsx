@@ -31,15 +31,15 @@ const returnThemeVariables = (
     },
     medium: {
       fontFamily: `${fontPrefix}medium`,
-      fontWeight: "500",
+      fontWeight: "normal",
     },
     bold: {
       fontFamily: `${fontPrefix}bold`,
-      fontWeight: "700",
+      fontWeight: "normal",
     },
     heavy: {
       fontFamily: `${fontPrefix}bold`,
-      fontWeight: "700",
+      fontWeight: "normal",
     },
   };
   const colors: Theme["colors"] = {

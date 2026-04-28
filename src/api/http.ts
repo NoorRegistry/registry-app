@@ -11,6 +11,7 @@ import axios, {
 import { handleRefreshToken } from "@/utils/auth-helper";
 import { getAccessTokenString, isTokenExpired } from "@/utils/helper";
 import i18next from "i18next";
+import { getApiBaseUrl } from "./base-url";
 
 enum StatusCode {
   Unauthorized = 401,
@@ -63,7 +64,7 @@ class Http {
 
   initHttp() {
     const http = axios.create({
-      baseURL: process.env.EXPO_PUBLIC_API_URL,
+      baseURL: getApiBaseUrl(),
       headers,
       // withCredentials: true,
     });

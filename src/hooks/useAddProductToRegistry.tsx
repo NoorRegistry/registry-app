@@ -56,7 +56,11 @@ export const useAddProductToRegistry = (product?: AddProductTarget | null) => {
     (state) => state.setSelectedRegistryId,
   );
 
-  const { data: registries } = useQuery({
+  const {
+    data: registries,
+    isFetching: isFetchingRegistries,
+    isError: isRegistriesError,
+  } = useQuery({
     queryKey: ["registries"],
     queryFn: fetchRegistries,
   });
@@ -138,7 +142,26 @@ export const useAddProductToRegistry = (product?: AddProductTarget | null) => {
   const addProductToRegistry = (registryId?: string) => {
     const targetRegistryId =
       registryId ?? selectedRegistryId ?? selectedRegistry?.id;
-    if (!product || !targetRegistryId) return;
+
+    if (!product) {
+      Toast.show({
+        type: "error",
+        text1: t("common.error"),
+      });
+      return;
+    }
+
+    if (isFetchingRegistries && !registries) {
+      return;
+    }
+
+    if (isRegistriesError || !targetRegistryId) {
+      Toast.show({
+        type: "error",
+        text1: t("common.error"),
+      });
+      return;
+    }
 
     addProductMutation.mutate({
       productId: product.id,
@@ -261,7 +284,8 @@ export const useAddProductToRegistry = (product?: AddProductTarget | null) => {
   return {
     addProductToRegistry,
     addedToRegistryOverlay,
-    isAddingProductToRegistry: addProductMutation.isPending,
+    isAddingProductToRegistry:
+      addProductMutation.isPending || (isFetchingRegistries && !registries),
   };
 };
 

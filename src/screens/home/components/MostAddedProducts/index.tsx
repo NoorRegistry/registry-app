@@ -3,9 +3,61 @@ import { fetchMostAddedProducts } from "@/services/products.service";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
-import React from "react";
-import { FlatList, View, useWindowDimensions } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { Animated, FlatList, View, useWindowDimensions } from "react-native";
 import SectionTitle from "../SectionTitle";
+
+const MostAddedProductsSkeleton = () => {
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: false,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: false,
+        }),
+      ]),
+    ).start();
+  }, [shimmerAnim]);
+
+  const shimmerColor = shimmerAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["#E0E0E0", "#F0F0F0"],
+  });
+
+  const skeletonItems = Array.from({ length: 2 }, (_, index) => index);
+
+  return (
+    <View className="px-4 pb-4 bg-white">
+      <View className="mb-5">
+        <Animated.View
+          className="h-7 w-2/3 rounded-md"
+          style={{ backgroundColor: shimmerColor }}
+        />
+      </View>
+
+      <View className="flex-row gap-3">
+        {skeletonItems.map((item) => (
+          <Animated.View
+            key={item}
+            className="flex-1 rounded-lg"
+            style={{
+              height: 220,
+              backgroundColor: shimmerColor,
+            }}
+          />
+        ))}
+      </View>
+    </View>
+  );
+};
 
 function MostAddedProducts() {
   const { width } = useWindowDimensions();
@@ -16,7 +68,11 @@ function MostAddedProducts() {
     queryFn: fetchMostAddedProducts,
   });
 
-  if (isFetching || !mostAddedProducts?.length) {
+  if (isFetching && !mostAddedProducts) {
+    return <MostAddedProductsSkeleton />;
+  }
+
+  if (!mostAddedProducts?.length) {
     return null;
   }
 
@@ -25,8 +81,8 @@ function MostAddedProducts() {
   const productCardWidth = viewportWidth / visibleCardCount;
 
   return (
-    <View className="px-4 pt-2 pb-4 bg-white">
-      <View className="mb-4">
+    <View className="px-4 pb-4 bg-white">
+      <View className="mb-5">
         <SectionTitle>{t("home.mostAddedProducts")}</SectionTitle>
       </View>
 
@@ -41,6 +97,7 @@ function MostAddedProducts() {
               store: item.store ?? undefined,
             }}
             width={productCardWidth}
+            reserveNameSpace
           />
         )}
         showsHorizontalScrollIndicator={false}

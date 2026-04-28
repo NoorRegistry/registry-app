@@ -18,6 +18,18 @@ import SkeletonLoader, {
   HeaderSkeleton,
 } from "../shop/components/LoaderSkeleton";
 
+const PRODUCT_NAME_WRAP_THRESHOLD = 22;
+
+const shouldReserveProductNameSpace = (
+  rowProducts: { nameEn: string; nameAr: string }[],
+) => {
+  return rowProducts.some(
+    (product) =>
+      getEnArName(product.nameEn, product.nameAr).length >
+      PRODUCT_NAME_WRAP_THRESHOLD,
+  );
+};
+
 // Header component
 const Header = ({
   categoryName,
@@ -130,6 +142,7 @@ export default function CategoryScreen() {
             horizontal={false}
             className="flex-1 px-4 py-6"
             columnWrapperClassName="justify-between"
+            ItemSeparatorComponent={() => <View className="h-4" />}
           />
         ) : (
           <Animated.FlatList
@@ -149,7 +162,22 @@ export default function CategoryScreen() {
             }
             data={products?.data ?? []}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <ProductCard product={item} />}
+            renderItem={({ item, index }) => {
+              const rowStartIndex = index - (index % 2);
+              const rowProducts = products?.data.slice(
+                rowStartIndex,
+                rowStartIndex + 2,
+              );
+
+              return (
+                <ProductCard
+                  product={item}
+                  reserveNameSpace={shouldReserveProductNameSpace(
+                    rowProducts ?? [item],
+                  )}
+                />
+              );
+            }}
             numColumns={2}
             horizontal={false}
             className="flex-1 px-4 py-6"

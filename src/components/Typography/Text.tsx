@@ -58,7 +58,7 @@ const Text = ({
   forceArabic = false,
   children,
   className,
-  selectable = true,
+  selectable = false,
   style,
   ...otherProps
 }: CustomTextProps) => {
@@ -71,7 +71,6 @@ const Text = ({
   const classes = clsx(
     getTextColor(type),
     getFontSize(size),
-    getFontWeight(weight),
     className ?? "",
     selectable && "select-auto",
   );
@@ -123,28 +122,6 @@ function getFontSize(size: IText["size"]): string {
       break;
   }
   return fontSize;
-}
-
-function getFontWeight(weight: IText["weight"]): string {
-  let fontWeight = "";
-  switch (weight) {
-    case "extralight":
-      fontWeight = "font-extralight";
-      break;
-    case "light":
-      fontWeight = "font-light";
-      break;
-    case "regular":
-      fontWeight = "font-normal";
-      break;
-    case "medium":
-      fontWeight = "font-medium";
-      break;
-    case "bold":
-      fontWeight = "font-bold";
-      break;
-  }
-  return fontWeight;
 }
 
 function getTextColor(type: IText["type"]): string {

@@ -1,4 +1,5 @@
 import { View } from "@/components/Themed";
+import LoadingSpinner from "@/components/Loader/customLoader";
 import Typography from "@/components/Typography";
 import { useAddProductToRegistry } from "@/hooks/useAddProductToRegistry";
 import { IProduct } from "@/types";
@@ -15,88 +16,99 @@ const cardWidth = width / 2 - 16 - 8;
 const ProductCard = ({
   product,
   width: customWidth,
+  reserveNameSpace = false,
 }: {
   product: IProduct;
   width?: number;
+  reserveNameSpace?: boolean;
 }) => {
   const finalWidth = customWidth || cardWidth;
-  const { addProductToRegistry, addedToRegistryOverlay } =
-    useAddProductToRegistry(product);
+  const {
+    addProductToRegistry,
+    addedToRegistryOverlay,
+    isAddingProductToRegistry,
+  } = useAddProductToRegistry(product);
 
   return (
     <>
-      <Link
-        href={{
-          pathname: "/(protected)/products/[id]",
-          params: {
-            id: product.id,
-          },
-        }}
-        asChild
+      <View
+        style={{ width: finalWidth }}
+        className="bg-white rounded-lg items-center"
       >
-        <TouchableOpacity
-          style={{ width: finalWidth }}
-          className="bg-white rounded-lg items-center mb-4"
+        <Link
+          href={{
+            pathname: "/(protected)/products/[id]",
+            params: {
+              id: product.id,
+            },
+          }}
+          asChild
         >
-          <View className="w-full rounded-lg">
-            <Image
-              source={
-                product.images?.[0]?.path
-                  ? getImageUrl(product.images[0].path)
-                  : require("@assets/images/icon.png") // Fallback to app icon
-              }
-              style={{
-                flex: 1,
-                borderRadius: 8,
-                width: finalWidth, // subtract 2 for border now
-                height: finalWidth,
-              }}
-              contentFit="cover"
-            />
-          </View>
-          <View className="pt-3 w-full gap-1">
-            {product?.store && (
+          <TouchableOpacity className="w-full">
+            <View className="w-full rounded-lg">
+              <Image
+                source={
+                  product.images?.[0]?.path
+                    ? getImageUrl(product.images[0].path)
+                    : require("@assets/images/icon.png") // Fallback to app icon
+                }
+                style={{
+                  flex: 1,
+                  borderRadius: 8,
+                  width: finalWidth, // subtract 2 for border now
+                  height: finalWidth,
+                }}
+                contentFit="cover"
+              />
+            </View>
+            <View className="pt-3 w-full gap-1">
+              {product?.store && (
+                <Typography.Text
+                  numberOfLines={2}
+                  ellipsizeMode="tail"
+                  weight="medium"
+                  size="xs"
+                  type="complementary"
+                >
+                  {getEnArName(product.store.nameEn, product.store.nameAr)}
+                </Typography.Text>
+              )}
               <Typography.Text
                 numberOfLines={2}
                 ellipsizeMode="tail"
-                weight="medium"
+                weight="light"
                 size="xs"
-                type="complementary"
+                className={reserveNameSpace ? "h-8" : ""}
               >
-                {getEnArName(product.store.nameEn, product.store.nameAr)}
+                {getEnArName(product.nameEn, product.nameAr)}
               </Typography.Text>
-            )}
-            <Typography.Text
-              numberOfLines={2}
-              ellipsizeMode="tail"
-              weight="light"
-              size="xs"
-              className="h-8" // Fixed height for exactly 2 lines (32px = h-8 in Tailwind)
-            >
-              {getEnArName(product.nameEn, product.nameAr)}
-            </Typography.Text>
-          </View>
-          <View className="w-full mt-2 pb-3 flex-row items-center">
-            <Typography.Text
-              numberOfLines={2}
-              ellipsizeMode="tail"
-              weight="medium"
-              className=" flex-1"
-            >
-              {formatPrice(product.price, product.currencyCode)}
-            </Typography.Text>
-            <View className="">
-              <GreenPlusCircleIcon
-                size={30}
-                onPress={(event) => {
-                  event.stopPropagation();
-                  addProductToRegistry();
-                }}
-              />
             </View>
-          </View>
-        </TouchableOpacity>
-      </Link>
+          </TouchableOpacity>
+        </Link>
+        <View className="w-full mt-2 pb-3 flex-row items-center">
+          <Typography.Text
+            numberOfLines={2}
+            ellipsizeMode="tail"
+            weight="medium"
+            className=" flex-1"
+          >
+            {formatPrice(product.price, product.currencyCode)}
+          </Typography.Text>
+          <TouchableOpacity
+            className="h-8 w-8 items-center justify-center"
+            disabled={isAddingProductToRegistry}
+            onPress={() => {
+              addProductToRegistry();
+            }}
+          >
+            {isAddingProductToRegistry ? (
+              <LoadingSpinner size="small" />
+            ) : (
+              <GreenPlusCircleIcon size={30} />
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
       {addedToRegistryOverlay}
     </>
   );

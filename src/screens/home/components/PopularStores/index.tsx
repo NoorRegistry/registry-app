@@ -22,12 +22,12 @@ const SkeletonLoader = ({ isVisible }: { isVisible: boolean }) => {
           Animated.timing(shimmerAnim, {
             toValue: 1,
             duration: 1000,
-            useNativeDriver: true,
+            useNativeDriver: false,
           }),
           Animated.timing(shimmerAnim, {
             toValue: 0,
             duration: 1000,
-            useNativeDriver: true,
+            useNativeDriver: false,
           }),
         ]),
       ).start();
@@ -74,10 +74,10 @@ function PopularStores() {
   });
 
   return (
-    <View className="px-4 py-4 bg-white gap-6">
+    <View className="px-4 pt-0 pb-4 bg-white gap-5">
       <SectionTitle>{t("home.browsePopularStores")}</SectionTitle>
-      <SkeletonLoader isVisible={isFetching} />
-      {!isFetching && (
+      <SkeletonLoader isVisible={isFetching && !stores} />
+      {stores && (
         <>
           <View className="flex flex-wrap flex-row justify-between gap-y-4">
             {stores?.data.map((store) => (
