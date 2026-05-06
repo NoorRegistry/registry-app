@@ -26,6 +26,15 @@ import { navigateAfterAuth } from "@/utils/helper";
 import { setStorageItem } from "@/utils/storage";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const RESEND_OTP_COOLDOWN_SECONDS = 3 * 60;
+
+const formatResendTimer = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+};
+
 export default function VerifyOtpScreen() {
   const { t } = useTranslation();
   const colorScheme = useColorScheme();
@@ -33,7 +42,7 @@ export default function VerifyOtpScreen() {
   const [otp, setOtp] = useState("");
   const [otpInputKey, setOtpInputKey] = useState(0);
   const [otpError, setOtpError] = useState("");
-  const [resendTimer, setResendTimer] = useState(60);
+  const [resendTimer, setResendTimer] = useState(RESEND_OTP_COOLDOWN_SECONDS);
   const [canResend, setCanResend] = useState(false);
   const signIn = useGlobalStore.use.signIn();
 
@@ -81,7 +90,7 @@ export default function VerifyOtpScreen() {
         text1: t("login.resendCodeSuccessful"),
       });
       // Reset timer after successful resend
-      setResendTimer(60);
+      setResendTimer(RESEND_OTP_COOLDOWN_SECONDS);
       setCanResend(false);
     },
     onError: (error) => {
@@ -258,7 +267,9 @@ export default function VerifyOtpScreen() {
                 {resendOtpMutation.isPending
                   ? t("login.sending")
                   : !canResend
-                    ? t("login.resendIn", { seconds: String(resendTimer) })
+                    ? t("login.resendIn", {
+                        time: formatResendTimer(resendTimer),
+                      })
                     : t("login.resend")}
               </Typography.Text>
             </TouchableOpacity>

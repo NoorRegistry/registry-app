@@ -8,7 +8,7 @@ const translations = {
     didNotGetCode: "لم تستلم الرمز؟",
     resend: "إعادة الإرسال",
     sending: "جاري الإرسال...",
-    resendIn: "إعادة الإرسال خلال {{seconds}} ثانية",
+    resendIn: "إعادة الإرسال خلال {{time}}",
     loginSuccessful: "تم تسجيل الدخول بنجاح",
     loginFailed: "فشل تسجيل الدخول",
     resendCodeSuccessful: "تم إرسال رمز التحقق بنجاح",

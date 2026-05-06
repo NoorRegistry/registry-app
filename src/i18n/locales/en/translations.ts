@@ -8,7 +8,7 @@ const translations = {
     didNotGetCode: "Didn't receive the code?",
     resend: "Resend",
     sending: "Sending...",
-    resendIn: "Resend in {{seconds}}s",
+    resendIn: "Resend in {{time}}",
     loginSuccessful: "Logged in successfully",
     loginFailed: "Login failed",
     resendCodeSuccessful: "Verification code sent successfully",
