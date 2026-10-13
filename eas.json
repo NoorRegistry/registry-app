@@ -22,7 +22,6 @@
       "autoIncrement": true,
       "env": {
         "APP_VARIANT": "development",
-        "NODE_ENV": "production",
         "EXPO_PUBLIC_API_URL": "https://api.shopsimplist.com"
       },
       "android": { "buildType": "apk" }
