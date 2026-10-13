@@ -1,7 +1,7 @@
 import Typography from "@/components/Typography";
 import { SearchIcon } from "@/components/icons";
 import { Colors } from "@/constants/Colors";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Animated, TouchableOpacity, View, useColorScheme } from "react-native";
 
@@ -11,24 +11,29 @@ const SearchBar = ({ onSearchPress }: { onSearchPress: () => void }) => {
   const words = [
     t("common.stores"),
     t("common.products"),
-    t("common.guides"),
-    t("common.registries"),
+    t("common.people"),
+    t("search.code"),
   ];
-  const animatedValues = useRef(
-    words.map((_, index) => new Animated.Value(index === 0 ? 1 : 0)),
-  ).current; // Initialize first word as visible
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [animatedValues] = useState(() =>
+    Array.from(
+      { length: 4 },
+      (_, index) => new Animated.Value(index === 0 ? 1 : 0),
+    ),
+  ); // Initialize first word as visible
 
   useEffect(() => {
+    let currentIndex = 0;
+    let active = true;
     const interval = setInterval(() => {
       // Animate current word out
       Animated.timing(animatedValues[currentIndex], {
         toValue: 0,
         duration: 500,
         useNativeDriver: true,
-      }).start(() => {
+      }).start(({ finished }) => {
+        if (!finished || !active) return;
         const nextIndex = (currentIndex + 1) % words.length;
-        setCurrentIndex(nextIndex);
+        currentIndex = nextIndex;
 
         // Animate next word in
         Animated.timing(animatedValues[nextIndex], {
@@ -39,8 +44,12 @@ const SearchBar = ({ onSearchPress }: { onSearchPress: () => void }) => {
       });
     }, 3000);
 
-    return () => clearInterval(interval); // Cleanup interval
-  }, [currentIndex, animatedValues]);
+    return () => {
+      active = false;
+      clearInterval(interval);
+      animatedValues.forEach((value) => value.stopAnimation());
+    };
+  }, [animatedValues, words.length]);
 
   return (
     <TouchableOpacity

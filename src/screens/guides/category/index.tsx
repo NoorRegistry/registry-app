@@ -8,9 +8,9 @@ import { fetchGuidesCategoryData } from "@/services/guides.service";
 import { getEnArName } from "@/utils/helper";
 import { useQuery } from "@tanstack/react-query";
 import { Stack, router, useLocalSearchParams } from "expo-router";
-import React, { useRef } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
-import { Animated, View } from "react-native";
+import { useAnimatedValue, Animated, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import GuideCard from "../components/GuideCard";
 
@@ -52,7 +52,7 @@ function GuidesHomeScreen() {
     id: string;
   }>();
 
-  const scrollY = useRef(new Animated.Value(0)).current;
+  const scrollY = useAnimatedValue(0);
 
   const headerOpacity = scrollY.interpolate({
     inputRange: [50, 150],

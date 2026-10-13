@@ -1,11 +1,11 @@
-import React, { useEffect, useRef } from "react";
-import { Animated, Dimensions, View } from "react-native";
+import React, { useEffect } from "react";
+import { useAnimatedValue, Animated, Dimensions, View } from "react-native";
 
 const { width } = Dimensions.get("window");
 const SHIMMER_COLORS = ["#E0E0E0", "#F0F0F0"];
 
 const useShimmerColor = () => {
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const shimmerAnim = useAnimatedValue(0);
 
   useEffect(() => {
     const animation = Animated.loop(

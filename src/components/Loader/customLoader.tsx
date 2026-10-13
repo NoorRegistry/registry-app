@@ -1,6 +1,7 @@
 import { Colors } from "@/constants/Colors";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import {
+  useAnimatedValue,
   Animated,
   ColorValue,
   Easing,
@@ -36,7 +37,7 @@ const LoadingSpinner = ({
   size = "default",
   color,
 }: ILoaderProps) => {
-  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const rotateAnim = useAnimatedValue(0);
   const colorScheme = useColorScheme();
   const height = size === "large" ? 24 : size === "default" ? 20 : 16;
   const circleColor = color ? color : Colors[colorScheme ?? "light"].tint;
@@ -53,7 +54,8 @@ const LoadingSpinner = ({
       }),
     );
     rotate.start();
-  }, [rotateAnim]);
+    return () => rotate.stop();
+  }, [rotateAnim, durationMs]);
 
   // Interpolating the animated value to rotate from 0 to 360 degrees
   const rotation = rotateAnim.interpolate({

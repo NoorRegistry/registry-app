@@ -4,14 +4,18 @@ import { Platform, StyleSheet } from "react-native";
 import { Button } from "@/components/Button";
 import EditScreenInfo from "@/components/EditScreenInfo";
 import { Text, View } from "@/components/Themed";
-import { useGlobalStore } from "@/store";
-import { clearSessionData } from "@/utils/helper";
+import { logoutWithNotifications } from "@/utils/push-registration";
+import Toast from "react-native-toast-message";
+import { useTranslation } from "react-i18next";
 
 export default function ModalScreen() {
-  const logout = useGlobalStore.use.signOut();
-  const handleLogout = () => {
-    clearSessionData();
-    logout();
+  const { t } = useTranslation();
+  const handleLogout = async () => {
+    try {
+      await logoutWithNotifications();
+    } catch {
+      Toast.show({ type: "error", text1: t("notifications.logoutError") });
+    }
   };
   return (
     <View style={styles.container}>

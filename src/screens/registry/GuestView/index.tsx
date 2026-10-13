@@ -120,7 +120,7 @@ function GuestViewScreen({ onHeaderTitleChange }: GuestViewScreenProps) {
   const [registryCode, setRegistryCode] = useState(initialRegistryCode ?? "");
   const [passwordInput, setPasswordInput] = useState(initialRegistryCode ?? "");
   const [showPasswordRequired, setShowPasswordRequired] = useState(false);
-  const [showInvalidPassword, setShowInvalidPassword] = useState(false);
+  const [isEditingPassword, setIsEditingPassword] = useState(false);
   const [showHeaderTitle, setShowHeaderTitle] = useState(false);
   const purchaseSheetRef = useRef<BottomSheetModal>(null);
   const [selectedItem, setSelectedItem] = useState<IRegistryItem | null>(null);
@@ -149,17 +149,8 @@ function GuestViewScreen({ onHeaderTitleChange }: GuestViewScreenProps) {
     isLockedRegistry ||
     (isError && canBePasswordError(error, Boolean(registryCode)));
 
-  useEffect(() => {
-    if (!hasRegistryDetails) return;
-    setShowPasswordRequired(false);
-    setShowInvalidPassword(false);
-  }, [hasRegistryDetails]);
-
-  useEffect(() => {
-    if (!shouldShowPasswordPrompt) return;
-    if (!registryCode) return;
-    setShowInvalidPassword(true);
-  }, [registryCode, shouldShowPasswordPrompt]);
+  const showInvalidPassword =
+    shouldShowPasswordPrompt && Boolean(registryCode) && !isEditingPassword;
 
   useEffect(() => {
     onHeaderTitleChange?.(showHeaderTitle && registry ? registry.title : "");
@@ -199,7 +190,7 @@ function GuestViewScreen({ onHeaderTitleChange }: GuestViewScreenProps) {
       return;
     }
     setShowPasswordRequired(false);
-    setShowInvalidPassword(false);
+    setIsEditingPassword(false);
     setRegistryCode(normalizedPassword);
   }, [passwordInput]);
 
@@ -267,9 +258,7 @@ function GuestViewScreen({ onHeaderTitleChange }: GuestViewScreenProps) {
           if (showPasswordRequired && value.trim()) {
             setShowPasswordRequired(false);
           }
-          if (showInvalidPassword) {
-            setShowInvalidPassword(false);
-          }
+          setIsEditingPassword(true);
         }}
         onSubmit={handlePasswordSubmit}
       />
@@ -292,7 +281,12 @@ function GuestViewScreen({ onHeaderTitleChange }: GuestViewScreenProps) {
           keyExtractor={(item) => item.item.id}
           onScroll={handleGuestScroll}
           scrollEventThrottle={16}
-          ListHeaderComponent={<GuestRegistryHeader registry={registry} />}
+          ListHeaderComponent={
+            <GuestRegistryHeader
+              key={`${registry.id}:${registry.greeting ?? ""}`}
+              registry={registry}
+            />
+          }
           ListEmptyComponent={
             <View className="px-4 py-8">
               <Typography.Text type="secondary" className="text-center">
@@ -358,11 +352,6 @@ function GuestRegistryHeader({ registry }: GuestRegistryHeaderProps) {
   const greeting = registry.greeting?.trim();
   const [isGreetingExpanded, setIsGreetingExpanded] = useState(false);
   const [canExpandGreeting, setCanExpandGreeting] = useState(false);
-
-  useEffect(() => {
-    setIsGreetingExpanded(false);
-    setCanExpandGreeting(false);
-  }, [greeting]);
 
   const handleGreetingLayout = useCallback(
     (event: NativeSyntheticEvent<TextLayoutEventData>) => {
@@ -713,8 +702,12 @@ function GuestPurchaseSheet({
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const localRef = useRef<BottomSheetModal>(null);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [name, setName] = useState(() =>
+    prefillPurchaserInfo ? getUserFirstLastName() : "",
+  );
+  const [email, setEmail] = useState(() =>
+    prefillPurchaserInfo ? getUserEmail() : "",
+  );
   const [purchaseQty, setPurchaseQty] = useState(MIN_PURCHASE_QTY);
   const [showErrors, setShowErrors] = useState(false);
 
@@ -738,9 +731,20 @@ function GuestPurchaseSheet({
     setShowErrors(false);
   }, [prefillPurchaserInfo]);
 
-  useEffect(() => {
-    resetForm();
-  }, [item?.id, resetForm]);
+  const [formSource, setFormSource] = useState({
+    itemId: item?.id,
+    prefillPurchaserInfo,
+  });
+  if (
+    formSource.itemId !== item?.id ||
+    formSource.prefillPurchaserInfo !== prefillPurchaserInfo
+  ) {
+    setFormSource({ itemId: item?.id, prefillPurchaserInfo });
+    setName(prefillPurchaserInfo ? getUserFirstLastName() : "");
+    setEmail(prefillPurchaserInfo ? getUserEmail() : "");
+    setPurchaseQty(MIN_PURCHASE_QTY);
+    setShowErrors(false);
+  }
 
   const snapPoints = useMemo(() => ["80%"], []);
 

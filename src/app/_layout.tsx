@@ -26,6 +26,7 @@ import * as Sentry from "@sentry/react-native";
 import { useTranslation } from "react-i18next";
 
 import BottomSheetProvider from "@/components/BottomSheet";
+import NotificationCenter from "@/components/NotificationCenter";
 import "@/i18n";
 import "@/theme/global.css";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
@@ -101,7 +102,6 @@ function RootLayout() {
   const { i18n } = useTranslation();
 
   const [loaded, error] = useFonts({
-    Poppinsextralight: require("@assets/fonts/OpenSans-Light.ttf"),
     Poppinslight: require("@assets/fonts/OpenSans-Light.ttf"),
     Poppinsregular: require("@assets/fonts/OpenSans-Regular.ttf"),
     Poppinsmedium: require("@assets/fonts/OpenSans-Medium.ttf"),
@@ -128,7 +128,8 @@ function RootLayout() {
         }
       } catch (error) {
         console.log("error in layout", error);
-        signOut();
+        if (isAuthenticated()) signIn();
+        else signOut();
       }
       configureLayoutDirection(i18n.language);
       setIsAppReady();
@@ -170,12 +171,17 @@ function RootLayoutNav() {
                   />
                   <Stack.Screen name="login" options={{ headerShown: false }} />
                   <Stack.Screen
+                    name="signup"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
                     name="onboard/index"
                     options={{ headerShown: false }}
                   />
                   <Stack.Screen name="+not-found" />
                 </Stack>
                 <ToastProvider />
+                <NotificationCenter />
                 <BottomSheetProvider />
               </BottomSheetModalProvider>
             </CustomThemeProvider>
@@ -187,4 +193,4 @@ function RootLayoutNav() {
   );
 }
 
-export default Sentry.wrap(RootLayout);
+export default isSentryEnabled ? Sentry.wrap(RootLayout) : RootLayout;

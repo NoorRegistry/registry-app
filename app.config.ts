@@ -1,6 +1,6 @@
 import { ConfigContext, ExpoConfig } from "expo/config";
 
-const APP_DISPLAY_NAME = "Shop Simplist";
+const APP_DISPLAY_NAME = "Simplist";
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   const APP_VARIANT = process.env.APP_VARIANT || "development";
@@ -38,11 +38,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     icon: "./assets/images/icon.png",
     scheme: "shiftgiftme",
     userInterfaceStyle: "automatic",
-    splash: {
-      image: "./assets/images/splash.png",
-      resizeMode: "contain",
-      backgroundColor: "#FAF2F0",
-    },
     ios: {
       supportsTablet: true,
       bundleIdentifier,
@@ -58,10 +53,13 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         ? "./assets/firebaseconfig/development/GoogleService-Info.plist"
         : process.env.GOOGLE_SERVICE_INFO_PLIST,
       usesAppleSignIn: true,
+      entitlements: {
+        "aps-environment": IS_DEV ? "development" : "production",
+      },
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./assets/images/adaptive-icon.png",
+        foregroundImage: "./assets/images/brand/adaptive-icon.png",
         backgroundColor: "#FAF2F0",
       },
       package: androidPackage,
@@ -96,8 +94,52 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     plugins: [
       ["./plugins/withAndroidAppName", { name: APP_DISPLAY_NAME }],
       "expo-router",
+      "expo-font",
+      "expo-image",
+      [
+        "expo-splash-screen",
+        {
+          image: "./assets/images/splash.png",
+          resizeMode: "contain",
+          backgroundColor: "#FAF2F0",
+        },
+      ],
+      "expo-status-bar",
+      "expo-web-browser",
       "expo-localization",
       "expo-secure-store",
+      [
+        "expo-location",
+        {
+          locationWhenInUsePermission:
+            "Allow Simplist to use your location to set your delivery address.",
+        },
+      ],
+      [
+        "react-native-maps",
+        {
+          ...(process.env.GOOGLE_MAPS_IOS_API_KEY
+            ? {
+                iosGoogleMapsApiKey: process.env.GOOGLE_MAPS_IOS_API_KEY,
+              }
+            : {}),
+          ...(process.env.GOOGLE_MAPS_ANDROID_API_KEY
+            ? {
+                androidGoogleMapsApiKey:
+                  process.env.GOOGLE_MAPS_ANDROID_API_KEY,
+              }
+            : {}),
+        },
+      ],
+      [
+        "expo-notifications",
+        {
+          icon: "./assets/images/brand/notification-icon.png",
+          defaultChannel: "activity",
+          color: "#C78063",
+          mode: IS_DEV ? "development" : "production",
+        },
+      ],
       [
         "expo-dev-launcher",
         {
@@ -119,6 +161,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       typedRoutes: true,
     },
     extra: {
+      iosGoogleMapsEnabled: Boolean(process.env.GOOGLE_MAPS_IOS_API_KEY),
+      androidGoogleMapsEnabled: Boolean(
+        process.env.GOOGLE_MAPS_ANDROID_API_KEY,
+      ),
       eas: {
         projectId: "709b180f-5e71-4bce-97b7-ffa926f48904",
       },

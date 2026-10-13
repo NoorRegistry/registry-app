@@ -8,5 +8,7 @@ declare namespace NodeJS {
     EXPO_PUBLIC_SHARE_BASE_URL?: string;
     GOOGLE_SERVICE_INFO_PLIST: string;
     GOOGLE_SERVICE_JSON: string;
+    GOOGLE_MAPS_IOS_API_KEY?: string;
+    GOOGLE_MAPS_ANDROID_API_KEY?: string;
   }
 }

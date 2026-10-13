@@ -1,0 +1,37 @@
+appId: com.shiftgiftme.mobile.dev
+---
+- openLink: shiftgiftme:///profile
+- assertVisible: Android QA
+- openLink: shiftgiftme:///cart
+- assertVisible: QA Android Checkout Item
+- tapOn:
+    text: Checkout
+    waitToSettleTimeoutMs: 1000
+- assertVisible: QA Android Address
+- assertVisible: Cash on delivery
+- scrollUntilVisible:
+    element:
+      text: Delivery
+    direction: DOWN
+- assertVisible: "KWD.*2.00"
+- assertVisible: "KWD.*10.25"
+- takeScreenshot: artifacts/android-checkout
+- tapOn:
+    text: "Place order.*"
+    waitToSettleTimeoutMs: 1000
+- extendedWaitUntil:
+    visible: "Thank you, Android!"
+    timeout: 20000
+- assertVisible: "Order SS.* placed"
+- assertVisible: "KWD.*10.25"
+- takeScreenshot: artifacts/android-confirmation
+- tapOn:
+    text: View order
+    waitToSettleTimeoutMs: 1000
+- assertVisible: Order placed
+- assertVisible: QA Android Checkout Item
+- takeScreenshot: artifacts/android-order
+- openLink: shiftgiftme:///orders
+- assertVisible: Order placed
+- openLink: shiftgiftme:///cart
+- assertNotVisible: QA Android Checkout Item

@@ -1,5 +1,6 @@
 import GiftItUp from "@/components/GiftItUp";
 import { useHeaderScrollState } from "@/hooks/useHeaderScrollState";
+import { useCart } from "@/hooks/useCart";
 import { queryClient } from "@/api/queryClient";
 import React, { useCallback, useState } from "react";
 import { RefreshControl, ScrollView } from "react-native";
@@ -9,6 +10,7 @@ import RegistryCard from "./components/RegistryCard";
 
 export default function HomeScreen() {
   const handleHeaderScroll = useHeaderScrollState();
+  const hasCart = Boolean(useCart().data?.itemCount);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = useCallback(async () => {
@@ -27,6 +29,7 @@ export default function HomeScreen() {
   return (
     <ScrollView
       className="flex-1"
+      contentContainerStyle={{ paddingBottom: hasCart ? 84 : 0 }}
       onScroll={handleHeaderScroll}
       scrollEventThrottle={16}
       refreshControl={

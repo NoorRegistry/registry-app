@@ -1,4 +1,4 @@
-const { withStringsXml } = require("@expo/config-plugins");
+const { withStringsXml } = require("expo/config-plugins");
 
 const withAndroidAppName = (config, { name }) =>
   withStringsXml(config, (config) => {

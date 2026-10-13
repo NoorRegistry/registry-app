@@ -6,12 +6,14 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
   isAxiosError,
+  isCancel,
 } from "axios";
 
 import { handleRefreshToken } from "@/utils/auth-helper";
 import { getAccessTokenString, isTokenExpired } from "@/utils/helper";
 import i18next from "i18next";
 import { getApiBaseUrl } from "./base-url";
+import { API_REQUEST_TIMEOUT } from "./config";
 
 enum StatusCode {
   Unauthorized = 401,
@@ -66,6 +68,7 @@ class Http {
     const http = axios.create({
       baseURL: getApiBaseUrl(),
       headers,
+      timeout: API_REQUEST_TIMEOUT,
       // withCredentials: true,
     });
 
@@ -129,6 +132,7 @@ class Http {
   // Handle global app errors
   // We can handle generic app errors depending on the status code
   private handleError(error: Error | AxiosError) {
+    if (isCancel(error)) return Promise.reject(error);
     let apiError: IApiError;
     // console.error('error data', error);
     if (isAxiosError(error)) {
@@ -193,6 +197,7 @@ class Http {
       const response = await request;
       return response.data;
     } catch (error) {
+      if (isCancel(error)) throw error;
       handleApiError(error as unknown as IApiError);
       throw error;
     }

@@ -9,8 +9,23 @@
       "distribution": "internal",
       "env": {
         "APP_VARIANT": "development",
-        "NODE_ENV": "development"
-      }
+        "NODE_ENV": "development",
+        "EXPO_PUBLIC_API_URL": "http://localhost:3050"
+      },
+      "environment": "development"
+    },
+    "testing": {
+      "distribution": "internal",
+      "developmentClient": false,
+      "environment": "development",
+      "channel": "testing",
+      "autoIncrement": true,
+      "env": {
+        "APP_VARIANT": "development",
+        "NODE_ENV": "production",
+        "EXPO_PUBLIC_API_URL": "https://api.shopsimplist.com"
+      },
+      "android": { "buildType": "apk" }
     },
     "preview": {
       "distribution": "internal",

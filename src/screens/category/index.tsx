@@ -1,8 +1,10 @@
 import AnimatedHeaderText from "@/components/AnimatedHeaderText";
+import CartBar from "@/components/CartBar";
 import CategoryCard from "@/components/CategoryCard";
 import ProductCard from "@/components/ProductCard";
 import { View } from "@/components/Themed";
 import Typography from "@/components/Typography";
+import { useCart } from "@/hooks/useCart";
 import {
   fetchProductCategoryById,
   fetchProductsByCategoryId,
@@ -10,9 +12,8 @@ import {
 import { getEnArName } from "@/utils/helper";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Animated } from "react-native";
+import { useAnimatedValue, Animated } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import SkeletonLoader, {
   HeaderSkeleton,
@@ -64,6 +65,7 @@ const Header = ({
 };
 
 export default function CategoryScreen() {
+  const cart = useCart();
   const { id, children } = useLocalSearchParams<{
     id: string;
     children: "true" | "false";
@@ -83,7 +85,7 @@ export default function CategoryScreen() {
     placeholderData: keepPreviousData,
   });
 
-  const scrollY = useRef(new Animated.Value(0)).current;
+  const scrollY = useAnimatedValue(0);
 
   const headerOpacity = scrollY.interpolate({
     inputRange: [50, 150],
@@ -141,6 +143,9 @@ export default function CategoryScreen() {
             numColumns={2}
             horizontal={false}
             className="flex-1 px-4 py-6"
+            contentContainerStyle={{
+              paddingBottom: cart.data?.itemCount ? 108 : 24,
+            }}
             columnWrapperClassName="justify-between"
             ItemSeparatorComponent={() => <View className="h-4" />}
           />
@@ -181,9 +186,13 @@ export default function CategoryScreen() {
             numColumns={2}
             horizontal={false}
             className="flex-1 px-4 py-6"
+            contentContainerStyle={{
+              paddingBottom: cart.data?.itemCount ? 108 : 24,
+            }}
             columnWrapperClassName="justify-between"
           />
         )}
+        <CartBar placement="screen" />
       </SafeAreaView>
     </>
   );

@@ -38,7 +38,10 @@ const formatResendTimer = (seconds: number) => {
 export default function VerifyOtpScreen() {
   const { t } = useTranslation();
   const colorScheme = useColorScheme();
-  const { email } = useLocalSearchParams<{ email: string }>();
+  const { authFlow, email } = useLocalSearchParams<{
+    authFlow?: "login" | "signup";
+    email: string;
+  }>();
   const [otp, setOtp] = useState("");
   const [otpInputKey, setOtpInputKey] = useState(0);
   const [otpError, setOtpError] = useState("");
@@ -55,7 +58,10 @@ export default function VerifyOtpScreen() {
       setStorageItem(constants.ACCESS_TOKEN, JSON.stringify(data));
       Toast.show({
         type: "success",
-        text1: t("login.loginSuccessful"),
+        text1:
+          authFlow === "signup"
+            ? t("signup.authSuccessful")
+            : t("login.loginSuccessful"),
       });
       signIn();
       // Navigate user based on profile completion status

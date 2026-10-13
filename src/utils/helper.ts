@@ -6,16 +6,20 @@ import { queryClient } from "@/api/queryClient";
 import constants from "@/constants";
 import { IAccessToken, IProductCategory, ITokenInfo } from "@/types";
 import { getStorageItem, setStorageItem } from "@/utils/storage";
-import type { Router } from "expo-router";
+import type { router as expoRouter } from "expo-router";
 
 export const isAuthenticated = (): boolean => {
-  const token = getStorageItem(constants.ACCESS_TOKEN);
-  let isValidToken = false;
-  if (token) {
+  try {
+    const token = getStorageItem(constants.ACCESS_TOKEN);
+    if (!token) return false;
     const parsedToken = JSON.parse(token) as IAccessToken;
-    isValidToken = Boolean(token && !isTokenExpired(parsedToken.accessToken));
+    return (
+      !isTokenExpired(parsedToken.accessToken) ||
+      !isTokenExpired(parsedToken.refreshToken)
+    );
+  } catch {
+    return false;
   }
-  return Boolean(isValidToken);
 };
 
 export const isTokenExpired = (token: string): boolean => {
@@ -79,9 +83,28 @@ export const getUserFirstName = () => {
   return decodedToken?.user?.firstName || "";
 };
 
-export const getUserGender = () => {
+export const getUserInitials = () => {
   const decodedToken = getDecodedToken();
-  return decodedToken?.user?.gender || "Female";
+  const user = decodedToken?.user;
+
+  return getInitials(user?.firstName, user?.lastName, user?.email);
+};
+
+export const getInitials = (
+  firstName?: string | null,
+  lastName?: string | null,
+  email?: string | null,
+): string => {
+  const initials = [firstName, lastName]
+    .map((name) => name?.trim())
+    .filter((name): name is string => Boolean(name))
+    .map((name) => Array.from(name)[0])
+    .join("");
+
+  if (initials) return initials.toLocaleUpperCase();
+
+  const emailInitial = Array.from(email?.trim() ?? "")[0];
+  return emailInitial?.toLocaleUpperCase() ?? "?";
 };
 
 export const getUserFirstLastName = () => {
@@ -157,7 +180,7 @@ export function formatPrice(price: number = 0, currencyCode?: string): string {
  * Navigate user after successful authentication based on profile completion status
  * This function checks if user needs to complete profile and navigates accordingly
  */
-export const navigateAfterAuth = (router: Router): void => {
+export const navigateAfterAuth = (router: typeof expoRouter): void => {
   const decoded = getDecodedToken();
 
   // Determine target route

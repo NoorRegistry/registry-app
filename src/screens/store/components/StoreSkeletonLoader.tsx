@@ -1,24 +1,32 @@
 import Wave from "@/components/Wave";
 import { Stack } from "expo-router";
 import React from "react";
-import { Animated, Dimensions, StyleSheet, View } from "react-native";
+import {
+  useAnimatedValue,
+  Animated,
+  Dimensions,
+  StyleSheet,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 
 // Shimmer Animation Component
 const Shimmer = () => {
-  const shimmerAnim = React.useRef(new Animated.Value(-1)).current;
+  const shimmerAnim = useAnimatedValue(-1);
 
   React.useEffect(() => {
-    Animated.loop(
+    const animation = Animated.loop(
       Animated.timing(shimmerAnim, {
         toValue: 1,
         duration: 1000,
         useNativeDriver: true,
       }),
-    ).start();
-  }, []);
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [shimmerAnim]);
 
   const translateX = shimmerAnim.interpolate({
     inputRange: [-1, 1],
@@ -28,7 +36,7 @@ const Shimmer = () => {
   return (
     <Animated.View
       style={{
-        ...StyleSheet.absoluteFillObject,
+        ...StyleSheet.absoluteFill,
         transform: [{ translateX }],
         backgroundColor: "rgba(255, 255, 255, 0.5)",
         opacity: 0.6,

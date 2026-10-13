@@ -1,0 +1,52 @@
+appId: com.shiftgiftme.mobile.dev
+---
+- openLink: shiftgiftme:///addresses/edit
+- assertVisible: Continue
+- swipe:
+    start: 70%,40%
+    end: 30%,40%
+    duration: 500
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: pan-left
+- swipe:
+    start: 30%,40%
+    end: 70%,40%
+    duration: 500
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: pan-right
+- swipe:
+    start: 50%,65%
+    end: 50%,35%
+    duration: 500
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: pan-up
+- swipe:
+    start: 50%,35%
+    end: 50%,65%
+    duration: 500
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: pan-down
+- tapOn:
+    id: address-continue
+    waitToSettleTimeoutMs: 1000
+- extendedWaitUntil:
+    visible:
+      id: address-field-building
+    timeout: 20000
+- takeScreenshot: map-selected-address-details
+- tapOn:
+    id: address-change-location
+    waitToSettleTimeoutMs: 1000
+- assertVisible: Continue
+- takeScreenshot: map-selected-location-restored
+- swipe:
+    start: 70%,40%
+    end: 30%,40%
+    duration: 500
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: map-pan-after-details

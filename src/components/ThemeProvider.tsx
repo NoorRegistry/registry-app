@@ -10,7 +10,7 @@ import { useThemeVariables } from "@/hooks/useThemeVariables";
 import {
   ThemeProvider as RNThemeProvider,
   Theme,
-} from "@react-navigation/native";
+} from "expo-router/react-navigation";
 import { PropsWithChildren } from "react";
 import { useTranslation } from "react-i18next";
 

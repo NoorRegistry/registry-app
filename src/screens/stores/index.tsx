@@ -6,7 +6,7 @@ import { getEnArName, getImageUrl } from "@/utils/helper";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { Link, Stack, router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Dimensions,
@@ -22,69 +22,55 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 
+const RenderStore = ({ store }: { store: IStore }) => {
+  const cardWidth = width / 2 - 16 - 8;
+  return (
+    <Link
+      href={{
+        pathname: "/stores/[id]",
+        params: {
+          id: store.id,
+          storeName: getEnArName(store.nameEn, store.nameAr),
+        },
+      }}
+      key={store.id}
+      asChild
+    >
+      <Pressable
+        key={store.id}
+        style={{ width: cardWidth, height: cardWidth }}
+        className="p-2 mb-4 items-center justify-center border border-neutral-200 rounded-3xl"
+      >
+        <View className="flex-1 w-full">
+          <Image
+            source={{ uri: getImageUrl(store.storeLogo) }}
+            style={{ flex: 1 }}
+            contentFit="contain"
+          />
+        </View>
+      </Pressable>
+    </Link>
+  );
+};
+
 const StoresScreen = () => {
-  // const [searchText, setSearchText] = useState("");
+  const [searchText, setSearchText] = useState("");
   const { t } = useTranslation();
   const colorScheme = useColorScheme();
-  const [filteredStores, setFilteredStores] = useState<IStore[]>([]);
 
   const { data: stores } = useQuery({
     queryKey: ["stores"],
     queryFn: fetchStores,
   });
 
-  const handleSearch = (text: string) => {
-    if (stores && stores.data) {
-      // setSearchText(text);
-      if (text.trim().length === 0) {
-        setFilteredStores(stores.data);
-      } else {
-        const filtered = stores.data.filter(
-          (store) =>
-            store.nameEn.toLowerCase().includes(text.toLowerCase()) ||
-            store.nameAr.toLowerCase().includes(text.toLowerCase()),
-        );
-        setFilteredStores(filtered);
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (stores && stores.data) {
-      setFilteredStores(stores.data);
-    }
-  }, [stores]);
-
-  const RenderStore = ({ store }: { store: IStore }) => {
-    const cardWidth = width / 2 - 16 - 8;
-    return (
-      <Link
-        href={{
-          pathname: "/stores/[id]",
-          params: {
-            id: store.id,
-            storeName: getEnArName(store.nameEn, store.nameAr),
-          },
-        }}
-        key={store.id}
-        asChild
-      >
-        <Pressable
-          key={store.id}
-          style={{ width: cardWidth, height: cardWidth }}
-          className="p-2 mb-4 items-center justify-center border border-neutral-200 rounded-3xl"
-        >
-          <View className="flex-1 w-full">
-            <Image
-              source={{ uri: getImageUrl(store.storeLogo) }}
-              style={{ flex: 1 }}
-              contentFit="contain"
-            />
-          </View>
-        </Pressable>
-      </Link>
+  const filteredStores = useMemo(() => {
+    const search = searchText.trim().toLowerCase();
+    return (stores?.data ?? []).filter(
+      (store) =>
+        store.nameEn.toLowerCase().includes(search) ||
+        store.nameAr.toLowerCase().includes(search),
     );
-  };
+  }, [stores?.data, searchText]);
 
   return (
     <>
@@ -109,7 +95,8 @@ const StoresScreen = () => {
                 <View className="flex-1 rounded-lg">
                   <TextInput
                     placeholder={t("shop.searchStoresPlaceholder")}
-                    onChangeText={handleSearch}
+                    value={searchText}
+                    onChangeText={setSearchText}
                     className="h-8 rounded  px-4 font-Poppinsregular text-black"
                     textAlign={I18nManager.isRTL ? "right" : "left"}
                     placeholderTextColor={

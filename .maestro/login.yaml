@@ -1,0 +1,16 @@
+appId: com.shiftgiftme.mobile.dev
+---
+- openLink: shiftgiftme:///login
+- tapOn:
+    text: "example@gmail.com"
+- eraseText
+- inputText: ${QA_EMAIL}
+- hideKeyboard
+- tapOn: LOG IN
+- extendedWaitUntil:
+    visible: Verify OTP
+    timeout: 20000
+- inputText: ${QA_OTP}
+- extendedWaitUntil:
+    notVisible: Verify OTP
+    timeout: 20000

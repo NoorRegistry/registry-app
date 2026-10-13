@@ -1,207 +1,344 @@
 import Typography from "@/components/Typography";
-import constants from "@/constants";
-import i18n from "@/i18n";
-import { useGlobalStore } from "@/store";
+import { BrandColors } from "@/constants/Colors";
+import { useFriendsSummary } from "@/screens/friends/hooks";
 import {
-  clearSessionData,
+  getDecodedToken,
   getUserEmail,
   getUserFirstLastName,
-  getUserGender,
 } from "@/utils/helper";
-import { setStorageItem } from "@/utils/storage";
-import clsx from "clsx";
-import { reloadAppAsync } from "expo";
+import { logoutWithNotifications } from "@/utils/push-registration";
+import ProfileIcon, { ProfileIconName } from "@/components/icons/profile";
 import Constants from "expo-constants";
-import { Image } from "expo-image";
 import { router } from "expo-router";
-import React from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { I18nManager, Pressable, ScrollView, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-
-type LanguageCode = "en" | "ar";
-
-const appVersion = Constants.expoConfig?.version ?? "1.0.2";
-const appBuild =
-  Constants.expoConfig?.ios?.buildNumber ??
-  Constants.expoConfig?.android?.versionCode?.toString() ??
-  appVersion;
-
+import {
+  Animated,
+  Pressable,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
+import Toast from "react-native-toast-message";
+import { AccountRow } from "./components";
 export default function ProfileScreen() {
   const { t } = useTranslation();
-  const logout = useGlobalStore.use.signOut();
-  const name = getUserFirstLastName() || getUserEmail();
-  const email = getUserEmail();
-  const gender = getUserGender();
-  const avatarSource =
-    gender === "Male"
-      ? require("@assets/images/login/male.png")
-      : require("@assets/images/login/female.png");
-
-  const handleLogout = () => {
-    clearSessionData();
-    logout();
-    router.replace("/login");
+  const insets = useSafeAreaInsets();
+  const { height, width, fontScale } = useWindowDimensions();
+  const friends = useFriendsSummary();
+  const phone = String(getDecodedToken()?.user?.mobileNumber ?? "");
+  const [scroll] = useState(() => new Animated.Value(0));
+  const [collapsed, setCollapsed] = useState(false);
+  const [heroHeight, setHeroHeight] = useState(insets.top + 144);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const threshold = Math.max(80, heroHeight - insets.top - 44);
+  const headerStyle = {
+    opacity: scroll.interpolate({
+      inputRange: [threshold - 35, threshold],
+      outputRange: [0, 1],
+      extrapolate: "clamp",
+    }),
+    transform: [
+      {
+        translateY: scroll.interpolate({
+          inputRange: [threshold - 35, threshold],
+          outputRange: [-14, 0],
+          extrapolate: "clamp",
+        }),
+      },
+    ],
   };
-
-  const handleLanguageChange = async (language: LanguageCode) => {
-    if (i18n.language === language) return;
-
-    setStorageItem(constants.USER_SELECTED_LANGUAGE_STORAGE_KEY, language);
-    await i18n.changeLanguage(language);
-
-    const shouldUseRTL = language === "ar";
-    if (I18nManager.isRTL !== shouldUseRTL) {
-      I18nManager.allowRTL(shouldUseRTL);
-      I18nManager.forceRTL(shouldUseRTL);
-      await reloadAppAsync();
-    }
-  };
-
-  return (
-    <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
-      <ScrollView
-        className="flex-1"
-        contentContainerClassName="px-4 pt-4 pb-8"
-        showsVerticalScrollIndicator={false}
+  const headerActions = (light: boolean) => (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t("profile.help")}
+        onPress={() => router.push("/help")}
+        hitSlop={8}
+        style={{
+          minHeight: 28,
+          paddingHorizontal: 10,
+          borderRadius: 14,
+          justifyContent: "center",
+          backgroundColor: light ? "#FFFFFF25" : BrandColors.soft,
+        }}
       >
-        <View className="mb-6 flex-row items-center gap-4 rounded-xl bg-primary-50 p-4">
-          <View className="h-16 w-16 items-center justify-center rounded-full bg-primary-200">
-            <Image
-              source={avatarSource}
-              style={{ width: 64, height: 64 }}
-              contentFit="cover"
-            />
-          </View>
-          <View className="flex-1 gap-1">
-            <Typography.Text size="lg" weight="bold" numberOfLines={1}>
-              {name}
-            </Typography.Text>
-            <Typography.Text
-              size="sm"
-              weight="regular"
-              type="secondary"
-              numberOfLines={1}
-            >
-              {email}
-            </Typography.Text>
-          </View>
-        </View>
-
-        <SettingsSection title={t("profile.preferences")}>
-          <LanguageOption
-            label={t("profile.english")}
-            selected={i18n.language === "en"}
-            onPress={() => handleLanguageChange("en")}
-          />
-          <LanguageOption
-            label={t("profile.arabic")}
-            selected={i18n.language === "ar"}
-            onPress={() => handleLanguageChange("ar")}
-          />
-        </SettingsSection>
-
-        <SettingsSection title={t("profile.account")}>
-          <SettingsRow
-            label={t("common.logout")}
-            labelType="danger"
-            onPress={handleLogout}
-          />
-        </SettingsSection>
-      </ScrollView>
-
-      <View className="border-t border-neutral-100 px-4 py-3">
-        <Typography.Text size="xs" type="secondary" className="text-center">
-          {t("profile.versionBuild", {
-            version: appVersion,
-            build: appBuild,
-          })}
+        <Typography.Text
+          weight="medium"
+          style={{ color: light ? "#fff" : BrandColors.deep, fontSize: 12 }}
+        >
+          {t("profile.help")}
         </Typography.Text>
-      </View>
-    </SafeAreaView>
-  );
-}
-
-function SettingsSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <View className="mb-6">
-      <Typography.Text
-        size="sm"
-        weight="medium"
-        type="secondary"
-        className="mb-2"
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t("profile.settings")}
+        onPress={() => router.push("/settings")}
+        hitSlop={6}
+        style={{
+          width: 32,
+          minHeight: 32,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
       >
-        {title}
-      </Typography.Text>
-      <View className="overflow-hidden rounded-xl border border-neutral-100 bg-white">
-        {children}
-      </View>
+        <ProfileIcon
+          name="gear"
+          size={18}
+          color={light ? "#fff" : BrandColors.ink}
+          accent={light ? "#fff" : BrandColors.primary}
+        />
+      </Pressable>
     </View>
   );
-}
-
-function SettingsRow({
-  label,
-  labelType = "default",
-  trailing,
-  onPress,
-}: {
-  label: string;
-  labelType?: React.ComponentProps<typeof Typography.Text>["type"];
-  trailing?: React.ReactNode;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
+  const shortcut = (
+    label: string,
+    icon: ProfileIconName,
+    onPress: () => void,
+  ) => (
+    <TouchableOpacity
+      activeOpacity={0.6}
+      key={label}
+      accessibilityRole="button"
+      accessibilityLabel={label}
       onPress={onPress}
-      className="min-h-14 flex-row items-center justify-between border-b border-neutral-100 px-4 py-3 last:border-b-0"
+      style={{
+        flex: 1,
+        alignItems: "center",
+        gap: 10,
+        minWidth: 0,
+      }}
     >
-      <View className="min-w-0 flex-1">
-        <Typography.Text
-          size="base"
-          weight="regular"
-          type={labelType}
-          numberOfLines={1}
-        >
-          {label}
-        </Typography.Text>
+      <View
+        style={{
+          width: 42,
+          height: 42,
+          borderRadius: 13,
+          backgroundColor: BrandColors.soft,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ProfileIcon name={icon} size={20} color={BrandColors.deep} />
       </View>
-      {trailing ? <View className="shrink-0">{trailing}</View> : null}
-    </Pressable>
+      <Typography.Text weight="medium" style={{ textAlign: "center" }}>
+        {label}
+      </Typography.Text>
+    </TouchableOpacity>
   );
-}
-
-function LanguageOption({
-  label,
-  selected,
-  onPress,
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}) {
+  const logout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await logoutWithNotifications();
+      router.replace("/login");
+    } catch {
+      Toast.show({ type: "error", text1: t("notifications.logoutError") });
+    } finally {
+      setLoggingOut(false);
+    }
+  };
   return (
-    <SettingsRow
-      label={label}
-      onPress={onPress}
-      trailing={
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+      <Animated.ScrollView
+        style={{ flex: 1 }}
+        testID="profile-scroll"
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scroll } } }],
+          {
+            useNativeDriver: true,
+            listener: (event: any) => {
+              const next = event.nativeEvent.contentOffset.y >= threshold;
+              setCollapsed(next);
+            },
+          },
+        )}
+        contentContainerStyle={{
+          paddingBottom: 30,
+          minHeight: height - insets.bottom + threshold,
+        }}
+      >
         <View
-          className={clsx(
-            "h-5 w-5 items-center justify-center rounded-full border-2",
-            selected ? "border-primary-500" : "border-neutral-300",
-          )}
+          onLayout={(event) => setHeroHeight(event.nativeEvent.layout.height)}
+          style={{
+            paddingTop: insets.top + 4,
+            paddingHorizontal: 20,
+            paddingBottom: 16,
+            borderBottomLeftRadius: 20,
+            borderBottomRightRadius: 20,
+            overflow: "hidden",
+            backgroundColor: BrandColors.deep,
+          }}
         >
-          {selected ? (
-            <View className="h-2.5 w-2.5 rounded-full bg-primary-500" />
-          ) : null}
+          <Svg
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+            }}
+            width={width}
+            height={Math.ceil(heroHeight)}
+          >
+            <Defs>
+              <LinearGradient
+                id="profile-brand"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <Stop offset="0" stopColor={BrandColors.primary} />
+                <Stop offset="0.5" stopColor="#BC7560" />
+                <Stop offset="1" stopColor={BrandColors.deep} />
+              </LinearGradient>
+            </Defs>
+            <Rect
+              width={width}
+              height={Math.ceil(heroHeight)}
+              fill="url(#profile-brand)"
+            />
+          </Svg>
+          <View style={{ alignItems: "flex-end", marginBottom: 8 }}>
+            {headerActions(true)}
+          </View>
+          <View style={{ gap: 2 }}>
+            <Typography.Text
+              weight="bold"
+              style={{ color: "#fff", fontSize: 17, lineHeight: 23 }}
+            >
+              {getUserFirstLastName() || t("profile.title")}
+            </Typography.Text>
+            {!!friends.data?.profileCode && (
+              <Typography.Text
+                style={{ color: "#FFF1EA", fontSize: 10, lineHeight: 15 }}
+              >
+                {friends.data.profileCode}
+              </Typography.Text>
+            )}
+          </View>
+          <Typography.Text
+            style={{
+              color: "#FFF1EA",
+              fontSize: 12,
+              lineHeight: 18,
+              marginTop: 6,
+            }}
+          >
+            {phone}
+            {!!phone && (
+              <Typography.Text
+                weight="bold"
+                style={{ color: "#fff", fontSize: 14 }}
+              >
+                {" • "}
+              </Typography.Text>
+            )}
+            {getUserEmail()}
+          </Typography.Text>
         </View>
-      }
-    />
+        <View style={{ paddingHorizontal: 24 }}>
+          <View
+            style={{
+              flexDirection: fontScale > 1.3 ? "column" : "row",
+              gap: 14,
+              paddingVertical: 28,
+            }}
+          >
+            {shortcut(t("orders.title"), "orders", () =>
+              router.push("/orders"),
+            )}
+            {shortcut(t("addresses.title"), "address", () =>
+              router.push("/addresses"),
+            )}
+            {shortcut(t("friends.title"), "friends", () =>
+              router.push("/friends"),
+            )}
+          </View>
+          <View
+            style={{
+              height: 7,
+              backgroundColor: "#FAF7F6",
+              marginHorizontal: -24,
+              marginBottom: 8,
+            }}
+          />
+          <AccountRow
+            label={t("profile.settings")}
+            icon="settings"
+            onPress={() => router.push("/settings")}
+          />
+          <AccountRow
+            label={t("profile.help")}
+            icon="help"
+            onPress={() => router.push("/help")}
+          />
+          <AccountRow
+            label={t("profile.partner")}
+            icon="partner"
+            last
+            onPress={() => router.push("/partner")}
+          />
+          <View style={{ marginTop: 24 }}>
+            <AccountRow
+              label={t("common.logout")}
+              icon="logout"
+              danger
+              last
+              onPress={() => void logout()}
+            />
+          </View>
+          <Typography.Text
+            size="xs"
+            style={{
+              color: BrandColors.muted,
+              paddingTop: 16,
+              textAlign: "center",
+            }}
+          >
+            {t("profile.version", {
+              version: Constants.expoConfig?.version ?? "1.0.2",
+            })}
+          </Typography.Text>
+        </View>
+      </Animated.ScrollView>
+      <Animated.View
+        testID="profile-sticky-header"
+        pointerEvents={collapsed ? "auto" : "none"}
+        accessibilityElementsHidden={!collapsed}
+        importantForAccessibility={collapsed ? "auto" : "no-hide-descendants"}
+        style={[
+          {
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: "#fff",
+            paddingTop: insets.top,
+            borderBottomWidth: 1,
+            borderBottomColor: BrandColors.line,
+          },
+          headerStyle,
+        ]}
+      >
+        <View
+          style={{
+            minHeight: 44,
+            flexDirection: "row",
+            paddingHorizontal: 20,
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <Typography.Text weight="bold" style={{ flex: 1, fontSize: 16 }}>
+            {t("profile.title")}
+          </Typography.Text>
+          {headerActions(false)}
+        </View>
+      </Animated.View>
+    </View>
   );
 }

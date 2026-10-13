@@ -1,5 +1,6 @@
 import { queryClient } from "@/api/queryClient";
 import AnimatedHeaderText from "@/components/AnimatedHeaderText";
+import CartBar from "@/components/CartBar";
 import HeaderRightButtons from "@/components/Header/HeaderRightButtons";
 import ProductCard from "@/components/ProductCard";
 import Typography from "@/components/Typography";
@@ -10,8 +11,14 @@ import { getEnArName, getImageUrl } from "@/utils/helper";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { Stack, useLocalSearchParams } from "expo-router";
-import React, { useRef, useState } from "react";
-import { Animated, FlatList, RefreshControl, View } from "react-native";
+import React, { useState } from "react";
+import {
+  useAnimatedValue,
+  Animated,
+  FlatList,
+  RefreshControl,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import StoreSkeletonLoader from "./components/StoreSkeletonLoader";
 
@@ -47,12 +54,15 @@ export default function StoreScreen() {
     queryFn: () => fetchStore(id),
   });
 
-  const scrollY = useRef(new Animated.Value(0)).current;
+  const scrollY = useAnimatedValue(0);
   const [headerHeight, setHeaderHeight] = useState(0);
 
   // Initialize animated values
-  let headerOpacity: Animated.AnimatedInterpolation<number> =
-    new Animated.Value(0) as any;
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [150, Math.max(151, headerHeight - 150)],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
 
   // Remove elevation animation (not supported with native driver when animating shadow props)
   const handleScroll = Animated.event(
@@ -60,17 +70,9 @@ export default function StoreScreen() {
     { useNativeDriver: true },
   );
 
-  if (headerHeight > 150) {
-    headerOpacity = scrollY.interpolate({
-      inputRange: [150, headerHeight - 150],
-      outputRange: [0, 1],
-      extrapolate: "clamp",
-    });
-  }
-
   const headerShadowOpacity = headerOpacity; // reuse same interpolation
 
-  const StoreHeader = () => (
+  const storeHeader = (
     <View
       onLayout={(event) => {
         const { height } = event.nativeEvent.layout;
@@ -79,7 +81,7 @@ export default function StoreScreen() {
     >
       <View className="bg-background-dark relative p-4 pb-0 items-center gap-3">
         <Image
-          source={{ uri: getImageUrl(store!.storeLogo) }}
+          source={{ uri: getImageUrl(store?.storeLogo) }}
           style={{ width: 150, height: 150, borderRadius: 999 }}
           contentFit="contain"
         />
@@ -132,7 +134,7 @@ export default function StoreScreen() {
         edges={["bottom", "left", "right"]}
       >
         <AnimatedFlatList
-          ListHeaderComponent={<StoreHeader />}
+          ListHeaderComponent={storeHeader}
           data={store?.products ?? []}
           keyExtractor={(item) => item.id}
           renderItem={({ item, index }) => {
@@ -166,6 +168,7 @@ export default function StoreScreen() {
           }
           ListFooterComponent={<View className="pb-32" />}
         />
+        <CartBar placement="screen" />
       </SafeAreaView>
     </>
   );

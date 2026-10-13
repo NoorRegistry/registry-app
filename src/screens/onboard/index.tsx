@@ -20,15 +20,14 @@ import Animated, {
   withTiming,
   type SharedValue,
 } from "react-native-reanimated";
-import type { ICarouselInstance } from "react-native-reanimated-carousel";
-import Carousel from "react-native-reanimated-carousel";
+import { Carousel, type CarouselRef } from "react-native-reanimated-carousel";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
 const OnBoard = () => {
-  const ref = React.useRef<ICarouselInstance>(null);
+  const ref = React.useRef<CarouselRef>(null);
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -56,20 +55,18 @@ const OnBoard = () => {
   ];
 
   const handleAutoAdvance = useCallback(() => {
-    ref.current?.scrollTo({ count: 1, animated: true });
+    ref.current?.next({ animated: true });
   }, []);
 
   const startSlideProgress = useCallback(() => {
     cancelAnimation(slideProgress);
-    slideProgress.value = 0;
-    slideProgress.value = withTiming(
-      1,
-      { duration: slideDurationMs },
-      (finished) => {
+    slideProgress.set(0);
+    slideProgress.set(
+      withTiming(1, { duration: slideDurationMs }, (finished) => {
         if (finished) {
           runOnJS(handleAutoAdvance)();
         }
-      },
+      }),
     );
   }, [handleAutoAdvance, slideProgress]);
 
@@ -114,13 +111,13 @@ const OnBoard = () => {
         </View>
       </View>
       <Carousel
-        width={width}
+        itemSize={width}
         loop={true}
         ref={ref}
-        style={{ width: "100%" }}
+        style={{ width: "100%", flex: 1 }}
         data={onboardSteps}
-        onConfigurePanGesture={(g) => g.enabled(false)}
-        pagingEnabled={true}
+        scrollEnabled={false}
+        snapMode="page"
         onSnapToItem={(index) => {
           setCurrentIndex(index);
         }}

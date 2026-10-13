@@ -1,62 +1,54 @@
-# Copy everything from your .gitignore file here
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
 # dependencies
-
 node_modules/
 
 # Expo
-
 .expo/
 dist/
 web-build/
 expo-env.d.ts
 
 # Native
-
-_.orig._
-_.jks
-_.p8
-_.p12
-_.key
-\*.mobileprovision
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
 
 # Metro
-
-.metro-health-check\*
+.metro-health-check*
 
 # debug
-
-npm-debug._
-yarn-debug._
-yarn-error.\*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
 
 # macOS
-
 .DS_Store
-\*.pem
+*.pem
 
 # local env files
-
-.env\*.local
+.env*.local
 
 # typescript
-
-\*.tsbuildinfo
+*.tsbuildinfo
 
 # Translation backups
-
 src/i18n/backups/
-\*.backup
+*.backup
 
-# Ignore files and directories that EAS Build doesn't need to build your app
+.env.local
 
-/docs
-
-# Ignore native directories (if you are using EAS Build)
-
-/android
+# EAS regenerates native projects from app.config.ts and config plugins.
 /ios
-
-# Ignore test coverage reports
-
+/android
+# Local credentials, QA artifacts and documentation are not build inputs.
+.env.local
+.env.maps.local
+.env.maps.production.local
+/.local
+/.maestro
+/docs
 /coverage

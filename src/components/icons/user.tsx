@@ -1,7 +1,16 @@
 import React from "react";
 import Svg, { Path } from "react-native-svg";
+import { ColorValue } from "react-native";
 
-export const UserIcon = ({ width = 24, height = 24, color = "white" }) => {
+export const UserIcon = ({
+  width = 24,
+  height = 24,
+  color = "white",
+}: {
+  width?: number;
+  height?: number;
+  color?: ColorValue;
+}) => {
   return (
     <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
       <Path

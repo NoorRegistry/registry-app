@@ -9,17 +9,32 @@ import { TrashIcon } from "../icons/trash";
 function QtyButton({
   qty,
   updateQty,
+  onDelete,
+  min = 1,
 }: {
   qty: number;
   updateQty: (qty: number) => void;
+  onDelete?: () => void;
+  min?: number;
 }) {
   return (
     <View className="rounded-full px-2 py-1 bg-neutral-100 flex-row gap-4 items-center">
       <IconButton
         onPress={() => {
-          qty !== 1 && updateQty(qty - 1);
+          if (qty === 1 && onDelete) onDelete();
+          else if (qty > min) updateQty(qty - 1);
         }}
-        icon={qty === 1 ? <TrashIcon size={18} /> : <MinusIcon size={18} />}
+        disabled={qty <= min && !(qty === 1 && onDelete)}
+        accessibilityLabel={
+          qty === 1 && onDelete ? "Remove item" : "Decrease quantity"
+        }
+        icon={
+          qty === 1 && onDelete ? (
+            <TrashIcon size={18} />
+          ) : (
+            <MinusIcon size={18} />
+          )
+        }
       />
       <Typography.Text size="sm">{qty}</Typography.Text>
       <IconButton

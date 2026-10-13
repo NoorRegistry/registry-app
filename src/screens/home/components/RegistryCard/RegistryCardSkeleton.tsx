@@ -1,15 +1,15 @@
-import React, { useEffect, useRef } from "react";
-import { Animated, Easing, View } from "react-native";
+import React, { useEffect } from "react";
+import { useAnimatedValue, Animated, Easing, View } from "react-native";
 
 type RegistrySkeletonVariant = "registry" | "noRegistry";
 
 const RegistrySkeleton: React.FC<{ variant?: RegistrySkeletonVariant }> = ({
   variant = "registry",
 }) => {
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const shimmerAnim = useAnimatedValue(0);
 
   useEffect(() => {
-    Animated.loop(
+    const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(shimmerAnim, {
           toValue: 1,
@@ -23,7 +23,9 @@ const RegistrySkeleton: React.FC<{ variant?: RegistrySkeletonVariant }> = ({
           useNativeDriver: true,
         }),
       ]),
-    ).start();
+    );
+    animation.start();
+    return () => animation.stop();
   }, [shimmerAnim]);
 
   const shimmerTranslate = shimmerAnim.interpolate({

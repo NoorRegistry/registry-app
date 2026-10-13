@@ -3,6 +3,7 @@ import GiftItUp from "@/components/GiftItUp";
 import { View } from "@/components/Themed";
 import Typography from "@/components/Typography";
 import { useHeaderScrollState } from "@/hooks/useHeaderScrollState";
+import { useCart } from "@/hooks/useCart";
 import { fetchProductCategories } from "@/services/products.service";
 import { IProductCategory } from "@/types";
 import { getEnArName } from "@/utils/helper";
@@ -35,6 +36,7 @@ const Header = () => {
 
 export default function ShopScreen() {
   const handleHeaderScroll = useHeaderScrollState();
+  const hasCart = Boolean(useCart().data?.itemCount);
   const {
     data: categories,
     isFetching,
@@ -92,6 +94,7 @@ export default function ShopScreen() {
       horizontal={false}
       className="flex-1"
       contentContainerClassName="px-4 py-6"
+      contentContainerStyle={{ paddingBottom: hasCart ? 108 : 24 }}
       refreshControl={
         <RefreshControl
           refreshing={isRefetching} // Use isRefetching from React Query

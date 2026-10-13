@@ -3,15 +3,21 @@ import { fetchMostAddedProducts } from "@/services/products.service";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
-import React, { useEffect, useRef } from "react";
-import { Animated, FlatList, View, useWindowDimensions } from "react-native";
+import React, { useEffect } from "react";
+import {
+  useAnimatedValue,
+  Animated,
+  FlatList,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import SectionTitle from "../SectionTitle";
 
 const MostAddedProductsSkeleton = () => {
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const shimmerAnim = useAnimatedValue(0);
 
   useEffect(() => {
-    Animated.loop(
+    const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(shimmerAnim, {
           toValue: 1,
@@ -24,7 +30,9 @@ const MostAddedProductsSkeleton = () => {
           useNativeDriver: false,
         }),
       ]),
-    ).start();
+    );
+    animation.start();
+    return () => animation.stop();
   }, [shimmerAnim]);
 
   const shimmerColor = shimmerAnim.interpolate({

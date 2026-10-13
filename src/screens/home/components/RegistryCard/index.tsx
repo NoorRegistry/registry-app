@@ -3,12 +3,13 @@ import Typography from "@/components/Typography";
 import { fetchRegistries } from "@/services/registries.service";
 import { useGlobalStore } from "@/store";
 import { IRegistry } from "@/types";
+import { getImageUrl } from "@/utils/helper";
 import { useQuery } from "@tanstack/react-query";
-import { ImageBackground } from "expo-image";
+import { Image, ImageBackground } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import RegistrySkeleton, {
   resolveRegistrySkeletonVariant,
 } from "./RegistryCardSkeleton";
@@ -66,7 +67,7 @@ export default function RegistryCard() {
                 locations={[0, 0.55, 1]}
                 start={{ x: 0, y: 0.05 }}
                 end={{ x: 1, y: 0.95 }}
-                style={StyleSheet.absoluteFillObject}
+                style={StyleSheet.absoluteFill}
                 pointerEvents="none"
               />
               <View className="p-6">
@@ -92,11 +93,24 @@ const DisplaySelectedRegistryInfo = ({
   const { t } = useTranslation();
   if (!registry) return null;
 
+  const logoUrl = getImageUrl(registry.logo);
+  const initials = registry.title?.trim()?.charAt(0)?.toUpperCase() ?? "";
+
   return (
     <View className="gap-8">
       <View className="flex-row items-center gap-4">
         <View className="w-14 h-14 rounded-full bg-[#d8efff] items-center justify-center">
-          <Text style={{ fontSize: 30 }}>👦🏻</Text>
+          {logoUrl ? (
+            <Image
+              source={logoUrl}
+              style={{ width: 56, height: 56, borderRadius: 28 }}
+              contentFit="cover"
+            />
+          ) : (
+            <Typography.Text weight="bold" className="text-[#212121]">
+              {initials}
+            </Typography.Text>
+          )}
         </View>
         <View className="flex-1">
           <Typography.Text

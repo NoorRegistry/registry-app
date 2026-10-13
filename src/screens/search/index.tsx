@@ -1,426 +1,410 @@
-import LoadingSpinner from "@/components/Loader/customLoader";
-import ProductCard from "@/components/ProductCard";
-import RegistryListItem from "@/components/RegistryListItem";
+import ResultRowsSkeleton from "@/components/ResultRowsSkeleton";
+import { useCart } from "@/hooks/useCart";
 import Typography from "@/components/Typography";
-import { ChevronRightIcon } from "@/components/icons/chevron";
-import { CloseIcon } from "@/components/icons/close";
-import { SearchIcon } from "@/components/icons/search";
-import { Colors } from "@/constants/Colors";
-import { useHeaderScrollState } from "@/hooks/useHeaderScrollState";
-import GuideCard from "@/screens/guides/components/GuideCard";
 import { fetchSearchResults } from "@/services/search.service";
+import { fetchProductCategories } from "@/services/products.service";
+import { GlobalSearchResult, TGlobalSearchResultsType } from "@/types";
 import {
-  IGlobalSearchResults,
-  ISearchGuide,
-  ISearchProduct,
-  ISearchStore,
-  TGlobalSearchResultsType,
-} from "@/types";
-import { getEnArName, getImageUrl } from "@/utils/helper";
-import { useQuery } from "@tanstack/react-query";
+  getDecodedToken,
+  getEnArName,
+  getImageUrl,
+  formatPrice,
+} from "@/utils/helper";
+import { getStorageItem, setStorageItem } from "@/utils/storage";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Image } from "expo-image";
-import { Link, Stack, useFocusEffect } from "expo-router";
-import React, { useRef, useState } from "react";
+import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
+import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  FlatList,
-  I18nManager,
-  Pressable,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  View,
-  useColorScheme,
-  useWindowDimensions,
-} from "react-native";
+import { Pressable, ScrollView, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDebounce } from "use-debounce";
+import {
+  ActionButton,
+  EmptyState,
+  FriendSearch,
+  PagedList,
+  PersonRow,
+  palette,
+  styles,
+} from "../friends/components";
+import { nextFriendsPage, useFriendsKey } from "../friends/hooks";
+import { useFriendActions } from "../friends/actions";
 
-type SearchSection = {
-  id: TGlobalSearchResultsType;
-  title: string;
-  count: number;
-};
-
-function SearchScreen() {
-  const { t } = useTranslation();
-  const colorScheme = useColorScheme();
-  const { width } = useWindowDimensions();
-  const handleHeaderScroll = useHeaderScrollState();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearchQuery] = useDebounce(searchQuery, 500);
-  const [expandedSections, setExpandedSections] = useState<
-    Record<TGlobalSearchResultsType, boolean>
-  >({
-    stores: true,
-    products: true,
-    guides: true,
-    registries: true,
-  });
-  const inputRef = useRef<TextInput>(null);
-  const trimmedSearchQuery = searchQuery.trim();
-  const debouncedTrimmedSearchQuery = debouncedSearchQuery.trim();
-  const sectionWidth = width - 32;
-
-  const handleSearch = (text: string) => {
-    setSearchQuery(text);
-  };
-
-  const toggleSection = (sectionId: TGlobalSearchResultsType) => {
-    setExpandedSections((current) => ({
-      ...current,
-      [sectionId]: !current[sectionId],
-    }));
-  };
-
-  useFocusEffect(
-    React.useCallback(() => {
-      inputRef.current?.focus();
-    }, []),
-  );
-
-  const { data, isFetching } = useQuery({
-    queryKey: ["search", debouncedTrimmedSearchQuery],
-    queryFn: () => fetchSearchResults(debouncedTrimmedSearchQuery),
-    enabled: Boolean(debouncedTrimmedSearchQuery),
-  });
-
-  const totalResults = data?.total ?? 0;
-  const activeSearchTerm = debouncedTrimmedSearchQuery || trimmedSearchQuery;
-  const isWaitingForDebounce =
-    Boolean(trimmedSearchQuery) &&
-    trimmedSearchQuery !== debouncedTrimmedSearchQuery;
-  const isSearching = isWaitingForDebounce || isFetching;
-  const hasResolvedSearchResults =
-    Boolean(debouncedTrimmedSearchQuery) && data !== undefined;
-
-  const sections: SearchSection[] = [
-    {
-      id: "stores" as const,
-      title: t("common.stores"),
-      count: data?.counts.stores ?? 0,
-    },
-    {
-      id: "products" as const,
-      title: t("common.products"),
-      count: data?.counts.products ?? 0,
-    },
-    {
-      id: "guides" as const,
-      title: t("common.guides"),
-      count: data?.counts.guides ?? 0,
-    },
-    {
-      id: "registries" as const,
-      title: t("common.registries"),
-      count: data?.counts.registries ?? 0,
-    },
-  ].filter((section) => section.count > 0) as SearchSection[];
-
+const types = ["all", "products", "people", "stores"] as const;
+export default function SearchScreen() {
+  const params = useLocalSearchParams<{ type?: string; q?: string }>();
+  const initialType = types.find((type) => type === params.type) ?? "all";
   return (
-    <>
-      <Stack.Screen options={{}} />
-      <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
-        <View className="mx-4 mt-4 mb-2 flex-row items-center rounded-2xl border border-neutral-200 bg-white px-4 py-4 shadow shadow-neutral-100">
-          <SearchIcon
-            width={22}
-            height={22}
-            color={Colors[colorScheme ?? "light"].tabIconDefault}
-          />
-          <TextInput
-            ref={inputRef}
-            placeholder={t("common.globalSearch")}
-            onChangeText={handleSearch}
-            className="flex-1 px-3 font-Poppinsregular text-black"
-            textAlign={I18nManager.isRTL ? "right" : "left"}
-            placeholderTextColor={
-              Colors[colorScheme ?? "light"].placeholderTextColor
-            }
-            value={searchQuery}
-          />
-          {isSearching ? <LoadingSpinner size="large" /> : null}
-          {!isSearching && trimmedSearchQuery ? (
-            <TouchableOpacity
-              onPress={() => setSearchQuery("")}
-              hitSlop={10}
-              className="p-1"
-            >
-              <CloseIcon
-                size={18}
-                color={Colors[colorScheme ?? "light"].tabIconDefault}
-              />
-            </TouchableOpacity>
-          ) : null}
-        </View>
-        {trimmedSearchQuery ? (
-          <ScrollView
-            className="flex-1"
-            onScroll={handleHeaderScroll}
-            scrollEventThrottle={16}
-            contentContainerClassName="px-4 pb-32"
-          >
-            {hasResolvedSearchResults ? (
-              <>
-                <Typography.Text
-                  type="secondary"
-                  size="base"
-                  className="mb-6 mt-2"
-                >
-                  {t("common.showingResultsFor", {
-                    count: totalResults,
-                    term: activeSearchTerm,
-                  })}
-                </Typography.Text>
-                {sections.length ? (
-                  sections.map((section) => (
-                    <View
-                      key={section.id}
-                      className="mb-6 self-start border-b border-neutral-200 pb-6"
-                      style={{ width: sectionWidth }}
-                    >
-                      <TouchableOpacity
-                        activeOpacity={0.8}
-                        onPress={() => toggleSection(section.id)}
-                        className="w-full flex-row items-center justify-between py-1"
-                      >
-                        <Typography.Text weight="medium" size="lg">
-                          {section.title} ({section.count})
-                        </Typography.Text>
-                        <View
-                          style={{
-                            alignItems: "center",
-                            justifyContent: "center",
-                            transform: [
-                              { scaleX: I18nManager.isRTL ? -1 : 1 },
-                              {
-                                rotate: expandedSections[section.id]
-                                  ? "90deg"
-                                  : "0deg",
-                              },
-                            ],
-                          }}
-                        >
-                          <ChevronRightIcon width={24} height={24} />
-                        </View>
-                      </TouchableOpacity>
-                      {expandedSections[section.id] ? (
-                        <SearchSectionContent
-                          sectionId={section.id}
-                          data={data}
-                        />
-                      ) : null}
-                    </View>
-                  ))
-                ) : (
-                  <EmptySectionState />
-                )}
-              </>
-            ) : (
-              <SearchLoadingState />
-            )}
-          </ScrollView>
-        ) : (
-          <EmptySearch />
-        )}
-      </SafeAreaView>
-    </>
+    <SearchContent
+      key={`${initialType}:${params.q ?? ""}`}
+      initialType={initialType}
+      initialQuery={params.q ?? ""}
+    />
   );
 }
-
-function SearchSectionContent({
-  sectionId,
-  data,
+function SearchContent({
+  initialType,
+  initialQuery,
 }: {
-  sectionId: TGlobalSearchResultsType;
-  data?: IGlobalSearchResults;
+  initialType: TGlobalSearchResultsType;
+  initialQuery: string;
 }) {
-  switch (sectionId) {
-    case "stores":
-      return <StoresSection stores={data?.stores ?? []} />;
-    case "products":
-      return <ProductsSection products={data?.products ?? []} />;
-    case "guides":
-      return <GuidesSection guides={data?.guides ?? []} />;
-    case "registries":
-      return <RegistriesSection results={data} />;
-    default:
-      return null;
-  }
-}
-
-function StoresSection({ stores }: { stores: ISearchStore[] }) {
-  const { width } = useWindowDimensions();
-
-  if (!stores.length) {
-    return <EmptySectionState />;
-  }
-
-  const viewportWidth = width - 32;
-  const visibleCardCount = width >= 390 ? 2.8 : 2.2;
-  const storeCardWidth = viewportWidth / visibleCardCount;
-
-  return (
-    <View className="mt-5 w-full">
-      <FlatList
-        horizontal
-        data={stores}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <Link
-            href={{
-              pathname: "/(protected)/stores/[id]",
-              params: {
-                id: item.id,
-                storeName: getEnArName(item.nameEn, item.nameAr),
-              },
-            }}
-            asChild
-          >
-            <Pressable
-              className="h-24 items-center justify-center rounded-3xl border border-neutral-200 p-2"
-              style={{ width: storeCardWidth }}
-            >
-              <View className="flex-1 w-full">
-                <Image
-                  source={{ uri: getImageUrl(item.storeLogo) }}
-                  style={{ flex: 1 }}
-                  contentFit="contain"
-                />
-              </View>
-            </Pressable>
-          </Link>
-        )}
-        showsHorizontalScrollIndicator={false}
-        ItemSeparatorComponent={() => <View className="w-3" />}
-        contentContainerStyle={{ paddingRight: 16 }}
-      />
-    </View>
+  const { t } = useTranslation();
+  const hasCart = Boolean(useCart().data?.itemCount);
+  const userId = getDecodedToken()?.user?.id ?? "";
+  const historyKey = `search_history_${userId}`;
+  const inputRef = useRef<TextInput>(null);
+  const [query, setQuery] = useState(initialQuery);
+  const [type, setType] = useState(initialType);
+  const [search] = useDebounce(query.trim(), 300);
+  const [recent, setRecent] = useState<string[]>(() => {
+    try {
+      const data: unknown = JSON.parse(getStorageItem(historyKey) ?? "[]");
+      return Array.isArray(data)
+        ? data
+            .filter((item): item is string => typeof item === "string")
+            .slice(0, 8)
+        : [];
+    } catch {
+      return [];
+    }
+  });
+  const ready = search.length >= 2;
+  const key = useFriendsKey();
+  const result = useInfiniteQuery({
+    queryKey: [...key, "globalSearch", type, search],
+    queryFn: ({ pageParam, signal }) =>
+      fetchSearchResults(search, type, pageParam, signal),
+    initialPageParam: 1,
+    getNextPageParam: nextFriendsPage,
+    enabled: ready,
+    staleTime: 15000,
+  });
+  const { refetch } = result;
+  useFocusEffect(
+    useCallback(() => {
+      if (ready) void refetch();
+    }, [ready, refetch]),
   );
-}
-
-function ProductsSection({ products }: { products: ISearchProduct[] }) {
-  const { width } = useWindowDimensions();
-
-  if (!products.length) {
-    return <EmptySectionState />;
-  }
-
-  const viewportWidth = width - 32;
-  const visibleCardCount = width >= 390 ? 2.2 : 1.7;
-  const productCardWidth = viewportWidth / visibleCardCount;
-
-  return (
-    <View className="mt-5 w-full">
-      <FlatList
-        horizontal
-        data={products}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <ProductCard
-            product={{ ...item, store: item.store ?? undefined }}
-            width={productCardWidth}
-            reserveNameSpace
-          />
-        )}
-        showsHorizontalScrollIndicator={false}
-        ItemSeparatorComponent={() => <View className="w-3" />}
-        contentContainerStyle={{ paddingRight: 16 }}
-      />
-    </View>
+  const categories = useQuery({
+    queryKey: ["productCategories", "search"],
+    queryFn: fetchProductCategories,
+    enabled: !query.trim(),
+    staleTime: 60000,
+  });
+  const actions = useFriendActions();
+  const saveRecent = (term: string) => {
+    const normalized = term.trim();
+    if (normalized.length < 2) return;
+    const next = [
+      normalized,
+      ...recent.filter(
+        (item) => item.toLowerCase() !== normalized.toLowerCase(),
+      ),
+    ].slice(0, 8);
+    setRecent(next);
+    setStorageItem(historyKey, JSON.stringify(next));
+  };
+  const data = Array.from(
+    new Map(
+      result.data?.pages
+        .flatMap((page) => page.data)
+        .map((row) => [`${row.kind}:${row.id}`, row]),
+    ).values(),
   );
-}
-
-function GuidesSection({ guides }: { guides: ISearchGuide[] }) {
-  const { width } = useWindowDimensions();
-
-  if (!guides.length) {
-    return <EmptySectionState />;
-  }
-
-  const viewportWidth = width - 32;
-  const guideCardWidth = viewportWidth / 1.3;
-
-  return (
-    <View className="mt-5 w-full">
-      <FlatList
-        horizontal
-        data={guides}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <GuideCard guide={item} width={guideCardWidth} />
-        )}
-        showsHorizontalScrollIndicator={false}
-        ItemSeparatorComponent={() => <View className="w-4" />}
-        contentContainerStyle={{ paddingRight: 16 }}
-      />
-    </View>
-  );
-}
-
-function RegistriesSection({ results }: { results?: IGlobalSearchResults }) {
-  const registries = results?.registries ?? [];
-
-  if (!registries.length) {
-    return <EmptySectionState />;
-  }
-
-  return (
-    <View className="mt-5 gap-3">
-      {registries.map((registry) => (
-        <Link
-          key={registry.id}
-          href={{
-            pathname: "/(protected)/registry/guest-view",
-            params: { id: registry.id },
-          }}
-          asChild
+  const openResult = (item: GlobalSearchResult) => {
+    saveRecent(search);
+    if (item.kind === "people")
+      router.push({
+        pathname:
+          item.relationship === "FRIEND" ? "/friends/[id]" : "/people/[id]",
+        params: { id: item.id },
+      });
+    else if (item.kind === "products")
+      router.push({ pathname: "/products/[id]", params: { id: item.id } });
+    else
+      router.push({
+        pathname: "/stores/[id]",
+        params: {
+          id: item.id,
+          storeName: getEnArName(item.nameEn, item.nameAr),
+        },
+      });
+  };
+  const renderResult = (item: GlobalSearchResult, index: number) => {
+    if (item.kind === "people")
+      return (
+        <PersonRow
+          person={item}
+          index={index}
+          subtitle={item.profileCode}
+          onPersonPress={() => openResult(item)}
         >
-          <RegistryListItem
-            registry={{
-              id: registry.id,
-              title: registry.title,
-              logo: registry.logo ?? "",
-              isActive: false,
-              visibility: "Public",
-              _count: { totalItems: 0, totalPurchased: 0 },
-              category: {},
+          <ActionButton
+            title={t(
+              item.relationship === "FRIEND"
+                ? "friends.view"
+                : item.relationship === "SENT"
+                  ? "friends.sent"
+                  : item.relationship === "INCOMING"
+                    ? "friends.acceptShort"
+                    : "search.request",
+            )}
+            secondary={item.relationship !== "NONE"}
+            disabled={actions.isPending}
+            busy={
+              actions.isPending &&
+              (actions.variables?.id === item.id ||
+                actions.variables?.id === item.requestId)
+            }
+            onPress={() => {
+              saveRecent(search);
+              if (item.relationship === "FRIEND")
+                router.push({
+                  pathname: "/friends/[id]",
+                  params: { id: item.id },
+                });
+              else if (item.relationship === "INCOMING" && item.requestId)
+                actions.mutate({ kind: "accept", id: item.requestId });
+              else if (item.requestId)
+                router.push({
+                  pathname: "/friends/requests/[id]",
+                  params: { id: item.requestId },
+                });
+              else actions.mutate({ kind: "send", id: item.id });
             }}
           />
-        </Link>
-      ))}
-    </View>
-  );
-}
-
-function EmptySectionState() {
-  const { t } = useTranslation();
-
-  return (
-    <Typography.Text size="base" weight="light" className="pt-4">
-      {t("common.noResultsFound")}
-    </Typography.Text>
-  );
-}
-
-function SearchLoadingState() {
-  return <View className="h-24" />;
-}
-
-function EmptySearch() {
-  const { t } = useTranslation();
-
-  return (
-    <View className="flex-1 items-center justify-center p-10">
-      <Typography.Text
-        type="secondary"
-        size="base"
-        weight="light"
-        className="text-center"
+        </PersonRow>
+      );
+    const image =
+      item.kind === "products" ? item.images[0]?.path : item.storeLogo;
+    return (
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => openResult(item)}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 14,
+          marginHorizontal: 20,
+          paddingVertical: 12,
+        }}
       >
-        {t("common.emptySearchDescription")}
-      </Typography.Text>
-    </View>
+        <View
+          style={{
+            width: 58,
+            height: 58,
+            backgroundColor: "#F7F7F7",
+            borderRadius: 10,
+            overflow: "hidden",
+          }}
+        >
+          {image && (
+            <Image
+              source={getImageUrl(image)}
+              style={{ width: 58, height: 58 }}
+              contentFit="contain"
+            />
+          )}
+        </View>
+        <View style={{ flex: 1, gap: 4 }}>
+          <Typography.Text weight="medium">
+            {getEnArName(item.nameEn, item.nameAr)}
+          </Typography.Text>
+          {item.kind === "products" && (
+            <Typography.Text size="xs" style={{ color: palette.muted }}>
+              {formatPrice(item.price, item.currencyCode)}
+            </Typography.Text>
+          )}
+        </View>
+      </Pressable>
+    );
+  };
+  return (
+    <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
+      <FriendSearch
+        inputRef={inputRef}
+        onSubmit={() => saveRecent(query)}
+        value={query}
+        onChange={setQuery}
+        placeholder={t("common.globalSearch")}
+      />
+      <View style={styles.tabs}>
+        {types.map((tab) => (
+          <Pressable
+            key={tab}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: type === tab }}
+            onPress={() => setType(tab)}
+            style={[styles.tab, type === tab && styles.activeTab]}
+          >
+            <Typography.Text
+              size="sm"
+              weight="medium"
+              style={{ color: type === tab ? palette.ink : palette.muted }}
+            >
+              {t(`search.${tab}`)}
+            </Typography.Text>
+          </Pressable>
+        ))}
+      </View>
+      {query.trim() ? (
+        <PagedList
+          bottomPadding={hasCart ? 100 : 32}
+          data={ready ? data : []}
+          keyExtractor={(item) => `${item.kind}:${item.id}`}
+          renderItem={({ item, index }) => renderResult(item, index)}
+          loading={ready && result.isPending}
+          loadingContent={
+            <ResultRowsSkeleton
+              kind={type === "all" ? "products" : type}
+              showAction={type === "people"}
+            />
+          }
+          error={ready && result.isError}
+          refreshing={result.isRefetching}
+          more={!!result.hasNextPage}
+          loadingMore={result.isFetchingNextPage}
+          moreError={result.isFetchNextPageError}
+          refresh={() => (ready ? result.refetch() : Promise.resolve())}
+          loadMore={result.fetchNextPage}
+          empty={
+            ready ? <EmptyState title={t("common.noResultsFound")} /> : null
+          }
+        />
+      ) : (
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: hasCart ? 100 : 30 }}
+        >
+          {!!recent.length && (
+            <View style={{ margin: 20 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 12,
+                }}
+              >
+                <Typography.Text weight="medium">
+                  {t("search.recent")}
+                </Typography.Text>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => {
+                    setRecent([]);
+                    setStorageItem(historyKey, null);
+                  }}
+                >
+                  <Typography.Text size="xs" style={{ color: palette.muted }}>
+                    {t("search.clear")}
+                  </Typography.Text>
+                </Pressable>
+              </View>
+              {recent.map((term) => (
+                <View
+                  key={term}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 13,
+                    paddingVertical: 12,
+                  }}
+                >
+                  <Ionicons
+                    name="time-outline"
+                    size={19}
+                    color={palette.muted}
+                  />
+                  <Pressable
+                    accessibilityRole="button"
+                    style={{ flex: 1 }}
+                    onPress={() => setQuery(term)}
+                  >
+                    <Typography.Text>{term}</Typography.Text>
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t("search.removeRecent")}
+                    onPress={() => {
+                      const next = recent.filter((item) => item !== term);
+                      setRecent(next);
+                      setStorageItem(historyKey, JSON.stringify(next));
+                    }}
+                  >
+                    <Ionicons name="close" size={18} color={palette.muted} />
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+          )}
+          {!!categories.data?.data?.length && (
+            <View style={{ marginHorizontal: 20, marginTop: 22 }}>
+              <Typography.Text weight="medium" style={{ marginBottom: 16 }}>
+                {t("search.categories")}
+              </Typography.Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 16 }}>
+                {categories.data.data.slice(0, 8).map((category) => (
+                  <Pressable
+                    key={category.id}
+                    accessibilityRole="button"
+                    style={{ width: "21%", alignItems: "center", gap: 7 }}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/category/[id]",
+                        params: { id: category.id },
+                      })
+                    }
+                  >
+                    <View
+                      style={{
+                        width: 64,
+                        height: 64,
+                        backgroundColor: "#F7F7F7",
+                        borderRadius: 12,
+                      }}
+                    >
+                      {category.logo && (
+                        <Image
+                          source={getImageUrl(category.logo)}
+                          style={{ width: 64, height: 64 }}
+                          contentFit="contain"
+                        />
+                      )}
+                    </View>
+                    <Typography.Text size="xs" numberOfLines={1}>
+                      {getEnArName(category.nameEn, category.nameAr)}
+                    </Typography.Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          )}
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              setType("people");
+              setQuery("SS-");
+              inputRef.current?.focus();
+            }}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 12,
+              margin: 20,
+              paddingVertical: 14,
+            }}
+          >
+            <Ionicons name="scan-outline" size={22} color={palette.ink} />
+            <Typography.Text weight="medium">
+              {t("search.byCode")}
+            </Typography.Text>
+          </Pressable>
+        </ScrollView>
+      )}
+    </SafeAreaView>
   );
 }
-
-export default SearchScreen;

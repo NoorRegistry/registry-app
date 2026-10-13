@@ -39,7 +39,9 @@ export interface IText {
 export type CustomTextProps = IText & TextProps;
 
 const getFontFamily = (weight: IText["weight"], language: string) => {
-  return language === "en" ? `Poppins${weight}` : `Tajawal${weight}`;
+  return language === "en"
+    ? `Poppins${weight === "extralight" ? "light" : weight}`
+    : `Tajawal${weight}`;
 };
 
 const hasTextAlignClass = (className?: string) =>

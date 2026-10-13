@@ -1,0 +1,42 @@
+appId: com.shiftgiftme.mobile.dev
+---
+- openLink: shiftgiftme:///
+- assertVisible: "Guides.*"
+- assertVisible: "Profile.*"
+- assertNotVisible: Me
+- tapOn:
+    text: "Profile.*"
+    waitToSettleTimeoutMs: 1000
+- assertVisible: Register as a partner
+- assertNotVisible: English
+- assertVisible: Orders
+- assertVisible: Addresses
+- assertVisible: Friends
+- takeScreenshot: profile-top
+- swipe:
+    start: 50%,75%
+    end: 50%,25%
+    duration: 700
+- takeScreenshot: profile-scrolled
+- tapOn:
+    id: profile-row-settings
+    waitToSettleTimeoutMs: 1000
+- assertVisible: Language
+- assertVisible: English
+- assertVisible: Notification settings
+- takeScreenshot: profile-settings
+- tapOn: Notification settings
+- assertVisible: Activity notifications
+- openLink: shiftgiftme:///profile
+- tapOn:
+    id: profile-row-help
+    waitToSettleTimeoutMs: 1000
+- assertVisible: Coming soon
+- openLink: shiftgiftme:///profile
+- scrollUntilVisible:
+    element:
+      text: Register as a partner
+    direction: DOWN
+- tapOn: Register as a partner
+- assertVisible: Coming soon
+- openLink: shiftgiftme:///profile

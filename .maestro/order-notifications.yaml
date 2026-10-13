@@ -1,0 +1,30 @@
+appId: com.shiftgiftme.mobile.dev
+---
+- openLink: shiftgiftme:///notifications
+- assertVisible: Your order has been delivered
+- assertVisible: Your order has been cancelled
+- tapOn:
+    text: Your order has been delivered
+    waitToSettleTimeoutMs: 1000
+- assertVisible: ${DELIVERED_REFERENCE}
+- assertVisible: Delivered
+- assertVisible: Cash collected
+- openLink: shiftgiftme:///notifications
+- tapOn:
+    text: Your order is on its way
+    waitToSettleTimeoutMs: 1000
+- assertVisible: ${DELIVERED_REFERENCE}
+- openLink: shiftgiftme:///notifications
+- tapOn:
+    text: Your order has been cancelled
+    waitToSettleTimeoutMs: 1000
+- assertVisible: ${CANCELLED_REFERENCE}
+- assertVisible: Cancelled
+- openLink: shiftgiftme:///notifications
+- tapOn:
+    text: Your order has been placed
+    index: 0
+    waitToSettleTimeoutMs: 1000
+- assertVisible: ${CANCELLED_REFERENCE}
+- openLink: shiftgiftme:///notifications
+- takeScreenshot: artifacts/android-order-notifications

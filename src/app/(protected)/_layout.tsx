@@ -31,6 +31,19 @@ const AuthLayout = () => {
       }}
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="friends" options={{ headerShown: false }} />
+      <Stack.Screen name="cart" options={{ headerShown: false }} />
+      <Stack.Screen name="notifications" options={{ headerShown: false }} />
+      <Stack.Screen name="addresses" options={{ headerShown: false }} />
+      <Stack.Screen name="checkout" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="order-confirmation"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen name="orders" options={{ headerShown: false }} />
+      <Stack.Screen name="settings" options={{ headerShown: false }} />
+      <Stack.Screen name="help" options={{ headerShown: false }} />
+      <Stack.Screen name="partner" options={{ headerShown: false }} />
       <Stack.Screen
         name="registry/item/[id]"
         options={{ headerShown: false, presentation: "modal" }}

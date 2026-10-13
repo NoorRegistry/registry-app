@@ -10,6 +10,7 @@ import { PlusCircleIcon } from "@/components/icons/pluscircle";
 import { Colors } from "@/constants/Colors";
 import {
   fetchRegistryItemById,
+  deleteRegistryItem,
   postRegistryItemPurchase,
   updateRegistryItem,
 } from "@/services/registries.service";
@@ -32,10 +33,11 @@ import cn from "clsx";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   I18nManager,
+  Alert,
   Platform,
   ScrollView,
   TextInput,
@@ -61,12 +63,12 @@ function RegistryItemDetails() {
     placeholderData: keepPreviousData,
   });
 
-  useEffect(() => {
-    if (registryItem) {
-      setItemNote(registryItem.notes);
-      setItemQty(registryItem.qty);
-    }
-  }, [registryItem]);
+  const [loadedItem, setLoadedItem] = useState(registryItem);
+  if (registryItem !== loadedItem) {
+    setLoadedItem(registryItem);
+    setItemNote(registryItem?.notes);
+    setItemQty(registryItem?.qty);
+  }
 
   const updateRegistryItemMutation = useMutation({
     mutationFn: (payload: IUpdateRegistryItemPayload) =>
@@ -142,9 +144,40 @@ function RegistryItemDetails() {
     setItemQty(qty);
   };
 
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteRegistryItem(id),
+    onSuccess: () => {
+      queryClient.removeQueries({
+        queryKey: ["registries", "items", id],
+        exact: true,
+      });
+      queryClient.invalidateQueries({ queryKey: ["registryById"] });
+      queryClient.invalidateQueries({ queryKey: ["registryGuestView"] });
+      queryClient.invalidateQueries({ queryKey: ["registries"] });
+      router.back();
+    },
+    onError: () => Toast.show({ type: "error", text1: t("common.error") }),
+  });
+
+  const confirmDelete = () => {
+    if (deleteMutation.isPending) return;
+    Alert.alert(
+      t("registry.removeItem"),
+      t("registry.removeItemConfirmation"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("registry.removeItem"),
+          style: "destructive",
+          onPress: () => deleteMutation.mutate(),
+        },
+      ],
+    );
+  };
+
   const originalNote = registryItem?.notes ?? "";
   const originalQty = registryItem?.qty ?? 1;
-  const currentNote = itemNote ?? "";
+  const currentNote = itemNote ?? originalNote;
   const currentQty = qty ?? originalQty;
   const hasChanges = currentNote !== originalNote || currentQty !== originalQty;
   const saveDisabled =
@@ -160,6 +193,28 @@ function RegistryItemDetails() {
   };
 
   if (isFetchingRegistryItem) return <LoadingScreen />;
+  if (!registryItem)
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 16,
+        }}
+      >
+        <Typography.Text>{t("notifications.unavailable")}</Typography.Text>
+        <TouchableOpacity
+          onPress={() =>
+            router.canGoBack()
+              ? router.back()
+              : router.replace("/notifications")
+          }
+        >
+          <Typography.Text>{t("common.back")}</Typography.Text>
+        </TouchableOpacity>
+      </View>
+    );
 
   return (
     <ScrollView>
@@ -258,7 +313,7 @@ function RegistryItemDetails() {
               <TextInput
                 placeholder={t("registry.noteForRegistryItemPlaceholder")}
                 onChangeText={(text) => setItemNote(text)}
-                value={itemNote}
+                value={itemNote ?? registryItem?.notes ?? ""}
                 className="min-h-20 rounded bg-neutral-100 p-4 font-Poppinsregular text-black"
                 textAlign={I18nManager.isRTL ? "right" : "left"}
                 placeholderTextColor={
@@ -275,7 +330,15 @@ function RegistryItemDetails() {
               <Typography.Text weight="medium">
                 {t("registry.quantityRequested")}
               </Typography.Text>
-              <QtyButton qty={qty ?? 1} updateQty={updateQty} />
+              <QtyButton
+                qty={currentQty}
+                updateQty={updateQty}
+                onDelete={confirmDelete}
+                min={Math.max(
+                  1,
+                  (registryItem?.qty ?? 0) - (registryItem?.qtyLeft ?? 0),
+                )}
+              />
             </View>
           </View>
 

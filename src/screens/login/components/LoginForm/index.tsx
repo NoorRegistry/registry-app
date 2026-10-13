@@ -19,12 +19,18 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message";
 
-const LoginForm = () => {
+type LoginFormProps = {
+  mode?: "login" | "signup";
+};
+
+const LoginForm = ({ mode = "login" }: LoginFormProps) => {
   const { t } = useTranslation();
   const colorScheme = useColorScheme();
   const { control, handleSubmit } = useForm<ILoginPayload>();
   const emailRef = useRef<TextInput | null>(null);
   const [loginError, setLoginError] = useState("");
+  const isSignup = mode === "signup";
+  const copyKey = isSignup ? "signup" : "login";
 
   const sendOtpMutation = useMutation({
     mutationFn: (data: ILoginPayload) => sendOtp(data),
@@ -35,16 +41,16 @@ const LoginForm = () => {
       // Navigate to OTP verification screen with email
       router.push({
         pathname: "/verify-otp" as any,
-        params: { email: variables.email },
+        params: { email: variables.email, authFlow: mode },
       });
     },
     onError: (error) => {
       console.log("Send OTP error", JSON.stringify(error));
-      const message = getApiErrorMessage(error, t("login.loginFailed"));
+      const message = getApiErrorMessage(error, t(`${copyKey}.authFailed`));
       setLoginError(message);
       Toast.show({
         type: "error",
-        text1: t("login.loginFailed"),
+        text1: t(`${copyKey}.authFailed`),
         text2: message,
       });
     },
@@ -53,7 +59,7 @@ const LoginForm = () => {
   return (
     <View className="flex w-full gap-4">
       <Typography.Text size="xl" weight="bold" className="my-0">
-        {t("login.signinMsg")}
+        {t(`${copyKey}.headline`)}
       </Typography.Text>
       <Form.Item
         name="email"
@@ -102,7 +108,7 @@ const LoginForm = () => {
         loading={sendOtpMutation.isPending}
         type="primary"
         size="large"
-        title={t("common.login")}
+        title={t(`${copyKey}.submit`)}
         rounded={false}
         onPress={() => {
           Keyboard.dismiss();

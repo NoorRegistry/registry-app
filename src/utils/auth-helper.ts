@@ -1,4 +1,5 @@
 import { getApiBaseUrl } from "@/api/base-url";
+import { API_REQUEST_TIMEOUT } from "@/api/config";
 import constants from "@/constants";
 import endpoints from "@/constants/endpoints";
 import { IAccessToken } from "@/types";
@@ -6,39 +7,60 @@ import axios from "axios";
 import { isTokenExpired } from "./helper";
 import { getStorageItem, setStorageItem } from "./storage";
 
-export const handleRefreshToken = async () => {
+let refreshInFlight: Promise<void> | null = null;
+
+const refreshStoredToken = async () => {
+  const token = getStorageItem(constants.ACCESS_TOKEN);
+  if (!token) return;
+
+  let parsedToken: IAccessToken;
   try {
-    const token = getStorageItem(constants.ACCESS_TOKEN);
-    if (token) {
-      const parsedToken = JSON.parse(token) as IAccessToken;
-      if (
-        isTokenExpired(parsedToken.accessToken) &&
-        !isTokenExpired(parsedToken.refreshToken)
-      ) {
-        const response = await axios.post<IAccessToken>(
-          `${getApiBaseUrl()}${endpoints.authentication.refreshToken}`,
-          parsedToken,
-          {
-            headers: {
-              Authorization: "Bearer " + parsedToken.accessToken,
-              Accept: "application/json",
-              "Content-Type": "application/json; charset=utf-8",
-            },
-          },
-        );
-        console.log("token refreshed", response.data);
-        setStorageItem(constants.ACCESS_TOKEN, JSON.stringify(response.data));
-      } else if (isTokenExpired(parsedToken.refreshToken)) {
-        // If refresh token is expired, remove token from storage
-        console.log("refresh token expired- deleting token completely");
-        setStorageItem(constants.ACCESS_TOKEN, null);
-      }
+    parsedToken = JSON.parse(token) as IAccessToken;
+    if (isTokenExpired(parsedToken.refreshToken)) {
+      setStorageItem(constants.ACCESS_TOKEN, null);
+      return;
     }
-  } catch (error) {
+    if (!isTokenExpired(parsedToken.accessToken)) return;
+  } catch {
     setStorageItem(constants.ACCESS_TOKEN, null);
-    console.error("error", error);
-    throw new Error("Problem retrieving refresh token");
+    throw new Error("Invalid stored session");
   }
+
+  try {
+    const response = await axios.post<IAccessToken>(
+      `${getApiBaseUrl()}${endpoints.authentication.refreshToken}`,
+      { refreshToken: parsedToken.refreshToken },
+      {
+        timeout: API_REQUEST_TIMEOUT,
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    if (!response.data.accessToken || !response.data.refreshToken) {
+      throw new Error("Invalid refresh response");
+    }
+    setStorageItem(constants.ACCESS_TOKEN, JSON.stringify(response.data));
+  } catch (error) {
+    // Connectivity and server failures do not invalidate a valid refresh token.
+    if (
+      axios.isAxiosError(error) &&
+      [401, 403].includes(error.response?.status ?? 0)
+    ) {
+      setStorageItem(constants.ACCESS_TOKEN, null);
+    }
+    throw error;
+  }
+};
+
+export const handleRefreshToken = (): Promise<void> => {
+  if (!refreshInFlight) {
+    refreshInFlight = refreshStoredToken().finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  return refreshInFlight;
 };
 
 export const getAuthorizationHeaders = () => {

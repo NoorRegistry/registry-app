@@ -6,18 +6,24 @@ import { getEnArName, getImageUrl } from "@/utils/helper";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { Link, router } from "expo-router";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Animated, Pressable, View, useColorScheme } from "react-native";
+import {
+  useAnimatedValue,
+  Animated,
+  Pressable,
+  View,
+  useColorScheme,
+} from "react-native";
 import SectionTitle from "../SectionTitle";
 
 /// Skeleton Component
 const SkeletonLoader = ({ isVisible }: { isVisible: boolean }) => {
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const shimmerAnim = useAnimatedValue(0);
 
   useEffect(() => {
     const startShimmer = () => {
-      Animated.loop(
+      const animation = Animated.loop(
         Animated.sequence([
           Animated.timing(shimmerAnim, {
             toValue: 1,
@@ -30,10 +36,12 @@ const SkeletonLoader = ({ isVisible }: { isVisible: boolean }) => {
             useNativeDriver: false,
           }),
         ]),
-      ).start();
+      );
+      animation.start();
+      return () => animation.stop();
     };
 
-    startShimmer();
+    return startShimmer();
   }, [shimmerAnim]);
 
   if (!isVisible) {

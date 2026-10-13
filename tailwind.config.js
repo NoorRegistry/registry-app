@@ -37,7 +37,7 @@ module.exports = {
       },
     },
     fontFamily: {
-      Poppinsextralight: ["Poppinsextralight"],
+      Poppinsextralight: ["Poppinslight"],
       Poppinslight: ["Poppinslight"],
       Poppinsregular: ["Poppinsregular"],
       Poppinsmedium: ["Poppinsmedium"],

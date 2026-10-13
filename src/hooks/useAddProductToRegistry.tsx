@@ -16,6 +16,7 @@ import { Image } from "expo-image";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  useAnimatedValue,
   Animated,
   Easing,
   Modal,
@@ -43,7 +44,7 @@ export const useAddProductToRegistry = (product?: AddProductTarget | null) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const switchRegistryRef = useRef<BottomSheetModal>(null);
-  const progressAnim = useRef(new Animated.Value(0)).current;
+  const progressAnim = useAnimatedValue(0);
   const shouldShowConfirmationRef = useRef(true);
   const [addedProductState, setAddedProductState] =
     useState<AddedProductState | null>(null);
@@ -291,7 +292,7 @@ export const useAddProductToRegistry = (product?: AddProductTarget | null) => {
 
 const styles = StyleSheet.create({
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(245, 242, 239, 0.78)",
   },
   progressTrack: {

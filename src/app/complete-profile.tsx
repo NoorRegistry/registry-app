@@ -9,7 +9,10 @@ import {
 } from "@/services/authentication.service";
 import { useGlobalStore } from "@/store";
 import { IAccessToken } from "@/types";
+import { getApiErrorMessage } from "@/utils/api-error";
+import { getDecodedToken } from "@/utils/helper";
 import { setStorageItem } from "@/utils/storage";
+import { useHeaderHeight } from "expo-router/react-navigation";
 import { useMutation } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router, Stack } from "expo-router";
@@ -33,30 +36,44 @@ import Toast from "react-native-toast-message";
 export default function CompleteProfileScreen() {
   const { t } = useTranslation();
   const colorScheme = useColorScheme();
+  const headerHeight = useHeaderHeight();
   const signIn = useGlobalStore.use.signIn();
+  const user = getDecodedToken()?.user;
   const { control, handleSubmit } = useForm<IUserInfoUpdate>({
     defaultValues: {
-      gender: "Male",
+      firstName: user?.firstName ?? "",
+      lastName: user?.lastName ?? "",
+      gender: user?.gender ?? "Male",
+      countryCode: user?.countryCode ?? "+965",
+      mobileNumber: user?.mobileNumber ?? "",
     },
   });
   const firstNameRef = useRef<TextInput | null>(null);
   const lastNameRef = useRef<TextInput | null>(null);
+  const mobileNumberRef = useRef<TextInput | null>(null);
 
   const mutation = useMutation({
-    mutationFn: (payload: IUserInfoUpdate) => updateUserInfo(payload),
+    mutationFn: (payload: IUserInfoUpdate) =>
+      updateUserInfo({
+        ...payload,
+        mobileNumber: payload.mobileNumber?.replace(/[\s()-]/g, ""),
+      }),
     onSuccess: (data: IAccessToken) => {
       setStorageItem(constants.ACCESS_TOKEN, JSON.stringify(data));
       Toast.show({ type: "success", text1: t("common.saved") });
       signIn();
       router.replace("/(protected)/(tabs)");
     },
-    onError: () => {
-      Toast.show({ type: "error", text1: t("common.error") });
+    onError: (error) => {
+      Toast.show({
+        type: "error",
+        text1: getApiErrorMessage(error, t("common.error")),
+      });
     },
   });
 
   return (
-    <SafeAreaView className="flex-1 bg-white px-6">
+    <SafeAreaView edges={["bottom"]} className="flex-1 bg-white px-6">
       <Stack.Screen
         options={{
           title: "",
@@ -67,10 +84,13 @@ export default function CompleteProfileScreen() {
       />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={headerHeight}
         style={{ flex: 1 }}
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 80 }}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingBottom: 24 }}
+          keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -80,7 +100,7 @@ export default function CompleteProfileScreen() {
           <Typography.Text size="sm" weight="light" className="mb-6">
             {t("login.helpsPersonliseExperience")}
           </Typography.Text>
-          <View className="gap-4 flex-1">
+          <View className="gap-2">
             <Form.Item
               name="firstName"
               label={t("common.firstName")}
@@ -93,7 +113,7 @@ export default function CompleteProfileScreen() {
                   onChangeText={onChange}
                   value={value}
                   placeholder={t("common.firstName")}
-                  className="h-14 rounded bg-neutral-100 px-4 font-Poppinsregular text-black"
+                  className="h-12 rounded bg-neutral-100 px-4 font-Poppinsregular text-black"
                   textAlign={I18nManager.isRTL ? "right" : "left"}
                   placeholderTextColor={
                     Colors[colorScheme ?? "light"].placeholderTextColor
@@ -115,19 +135,87 @@ export default function CompleteProfileScreen() {
                   onChangeText={onChange}
                   value={value}
                   placeholder={t("common.lastName")}
-                  className="h-14 rounded bg-neutral-100 px-4 font-Poppinsregular text-black"
+                  className="h-12 rounded bg-neutral-100 px-4 font-Poppinsregular text-black"
                   textAlign={I18nManager.isRTL ? "right" : "left"}
                   placeholderTextColor={
                     Colors[colorScheme ?? "light"].placeholderTextColor
                   }
-                  returnKeyType="done"
-                  onSubmitEditing={() => {
-                    Keyboard.dismiss();
-                    handleSubmit((data) => mutation.mutate(data))();
-                  }}
+                  returnKeyType="next"
+                  onSubmitEditing={() => mobileNumberRef.current?.focus()}
                 />
               )}
             </Form.Item>
+            <View className="flex-row gap-3">
+              <Form.Item
+                name="countryCode"
+                label={t("common.countryCode")}
+                control={control}
+                containerClassName="w-28"
+                rules={{
+                  required: t("common.required"),
+                  pattern: {
+                    value: /^\+[1-9]\d{0,2}$/,
+                    message: t("login.enterValidCountryCode"),
+                  },
+                }}
+              >
+                {({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    accessibilityLabel={t("common.countryCode")}
+                    onChangeText={(text) => onChange(text.replace(/\s/g, ""))}
+                    onBlur={onBlur}
+                    value={value}
+                    placeholder="+965"
+                    keyboardType="phone-pad"
+                    autoComplete="tel-country-code"
+                    maxLength={4}
+                    className="h-12 rounded bg-neutral-100 px-4 font-Poppinsregular text-black"
+                    textAlign="left"
+                    placeholderTextColor={
+                      Colors[colorScheme ?? "light"].placeholderTextColor
+                    }
+                  />
+                )}
+              </Form.Item>
+              <Form.Item
+                name="mobileNumber"
+                label={t("common.mobileNumber")}
+                control={control}
+                containerClassName="flex-1"
+                rules={{
+                  required: t("common.required"),
+                  validate: (value, values) => {
+                    const number = value?.replace(/[\s()-]/g, "") ?? "";
+                    return (
+                      (/^\d{6,15}$/.test(number) &&
+                        `${values.countryCode?.replace("+", "") ?? ""}${number}`
+                          .length <= 15) ||
+                      t("login.enterValidMobileNumber")
+                    );
+                  },
+                }}
+              >
+                {({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    ref={mobileNumberRef}
+                    accessibilityLabel={t("common.mobileNumber")}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    value={value}
+                    placeholder={t("common.mobileNumber")}
+                    keyboardType="phone-pad"
+                    textContentType="telephoneNumber"
+                    autoComplete="tel-national"
+                    maxLength={20}
+                    className="h-12 rounded bg-neutral-100 px-4 font-Poppinsregular text-black"
+                    textAlign="left"
+                    placeholderTextColor={
+                      Colors[colorScheme ?? "light"].placeholderTextColor
+                    }
+                  />
+                )}
+              </Form.Item>
+            </View>
             <Controller
               control={control}
               name="gender"
@@ -167,19 +255,21 @@ export default function CompleteProfileScreen() {
                 </View>
               )}
             />
-            <Button
-              loading={mutation.isPending}
-              type="primary"
-              size="large"
-              title={t("common.save")}
-              rounded={false}
-              onPress={() => {
-                Keyboard.dismiss();
-                handleSubmit((data) => mutation.mutate(data))();
-              }}
-            />
           </View>
         </ScrollView>
+        <View className="border-t border-neutral-100 bg-white py-3">
+          <Button
+            loading={mutation.isPending}
+            type="primary"
+            size="large"
+            title={t("common.save")}
+            rounded={false}
+            onPress={() => {
+              Keyboard.dismiss();
+              handleSubmit((data) => mutation.mutate(data))();
+            }}
+          />
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

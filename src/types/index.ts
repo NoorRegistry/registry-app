@@ -185,7 +185,6 @@ export interface IRegistryItemDetails {
 
 export interface SVGIconProps extends SvgProps {
   size?: number;
-  color?: string;
 }
 
 export interface ICreateRegistryItem {
@@ -241,27 +240,38 @@ export type ISearchStore = IStore;
 
 export type ISearchGuide = IGuide;
 
-export interface IGlobalSearchCounts {
-  registries: number;
-  products: number;
-  stores: number;
-  guides: number;
-}
-
+export type TGlobalSearchResultsType = "all" | "products" | "people" | "stores";
+export type SearchProductResult = {
+  kind: "products";
+  id: string;
+  nameEn: string;
+  nameAr: string;
+  price: number;
+  currencyCode: string;
+  images: { path: string }[];
+  store: { nameEn: string; nameAr: string } | null;
+};
+export type SearchStoreResult = {
+  kind: "stores";
+  id: string;
+  nameEn: string;
+  nameAr: string;
+  storeLogo: string | null;
+};
+export type SearchPersonResult =
+  import("@/services/friends.service").DiscoveryPerson & { kind: "people" };
+export type GlobalSearchResult =
+  | SearchProductResult
+  | SearchStoreResult
+  | SearchPersonResult;
 export interface IGlobalSearchResults {
+  data: GlobalSearchResult[];
   total: number;
-  counts: IGlobalSearchCounts;
-  registries: ISearchRegistry[];
-  products: ISearchProduct[];
-  stores: ISearchStore[];
-  guides: ISearchGuide[];
+  page: number;
+  limit: number;
+  totalPages: number;
+  counts: { products: number; people: number; stores: number };
 }
-
-export type TGlobalSearchResultsType =
-  | "stores"
-  | "products"
-  | "guides"
-  | "registries";
 
 export interface IRegistryCategory {
   id: string;

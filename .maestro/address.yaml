@@ -1,0 +1,98 @@
+appId: com.shiftgiftme.mobile.dev
+---
+- openLink: shiftgiftme:///profile
+- assertVisible: Android QA
+- openLink: shiftgiftme:///addresses/edit
+- runFlow:
+    when:
+      visible:
+        id: address-change-location
+    commands:
+      - tapOn:
+          id: address-change-location
+          waitToSettleTimeoutMs: 1000
+- assertVisible:
+    id: address-location-back
+- swipe:
+    start: 50%,45%
+    end: 65%,45%
+    duration: 600
+- tapOn:
+    id: address-continue
+    waitToSettleTimeoutMs: 1000
+- assertVisible:
+    id: address-change-location
+- tapOn:
+    id: address-field-area
+- eraseText
+- inputText: Salmiya
+- hideKeyboard
+- tapOn:
+    id: address-field-building
+- inputText: QA Android Building
+- hideKeyboard
+- tapOn:
+    id: address-field-apartment
+- inputText: "4"
+- hideKeyboard
+- tapOn:
+    id: address-field-floor
+- inputText: "2"
+- hideKeyboard
+- tapOn:
+    id: address-type-HOUSE
+- assertNotVisible:
+    id: address-field-apartment
+- assertNotVisible:
+    id: address-field-floor
+- tapOn:
+    id: address-type-APARTMENT
+- assertVisible: "4"
+- tapOn:
+    id: address-change-location
+- tapOn:
+    id: address-location-back
+- assertVisible: QA Android Building
+- tapOn:
+    id: address-field-street
+- eraseText
+- inputText: Street 1
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: address-field-block
+    direction: DOWN
+- tapOn:
+    id: address-field-block
+- inputText: "10"
+- hideKeyboard
+- tapOn:
+    id: address-field-avenue
+- inputText: "3"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: address-field-phone
+    direction: DOWN
+- tapOn:
+    id: address-field-phone
+- inputText: "50000001"
+- assertVisible:
+    id: address-save
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: address-field-label
+    direction: DOWN
+- tapOn:
+    id: address-field-label
+- inputText: QA Android Address
+- hideKeyboard
+- takeScreenshot: artifacts/android-address-details
+- tapOn:
+    id: address-save
+    waitToSettleTimeoutMs: 1000
+- openLink: shiftgiftme:///addresses
+- extendedWaitUntil:
+    visible: QA Android Address
+    timeout: 15000

@@ -1,12 +1,13 @@
 import { useGlobalStore } from "@/store";
-import { getUserFirstName, getUserGender } from "@/utils/helper";
-import { BottomTabHeaderProps } from "@react-navigation/bottom-tabs";
-import clsx from "clsx";
-import { Image } from "expo-image";
+import { useNotificationSummary } from "@/hooks/useNotifications";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { getUserFirstName } from "@/utils/helper";
+import { BottomTabHeaderProps } from "expo-router/js-tabs";
+import { clsx } from "clsx";
 import { router } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Typography from "../Typography";
 
@@ -32,18 +33,14 @@ const Header = ({ props }: { props?: BottomTabHeaderProps }) => {
   const { t } = useTranslation();
   const isHeaderScrolled = useGlobalStore.use.isHeaderScrolled();
   const firstName = getUserFirstName();
-  const gender = getUserGender();
   const greetingKey = getGreetingKey();
-  const avatarSource =
-    gender === "Male"
-      ? require("@assets/images/login/male.png")
-      : require("@assets/images/login/female.png");
+  const notifications = useNotificationSummary();
 
   return (
     <SafeAreaView edges={["top"]} className="w-full bg-white">
       <View
         className={clsx(
-          "h-[78px] w-full flex-row items-center justify-between gap-12 border-b px-4",
+          "h-[78px] w-full flex-row items-center justify-between gap-3 border-b px-4",
           isHeaderScrolled ? "border-neutral-200" : "border-transparent",
         )}
       >
@@ -70,15 +67,50 @@ const Header = ({ props }: { props?: BottomTabHeaderProps }) => {
         </View>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={t("common.me")}
-          onPress={() => router.push("/(protected)/profile")}
-          className="h-[54px] w-[54px] items-center justify-center rounded-full bg-primary-200"
+          accessibilityLabel={t("notifications.title")}
+          onPress={() => router.push("/notifications")}
+          style={{
+            width: 42,
+            height: 44,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
         >
-          <Image
-            source={avatarSource}
-            style={{ width: 54, height: 54 }}
-            contentFit="cover"
-          />
+          <Ionicons name="notifications-outline" size={23} color="#202421" />
+          {!!notifications.data?.unreadCount && (
+            <View
+              pointerEvents="none"
+              style={{
+                position: "absolute",
+                right: 3,
+                top: 4,
+                minWidth: 16,
+                height: 16,
+                paddingHorizontal: 3,
+                borderRadius: 8,
+                backgroundColor: "#C78063",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text
+                maxFontSizeMultiplier={1.2}
+                style={{
+                  color: "#fff",
+                  fontSize: 10,
+                  fontWeight: "600",
+                  lineHeight: 16,
+                  textAlign: "center",
+                  textAlignVertical: "center",
+                  includeFontPadding: false,
+                }}
+              >
+                {notifications.data.unreadCount > 99
+                  ? "99+"
+                  : notifications.data.unreadCount}
+              </Text>
+            </View>
+          )}
         </Pressable>
       </View>
     </SafeAreaView>

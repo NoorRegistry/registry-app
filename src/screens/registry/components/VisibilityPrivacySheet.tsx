@@ -76,9 +76,29 @@ function VisibilityPrivacySheet({
     setShowErrors(false);
   }, [registry.visibility, registry.isProtected, registry.code]);
 
-  useEffect(() => {
-    resetState();
-  }, [registry.id, resetState]);
+  const [sourceSettings, setSourceSettings] = useState({
+    id: registry.id,
+    visibility: registry.visibility,
+    isProtected: registry.isProtected,
+    code: registry.code,
+  });
+  if (
+    sourceSettings.id !== registry.id ||
+    sourceSettings.visibility !== registry.visibility ||
+    sourceSettings.isProtected !== registry.isProtected ||
+    sourceSettings.code !== registry.code
+  ) {
+    setSourceSettings({
+      id: registry.id,
+      visibility: registry.visibility,
+      isProtected: registry.isProtected,
+      code: registry.code,
+    });
+    setVisibility(registry.visibility);
+    setIsProtected(registry.isProtected);
+    setPassword(registry.isProtected ? (registry.code ?? "") : "");
+    setShowErrors(false);
+  }
 
   const snapPoints = useMemo(() => ["95%"], []);
 

@@ -1,16 +1,20 @@
+import { BrandColors } from "@/constants/Colors";
 import BackButton from "@/components/BackButton";
-import { Button } from "@/components/Button";
+import LoadingSpinner from "@/components/Loader/customLoader";
 import ProductPopularityStats from "@/components/ProductPopularityStats";
 import RelatedProducts from "@/components/RelatedProducts";
 import Typography from "@/components/Typography";
 import { useAddProductToRegistry } from "@/hooks/useAddProductToRegistry";
+import { useCart, useCartActions } from "@/hooks/useCart";
+import { useCartAddedAnimation } from "@/hooks/useCartAddedAnimation";
 import { fetchProductById } from "@/services/products.service";
 import { formatPrice, getEnArName } from "@/utils/helper";
 import { useQuery } from "@tanstack/react-query";
-import { Link, Stack, useLocalSearchParams } from "expo-router";
+import { Link, router, Stack, useLocalSearchParams } from "expo-router";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { TouchableOpacity, View } from "react-native";
+import { Pressable, TouchableOpacity, View } from "react-native";
 import Animated, {
   interpolate,
   interpolateColor,
@@ -18,16 +22,17 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import ProductImages from "./components/ProductImages";
 
 function ProductScreen() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const insets = useSafeAreaInsets();
+  const cart = useCart();
+  const { iconStyle: cartIconStyle } = useCartAddedAnimation(
+    cart.data?.itemCount,
+  );
+  const cartAction = useCartActions();
   const { data: product, isFetching } = useQuery({
     queryKey: ["products", id],
     queryFn: () => fetchProductById(id),
@@ -106,7 +111,7 @@ function ProductScreen() {
                   <Animated.View style={backButtonStyle}>
                     <BackButton filled />
                   </Animated.View>
-                  <Animated.View style={[titleStyle]}>
+                  <Animated.View style={[titleStyle, { flex: 1 }]}>
                     <Typography.Text
                       weight="medium"
                       size="base"
@@ -119,6 +124,47 @@ function ProductScreen() {
                       )}
                     </Typography.Text>
                   </Animated.View>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t("cart.viewCart")}
+                    onPress={() => router.push("/cart")}
+                    style={{
+                      width: 44,
+                      height: 44,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderRadius: 22,
+                      backgroundColor: "#fff",
+                    }}
+                  >
+                    <Animated.View style={cartIconStyle}>
+                      <Ionicons name="bag-outline" size={22} color="#202421" />
+                    </Animated.View>
+                    {!!cart.data?.itemCount && (
+                      <View
+                        style={{
+                          position: "absolute",
+                          top: 1,
+                          right: 0,
+                          minWidth: 17,
+                          height: 17,
+                          borderRadius: 9,
+                          backgroundColor: BrandColors.primary,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          paddingHorizontal: 3,
+                        }}
+                      >
+                        <Typography.Text
+                          size="xs"
+                          weight="medium"
+                          style={{ color: "#fff", fontSize: 10 }}
+                        >
+                          {cart.data.itemCount > 9 ? "9+" : cart.data.itemCount}
+                        </Typography.Text>
+                      </View>
+                    )}
+                  </Pressable>
                 </View>
               </SafeAreaView>
             </Animated.View>
@@ -203,17 +249,63 @@ function ProductScreen() {
           <RelatedProducts productId={id} />
         </Animated.ScrollView>
         <SafeAreaView
-          style={{ paddingBottom: insets.bottom }}
           edges={["bottom", "left", "right"]}
-          className="px-4 pt-4"
+          className="px-4 pt-3 bg-white"
         >
-          <Button
-            onPress={() => addProductToRegistry()}
-            loading={isAddingProductToRegistry}
-            size="large"
-            type="primary"
-            title={t("registry.addtoShiftGift")}
-          />
+          <View style={{ flexDirection: "row", gap: 10, paddingBottom: 6 }}>
+            <Pressable
+              accessibilityRole="button"
+              disabled={isAddingProductToRegistry || !product}
+              onPress={() => addProductToRegistry()}
+              style={{
+                flex: 1,
+                minHeight: 52,
+                borderRadius: 11,
+                backgroundColor: "#F1F2EE",
+                alignItems: "center",
+                justifyContent: "center",
+                opacity: isAddingProductToRegistry ? 0.6 : 1,
+              }}
+            >
+              {isAddingProductToRegistry ? (
+                <LoadingSpinner size="small" />
+              ) : (
+                <Typography.Text
+                  weight="medium"
+                  style={{ textAlign: "center" }}
+                >
+                  {t("cart.addToRegistry")}
+                </Typography.Text>
+              )}
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              disabled={cartAction.isPending || !product || product.qty <= 0}
+              onPress={() =>
+                cartAction.mutate({ kind: "add", productId: product!.id })
+              }
+              style={{
+                flex: 1,
+                minHeight: 52,
+                borderRadius: 11,
+                backgroundColor: BrandColors.primary,
+                alignItems: "center",
+                justifyContent: "center",
+                opacity: cartAction.isPending || !product?.qty ? 0.55 : 1,
+              }}
+            >
+              {cartAction.isPending ? (
+                <LoadingSpinner size="small" color="white" />
+              ) : (
+                <Typography.Text
+                  weight="medium"
+                  style={{ color: "#fff", textAlign: "center" }}
+                >
+                  {t(product?.qty === 0 ? "cart.outOfStock" : "cart.addToCart")}
+                </Typography.Text>
+              )}
+            </Pressable>
+          </View>
         </SafeAreaView>
       </View>
       {addedToRegistryOverlay}
