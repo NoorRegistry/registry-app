@@ -129,6 +129,12 @@ See [Expo setup](https://docs.expo.dev/versions/latest/sdk/map-view/) and
 For physical development builds, connect Metro over LAN. A local API URL uses
 Metro's host for real phones, and Android's `10.0.2.2` loopback on an emulator.
 Release builds must set `EXPO_PUBLIC_API_URL` to the deployed HTTPS API.
+The `testing` profile is a standalone internal build connected to
+`https://api.shopsimplist.com` and the test database. It uses the development
+bundle/package, Firebase project and Maps keys from EAS Development, and needs
+neither Metro nor USB. Build with `eas build --profile testing --platform all`.
+Android produces an APK; iOS uses ad hoc installation for registered devices.
+The Android launcher and notification icons use the Simplist brand mark.
 The development profile uses the local API on port 3050 and resolves the Mac
 address from Metro when a physical phone connects on the same network.
 Run `eas build --platform ios --profile development` for the registered iPhone,

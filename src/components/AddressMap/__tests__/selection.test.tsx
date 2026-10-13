@@ -3,6 +3,13 @@ import { act, create, ReactTestRenderer } from "react-test-renderer";
 import AddressMap from "../index.native";
 import Constants from "expo-constants";
 
+jest.mock("expo-router", () => ({
+  useFocusEffect: (effect: () => void) => {
+    const React = jest.requireActual("react");
+    React.useEffect(effect, [effect]);
+  },
+}));
+
 jest.mock("expo-constants", () => ({
   __esModule: true,
   default: { expoConfig: { extra: { iosGoogleMapsEnabled: false } } },

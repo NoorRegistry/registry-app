@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { Platform, View } from "react-native";
 import Constants from "expo-constants";
+import { useFocusEffect } from "expo-router";
 import CenterPin from "./CenterPin";
 import { AddressMapProps } from "./types";
 const kuwait = {
@@ -18,6 +19,13 @@ export default function AddressMap({
   onMoving,
 }: AddressMapProps) {
   const map = useRef<MapView>(null);
+  const [focused, setFocused] = useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      setFocused(true);
+      return () => setFocused(false);
+    }, []),
+  );
   const [initialRegion] = useState(() =>
     pin ? { ...pin, latitudeDelta: 0.006, longitudeDelta: 0.006 } : kuwait,
   );
@@ -39,37 +47,41 @@ export default function AddressMap({
   }, [pin]);
   return (
     <View style={{ height, width: "100%" }}>
-      <MapView
-        ref={map}
-        provider={
-          Platform.OS === "ios" &&
-          Constants.expoConfig?.extra?.iosGoogleMapsEnabled
-            ? PROVIDER_GOOGLE
-            : undefined
-        }
-        style={{ height, width: "100%" }}
-        pointerEvents={interactive ? "auto" : "none"}
-        scrollEnabled={interactive}
-        zoomEnabled={interactive}
-        rotateEnabled={false}
-        pitchEnabled={false}
-        initialRegion={initialRegion}
-        onRegionChange={() => interactive && onMoving?.(true)}
-        onRegionChangeComplete={(region) => {
-          center.current = {
-            latitude: region.latitude,
-            longitude: region.longitude,
-          };
-          if (interactive) {
-            onSelect(center.current);
-            onMoving?.(false);
+      {focused && (
+        <MapView
+          key={interactive ? "picker" : "preview"}
+          ref={map}
+          provider={
+            Platform.OS === "ios" &&
+            Constants.expoConfig?.extra?.iosGoogleMapsEnabled
+              ? PROVIDER_GOOGLE
+              : undefined
           }
-        }}
-        showsCompass={false}
-        showsMyLocationButton={false}
-      >
-        {!interactive && pin && <Marker coordinate={pin} pinColor="#C78063" />}
-      </MapView>
+          style={{ height, width: "100%" }}
+          scrollEnabled={interactive}
+          zoomEnabled={interactive}
+          rotateEnabled={false}
+          pitchEnabled={false}
+          initialRegion={initialRegion}
+          onRegionChange={() => interactive && onMoving?.(true)}
+          onRegionChangeComplete={(region) => {
+            center.current = {
+              latitude: region.latitude,
+              longitude: region.longitude,
+            };
+            if (interactive) {
+              onSelect(center.current);
+              onMoving?.(false);
+            }
+          }}
+          showsCompass={false}
+          showsMyLocationButton={false}
+        >
+          {!interactive && pin && (
+            <Marker coordinate={pin} pinColor="#C78063" />
+          )}
+        </MapView>
+      )}
       {interactive && <CenterPin />}
     </View>
   );
