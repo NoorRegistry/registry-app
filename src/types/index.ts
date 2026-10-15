@@ -245,16 +245,7 @@ export type ISearchStore = IStore;
 export type ISearchGuide = IGuide;
 
 export type TGlobalSearchResultsType = "all" | "products" | "people" | "stores";
-export type SearchProductResult = {
-  kind: "products";
-  id: string;
-  nameEn: string;
-  nameAr: string;
-  price: number;
-  currencyCode: string;
-  images: { path: string }[];
-  store: { nameEn: string; nameAr: string } | null;
-};
+export type SearchProductResult = IProduct & { kind: "products" };
 export type SearchStoreResult = {
   kind: "stores";
   id: string;

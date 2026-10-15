@@ -1,3 +1,4 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import Typography from "@/components/Typography";
 import { BrandColors } from "@/constants/Colors";
 import { useFriendsSummary } from "@/screens/friends/hooks";
@@ -71,6 +72,25 @@ export default function ProfileScreen() {
         >
           {t("profile.help")}
         </Typography.Text>
+      </Pressable>
+      <Pressable
+        testID="profile-my-qr"
+        accessibilityRole="button"
+        accessibilityLabel={t("qr.myCode")}
+        onPress={() => router.push("/friends/qr")}
+        hitSlop={6}
+        style={{
+          width: 32,
+          height: 32,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Ionicons
+          name="qr-code-outline"
+          size={19}
+          color={light ? "white" : BrandColors.deep}
+        />
       </Pressable>
       <Pressable
         accessibilityRole="button"

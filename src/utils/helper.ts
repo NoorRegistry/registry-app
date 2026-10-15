@@ -109,10 +109,10 @@ export const getInitials = (
 
 export const getUserFirstLastName = () => {
   const decodedToken = getDecodedToken();
-  if (decodedToken?.user?.firstName && decodedToken?.user?.lastName) {
-    return `${decodedToken.user.firstName} ${decodedToken.user.lastName}`;
-  }
-  return "";
+  return [decodedToken?.user?.firstName, decodedToken?.user?.lastName]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
 };
 
 /**

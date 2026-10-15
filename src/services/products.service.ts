@@ -16,7 +16,7 @@ export const fetchProductCategories = async () => {
 
 export const fetchProductCategoryById = async (categoryId: string) => {
   return await http.get<IProductCategoryDetails>(
-    `${endpoints.products.index}/categories/${categoryId}?allowchildren=true`,
+    `${endpoints.products.index}/categories/${categoryId}?allowChildren=true`,
   );
 };
 
@@ -41,3 +41,21 @@ export const fetchRelatedProductById = async (productId: string) => {
 export const fetchMostAddedProducts = async () => {
   return await http.get<IProduct[]>(endpoints.products.mostAdded);
 };
+
+export type CatalogSort = "featured" | "priceAsc" | "priceDesc" | "name";
+export type CatalogFilter = {
+  categoryId?: string;
+  storeId?: string;
+  search?: string;
+  sort?: CatalogSort;
+  language?: string;
+};
+export const fetchCatalogProducts = (
+  filters: CatalogFilter,
+  page = 1,
+  signal?: AbortSignal,
+) =>
+  http.get<IPaginatedResponse<IProduct>>(endpoints.products.index, {
+    params: { ...filters, page, limit: 20 },
+    signal,
+  });

@@ -202,3 +202,24 @@ it("opens order updates at the authenticated order detail route", async () => {
   expect(mockPending).toBeNull();
   await act(async () => tree.unmount());
 });
+
+it("opens support replies at the authenticated conversation route", async () => {
+  mockAuthenticated = true;
+  mockSegments = ["(protected)"];
+  mockPending = {
+    notificationId: mockId,
+    recipientId: mockId,
+    type: "SUPPORT_REPLY",
+    supportRequestId: mockId,
+  };
+  let tree: any;
+  await act(async () => {
+    tree = create(<NotificationCenter />);
+  });
+  expect(router.push).toHaveBeenCalledWith({
+    pathname: "/help/[id]",
+    params: { id: mockId },
+  });
+  expect(mockPending).toBeNull();
+  await act(async () => tree.unmount());
+});

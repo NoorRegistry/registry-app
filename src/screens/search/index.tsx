@@ -1,15 +1,14 @@
+import { CatalogSkeleton } from "@/components/Skeleton/layouts";
+import ProductCard from "@/components/ProductCard";
+import { searchResultRows, SearchResultRow } from "./results";
+import { BrowseHeader, BrowseState } from "@/screens/shop/components/Browse";
 import ResultRowsSkeleton from "@/components/ResultRowsSkeleton";
 import { useCart } from "@/hooks/useCart";
 import Typography from "@/components/Typography";
 import { fetchSearchResults } from "@/services/search.service";
 import { fetchProductCategories } from "@/services/products.service";
 import { GlobalSearchResult, TGlobalSearchResultsType } from "@/types";
-import {
-  getDecodedToken,
-  getEnArName,
-  getImageUrl,
-  formatPrice,
-} from "@/utils/helper";
+import { getDecodedToken, getEnArName, getImageUrl } from "@/utils/helper";
 import { getStorageItem, setStorageItem } from "@/utils/storage";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -17,8 +16,17 @@ import { Image } from "expo-image";
 import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView, TextInput, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  Pressable,
+  ScrollView,
+  TextInput,
+  View,
+  useWindowDimensions,
+} from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { useDebounce } from "use-debounce";
 import {
   ActionButton,
@@ -33,25 +41,35 @@ import { nextFriendsPage, useFriendsKey } from "../friends/hooks";
 import { useFriendActions } from "../friends/actions";
 
 const types = ["all", "products", "people", "stores"] as const;
-export default function SearchScreen() {
+export default function SearchScreen({
+  standalone = false,
+}: { standalone?: boolean } = {}) {
   const params = useLocalSearchParams<{ type?: string; q?: string }>();
   const initialType = types.find((type) => type === params.type) ?? "all";
   return (
     <SearchContent
       key={`${initialType}:${params.q ?? ""}`}
+      standalone={standalone}
       initialType={initialType}
       initialQuery={params.q ?? ""}
     />
   );
 }
 function SearchContent({
+  standalone,
   initialType,
   initialQuery,
 }: {
+  standalone: boolean;
   initialType: TGlobalSearchResultsType;
   initialQuery: string;
 }) {
   const { t } = useTranslation();
+  const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const columns = width >= 700 ? 3 : 2;
+  const cardWidth =
+    (width - insets.left - insets.right - 32 - (columns - 1) * 12) / columns;
   const hasCart = Boolean(useCart().data?.itemCount);
   const userId = getDecodedToken()?.user?.id ?? "";
   const historyKey = `search_history_${userId}`;
@@ -86,7 +104,8 @@ function SearchContent({
   useFocusEffect(
     useCallback(() => {
       if (ready) void refetch();
-    }, [ready, refetch]),
+      else if (standalone) inputRef.current?.focus();
+    }, [ready, refetch, standalone]),
   );
   const categories = useQuery({
     queryKey: ["productCategories", "search"],
@@ -114,7 +133,9 @@ function SearchContent({
         .map((row) => [`${row.kind}:${row.id}`, row]),
     ).values(),
   );
-  const openResult = (item: GlobalSearchResult) => {
+  const openResult = (
+    item: Exclude<GlobalSearchResult, { kind: "products" }>,
+  ) => {
     saveRecent(search);
     if (item.kind === "people")
       router.push({
@@ -122,8 +143,6 @@ function SearchContent({
           item.relationship === "FRIEND" ? "/friends/[id]" : "/people/[id]",
         params: { id: item.id },
       });
-    else if (item.kind === "products")
-      router.push({ pathname: "/products/[id]", params: { id: item.id } });
     else
       router.push({
         pathname: "/stores/[id]",
@@ -133,7 +152,28 @@ function SearchContent({
         },
       });
   };
-  const renderResult = (item: GlobalSearchResult, index: number) => {
+  const renderResult = (item: SearchResultRow, index: number) => {
+    if (item.kind === "product-row")
+      return (
+        <View
+          style={{
+            flexDirection: "row",
+            gap: 12,
+            paddingHorizontal: 16,
+            paddingTop: 12,
+            paddingBottom: 4,
+          }}
+        >
+          {item.products.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              width={cardWidth}
+              onPress={() => saveRecent(search)}
+            />
+          ))}
+        </View>
+      );
     if (item.kind === "people")
       return (
         <PersonRow
@@ -178,8 +218,7 @@ function SearchContent({
           />
         </PersonRow>
       );
-    const image =
-      item.kind === "products" ? item.images[0]?.path : item.storeLogo;
+    const image = item.storeLogo;
     return (
       <Pressable
         accessibilityRole="button"
@@ -213,17 +252,16 @@ function SearchContent({
           <Typography.Text weight="medium">
             {getEnArName(item.nameEn, item.nameAr)}
           </Typography.Text>
-          {item.kind === "products" && (
-            <Typography.Text size="xs" style={{ color: palette.muted }}>
-              {formatPrice(item.price, item.currencyCode)}
-            </Typography.Text>
-          )}
         </View>
       </Pressable>
     );
   };
   return (
-    <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
+    <SafeAreaView
+      style={styles.screen}
+      edges={["top", "bottom", "left", "right"]}
+    >
+      {standalone && <BrowseHeader title={t("common.search")} back />}
       <FriendSearch
         inputRef={inputRef}
         onSubmit={() => saveRecent(query)}
@@ -253,17 +291,18 @@ function SearchContent({
       {query.trim() ? (
         <PagedList
           bottomPadding={hasCart ? 100 : 32}
-          data={ready ? data : []}
+          data={ready ? searchResultRows(data, columns) : []}
           keyExtractor={(item) => `${item.kind}:${item.id}`}
           renderItem={({ item, index }) => renderResult(item, index)}
-          loading={ready && result.isPending}
+          loading={ready && result.isLoading}
           loadingContent={
-            <ResultRowsSkeleton
-              kind={type === "all" ? "products" : type}
-              showAction={type === "people"}
-            />
+            type === "products" || type === "all" ? (
+              <BrowseState loading />
+            ) : (
+              <ResultRowsSkeleton kind={type} showAction={type === "people"} />
+            )
           }
-          error={ready && result.isError}
+          error={ready && (result.isError || result.fetchStatus === "paused")}
           refreshing={result.isRefetching}
           more={!!result.hasNextPage}
           loadingMore={result.isFetchingNextPage}
@@ -340,6 +379,9 @@ function SearchContent({
                 </View>
               ))}
             </View>
+          )}
+          {categories.isLoading && (
+            <CatalogSkeleton kind="categories" columns={4} />
           )}
           {!!categories.data?.data?.length && (
             <View style={{ marginHorizontal: 20, marginTop: 22 }}>

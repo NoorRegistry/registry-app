@@ -92,12 +92,4 @@ const LoadingSpinner = ({
   );
 };
 
-export const LoadingScreen = () => {
-  return (
-    <View className="flex-1 items-center justify-center">
-      <LoadingSpinner size="large" />
-    </View>
-  );
-};
-
 export default LoadingSpinner;

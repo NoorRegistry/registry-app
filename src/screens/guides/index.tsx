@@ -1,3 +1,5 @@
+import { ScreenSkeleton } from "@/components/Skeleton/layouts";
+import { ErrorState } from "@/screens/friends/components";
 import { Button } from "@/components/Button";
 import Typography from "@/components/Typography";
 import { useHeaderScrollState } from "@/hooks/useHeaderScrollState";
@@ -13,10 +15,15 @@ import GuideCard from "./components/GuideCard";
 function GuidesHomeScreen() {
   const { t } = useTranslation();
   const handleHeaderScroll = useHeaderScrollState();
-  const { data } = useQuery({
+  const query = useQuery({
     queryKey: ["guides", "home"],
     queryFn: fetchGuidesHomeData,
   });
+
+  const { data } = query;
+  if (query.isLoading) return <ScreenSkeleton kind="guides" />;
+  if (query.isError || !data)
+    return <ErrorState retry={() => void query.refetch()} />;
 
   // Map guideCategories to the expected format
   const guideSections =

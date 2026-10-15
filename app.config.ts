@@ -97,6 +97,15 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       "expo-font",
       "expo-image",
       [
+        "expo-camera",
+        {
+          cameraPermission: "Allow Simplist to scan a friend's QR code.",
+          microphonePermission: false,
+          recordAudioAndroid: false,
+          barcodeScannerEnabled: true,
+        },
+      ],
+      [
         "expo-splash-screen",
         {
           image: "./assets/images/splash.png",

@@ -1,3 +1,4 @@
+import { ListSkeleton } from "@/components/Skeleton/layouts";
 import Typography from "@/components/Typography";
 import {
   useNotificationInbox,
@@ -22,6 +23,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
 const icons = {
+  SUPPORT_REPLY: "chatbubble-ellipses-outline",
+  SUPPORT_UPDATED: "chatbubble-outline",
   ORDER_PLACED: "receipt-outline",
   ORDER_DISPATCHED: "car-outline",
   ORDER_DELIVERED: "checkmark-circle-outline",
@@ -172,26 +175,26 @@ export default function NotificationsScreen() {
           ) : null
         }
         ListEmptyComponent={
-          <View
-            style={{
-              flex: 1,
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 14,
-            }}
-          >
-            {inbox.isPending ? (
-              <ActivityIndicator color={palette.accent} />
-            ) : (
+          inbox.isLoading ? (
+            <ListSkeleton kind="notifications" />
+          ) : (
+            <View
+              style={{
+                flex: 1,
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 14,
+              }}
+            >
               <>
                 <Typography.Text style={{ color: palette.muted }}>
                   {t(
-                    inbox.isError
+                    inbox.isError || inbox.fetchStatus === "paused"
                       ? "notifications.loadError"
                       : "notifications.empty",
                   )}
                 </Typography.Text>
-                {inbox.isError && (
+                {(inbox.isError || inbox.fetchStatus === "paused") && (
                   <Pressable onPress={() => void inbox.refetch()}>
                     <Typography.Text>
                       {t("notifications.retry")}
@@ -199,8 +202,8 @@ export default function NotificationsScreen() {
                   </Pressable>
                 )}
               </>
-            )}
-          </View>
+            </View>
+          )
         }
       />
     </SafeAreaView>

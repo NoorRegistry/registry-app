@@ -1,72 +1,13 @@
+import { Skeleton, SkeletonBlock as Placeholder } from "@/components/Skeleton";
 import { CommerceText } from "@/components/Commerce";
 import { BrandColors } from "@/constants/Colors";
-import { PropsWithChildren, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   StyleSheet,
   View,
-  ViewStyle,
   useWindowDimensions,
 } from "react-native";
-import Animated, {
-  cancelAnimation,
-  Easing,
-  ReduceMotion,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from "react-native-reanimated";
-
-function SkeletonPulse({
-  children,
-  style,
-  testID,
-}: PropsWithChildren<{ style?: ViewStyle; testID: string }>) {
-  const { t } = useTranslation();
-  const opacity = useSharedValue(1);
-  useEffect(() => {
-    opacity.set(
-      withRepeat(
-        withTiming(0.55, {
-          duration: 1100,
-          easing: Easing.inOut(Easing.ease),
-          reduceMotion: ReduceMotion.System,
-        }),
-        -1,
-        true,
-        undefined,
-        ReduceMotion.System,
-      ),
-    );
-    return () => cancelAnimation(opacity);
-  }, [opacity]);
-  const pulse = useAnimatedStyle(() => ({ opacity: opacity.get() }));
-  return (
-    <View
-      testID={testID}
-      style={style}
-      accessible
-      accessibilityRole="progressbar"
-      accessibilityState={{ busy: true }}
-      accessibilityLabel={t("common.loading")}
-    >
-      <Animated.View
-        style={[style, pulse]}
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-      >
-        {children}
-      </Animated.View>
-    </View>
-  );
-}
-
-function Placeholder({ style }: { style?: ViewStyle }) {
-  return <View style={[styles.placeholder, style]} />;
-}
-
 function SummaryRows({ showLabels = false }: { showLabels?: boolean }) {
   const { t } = useTranslation();
   return (
@@ -100,17 +41,17 @@ function SummaryRows({ showLabels = false }: { showLabels?: boolean }) {
 
 export function CartSummarySkeleton() {
   return (
-    <SkeletonPulse testID="cart-summary-skeleton">
+    <Skeleton testID="cart-summary-skeleton">
       <SummaryRows showLabels />
-    </SkeletonPulse>
+    </Skeleton>
   );
 }
 
 export function CartTotalSkeleton() {
   return (
-    <SkeletonPulse testID="cart-total-skeleton">
+    <Skeleton testID="cart-total-skeleton">
       <Placeholder style={{ width: 92, height: 20 }} />
-    </SkeletonPulse>
+    </Skeleton>
   );
 }
 
@@ -118,7 +59,7 @@ export default function CartSkeleton() {
   const { width, fontScale } = useWindowDimensions();
   const compact = width < 370 || fontScale > 1.15;
   return (
-    <SkeletonPulse testID="cart-skeleton" style={{ flex: 1 }}>
+    <Skeleton testID="cart-skeleton" style={{ flex: 1 }}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
         {(["75%", "90%", "65%"] as const).map((titleWidth, index) => (
           <View
@@ -160,16 +101,11 @@ export default function CartSkeleton() {
         </View>
         <Placeholder style={{ width: "45%", height: 48, borderRadius: 11 }} />
       </View>
-    </SkeletonPulse>
+    </Skeleton>
   );
 }
 
 const styles = StyleSheet.create({
-  placeholder: {
-    height: 14,
-    borderRadius: 4,
-    backgroundColor: BrandColors.line,
-  },
   content: { paddingHorizontal: 18, paddingBottom: 24 },
   row: { paddingVertical: 16 },
   divider: { borderBottomWidth: 1, borderBottomColor: BrandColors.line },

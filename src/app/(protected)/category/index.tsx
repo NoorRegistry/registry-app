@@ -1,5 +1,2 @@
-import ShopScreen from "@/screens/shop";
-
-export default function StoresPage() {
-  return <ShopScreen />;
-}
+import CategoryBrowser from "@/screens/category/browser";
+export default CategoryBrowser;

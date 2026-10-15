@@ -1,3 +1,4 @@
+import { ScreenSkeleton } from "@/components/Skeleton/layouts";
 import { BrandColors } from "@/constants/Colors";
 import Typography from "@/components/Typography";
 import {
@@ -109,8 +110,8 @@ export default function CheckoutScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        {quote.isPending ? (
-          <ActivityIndicator style={{ flex: 1 }} color={palette.accent} />
+        {quote.isLoading ? (
+          <ScreenSkeleton kind="checkout" />
         ) : quote.isError || !quote.data ? (
           <View
             style={{

@@ -1,6 +1,5 @@
 import AppBottomSheetModal from "@/components/BottomSheet/AppBottomSheetModal";
 import { BrandColors } from "@/constants/Colors";
-import { View } from "@/components/Themed";
 import LoadingSpinner from "@/components/Loader/customLoader";
 import Typography from "@/components/Typography";
 import { useAddProductToRegistry } from "@/hooks/useAddProductToRegistry";
@@ -16,14 +15,17 @@ import {
 } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
-import { useCallback, useRef } from "react";
-import { Dimensions, Pressable, TouchableOpacity } from "react-native";
+import { useCallback, useRef, useState } from "react";
+import {
+  Pressable,
+  StyleSheet,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { GreenPlusCircleIcon } from "../icons/greenplusCircle";
-const { width } = Dimensions.get("window");
-/* 16px per card for side padding and 12px as half of 24px for space in-between */
-const cardWidth = width / 2 - 16 - 8;
 
 function ProductActionSheet({
   outOfStock,
@@ -92,19 +94,21 @@ function ProductActionSheet({
   );
 }
 
-// Product Card component
 const ProductCard = ({
   product,
   width: customWidth,
-  reserveNameSpace = false,
-  layout = "default",
+  onPress,
 }: {
   product: IProduct;
   width?: number;
-  reserveNameSpace?: boolean;
-  layout?: "default" | "store";
+  onPress?: () => void;
 }) => {
-  const finalWidth = customWidth || cardWidth;
+  const { width, height, fontScale } = useWindowDimensions();
+  const finalWidth = customWidth ?? (width - 44) / 2;
+  const imageUri = product.images?.[0]?.path
+    ? getImageUrl(product.images[0].path)
+    : null;
+  const [failedImage, setFailedImage] = useState<string | null>(null);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const actionSheetRef = useRef<BottomSheetModal>(null);
@@ -130,127 +134,95 @@ const ProductCard = ({
 
   const openActions = () => actionSheetRef.current?.present();
   const closeActions = () => actionSheetRef.current?.dismiss();
-  const addButton = (
-    <TouchableOpacity
-      accessibilityRole="button"
-      accessibilityLabel={t("cart.addOptions")}
-      testID="product-add-options"
-      hitSlop={6}
-      className="h-8 w-8 items-center justify-center"
-      style={
-        layout === "store"
-          ? {
-              position: "absolute",
-              top: finalWidth - 40,
-              end: 8,
-              backgroundColor: "white",
-              borderRadius: 18,
-            }
-          : undefined
-      }
-      disabled={isAddingProductToRegistry || cartAction.isPending}
-      onPress={openActions}
-    >
-      {isAddingProductToRegistry || cartAction.isPending ? (
-        <LoadingSpinner size="small" />
-      ) : layout === "store" ? (
-        <Ionicons
-          name="add-circle-outline"
-          size={30}
-          color={BrandColors.primary}
-        />
-      ) : (
-        <GreenPlusCircleIcon size={30} />
-      )}
-    </TouchableOpacity>
-  );
-
   return (
     <>
-      <View
-        style={{ width: finalWidth }}
-        className="bg-white rounded-lg items-center"
-      >
+      <View style={{ width: finalWidth }}>
         <Link
           href={{
             pathname: "/(protected)/products/[id]",
-            params: {
-              id: product.id,
-            },
+            params: { id: product.id },
           }}
           asChild
         >
-          <TouchableOpacity className="w-full">
-            <View className="w-full rounded-lg">
-              <Image
-                source={
-                  product.images?.[0]?.path
-                    ? getImageUrl(product.images[0].path)
-                    : require("@assets/images/icon.png") // Fallback to app icon
-                }
-                style={{
-                  flex: 1,
-                  borderRadius: 8,
-                  width: finalWidth, // subtract 2 for border now
-                  height: finalWidth,
-                }}
-                contentFit="cover"
-              />
-            </View>
-            <View className="pt-3 w-full gap-1">
-              {product?.store && layout !== "store" && (
-                <Typography.Text
-                  numberOfLines={2}
-                  ellipsizeMode="tail"
-                  weight="medium"
-                  size="xs"
-                  type="complementary"
-                >
-                  {getEnArName(product.store.nameEn, product.store.nameAr)}
-                </Typography.Text>
+          <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
+            <View
+              testID="product-image-frame"
+              style={[styles.imageFrame, { height: finalWidth }]}
+            >
+              {imageUri && failedImage !== imageUri ? (
+                <Image
+                  source={imageUri}
+                  recyclingKey={imageUri}
+                  style={styles.image}
+                  contentFit="contain"
+                  onError={() => setFailedImage(imageUri)}
+                />
+              ) : (
+                <Ionicons
+                  name="image-outline"
+                  size={32}
+                  color={BrandColors.muted}
+                />
               )}
+            </View>
+            <View style={styles.details}>
               <Typography.Text
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                size="xs"
+                style={{
+                  color: BrandColors.muted,
+                  height: Math.ceil(17 * fontScale),
+                }}
+              >
+                {product.store
+                  ? getEnArName(product.store.nameEn, product.store.nameAr)
+                  : ""}
+              </Typography.Text>
+              <Typography.Text
+                testID="product-name"
                 numberOfLines={2}
                 ellipsizeMode="tail"
-                weight={layout === "store" ? "regular" : "light"}
-                size={layout === "store" ? "sm" : "xs"}
-                style={
-                  layout === "store"
-                    ? {
-                        color: BrandColors.ink,
-                        textAlign: "left",
-                        minHeight: reserveNameSpace ? 40 : undefined,
-                      }
-                    : undefined
-                }
-                className={reserveNameSpace && layout !== "store" ? "h-8" : ""}
+                size="sm"
+                style={{
+                  color: BrandColors.ink,
+                  height: Math.ceil(40 * fontScale),
+                }}
               >
                 {getEnArName(product.nameEn, product.nameAr)}
+              </Typography.Text>
+              <Typography.Text
+                testID="product-price"
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.75}
+                weight="medium"
+                size="sm"
+                style={{
+                  color: BrandColors.deep,
+                  height: Math.ceil(20 * fontScale),
+                }}
+              >
+                {formatPrice(product.price, product.currencyCode)}
               </Typography.Text>
             </View>
           </TouchableOpacity>
         </Link>
-        <View className="w-full mt-2 pb-3 flex-row items-center">
-          <Typography.Text
-            numberOfLines={2}
-            ellipsizeMode="tail"
-            weight="medium"
-            className="flex-1"
-            style={
-              layout === "store"
-                ? {
-                    color: BrandColors.deep,
-                    fontSize: 14,
-                    textAlign: "left",
-                  }
-                : undefined
-            }
-          >
-            {formatPrice(product.price, product.currencyCode)}
-          </Typography.Text>
-          {layout !== "store" && addButton}
-        </View>
-        {layout === "store" && addButton}
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={t("cart.addOptions")}
+          testID="product-add-options"
+          hitSlop={4}
+          style={[styles.addButton, { top: finalWidth - 42 }]}
+          disabled={isAddingProductToRegistry || cartAction.isPending}
+          onPress={openActions}
+        >
+          {isAddingProductToRegistry || cartAction.isPending ? (
+            <LoadingSpinner size="small" />
+          ) : (
+            <GreenPlusCircleIcon size={30} />
+          )}
+        </TouchableOpacity>
       </View>
       <AppBottomSheetModal
         ref={actionSheetRef}
@@ -260,7 +232,7 @@ const ProductCard = ({
         enableOverDrag={false}
         enablePanDownToClose
         enableDynamicSizing
-        maxDynamicContentSize={0.5 * Dimensions.get("screen").height}
+        maxDynamicContentSize={0.5 * height}
         style={{
           borderRadius: 32,
           shadowColor: "#000000",
@@ -294,5 +266,34 @@ const ProductCard = ({
     </>
   );
 };
+
+const styles = StyleSheet.create({
+  imageFrame: {
+    width: "100%",
+    borderRadius: 12,
+    overflow: "hidden",
+    backgroundColor: "#F8F6F4",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  image: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    start: 0,
+    end: 0,
+  },
+  details: { paddingTop: 10, paddingBottom: 12, gap: 4 },
+  addButton: {
+    position: "absolute",
+    end: 6,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
 
 export default ProductCard;

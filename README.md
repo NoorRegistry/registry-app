@@ -73,7 +73,7 @@ native iOS serializer. The backend README documents worker configuration.
 Profile is the sixth bottom tab; Guides remains in the navigation. The profile
 uses a scrolling brand header and a compact white header after scrolling, with
 Orders, Addresses and Friends shortcuts. Settings owns language and notification
-preferences. Help and Register as a partner currently open placeholder screens.
+preferences. Help opens support requests and FAQs; Register as a partner is a placeholder.
 Account icons use Phosphor duotone SVGs, with their MIT notice beside the assets.
 Recent shopping and address primary actions use the shared brand color.
 
@@ -153,3 +153,21 @@ Continue commits the new pin. Apartment, House and Office use the appropriate
 unit fields. Avenue and custom label are optional; a blank label defaults to the
 address type. The Kuwait prefix is fixed at +965. Unusable profile phone numbers
 are left blank rather than copied under the wrong country code.
+
+
+## Support and profile QR codes
+
+Help shows the latest order, support request history, FAQ topics and Contact
+support. Customers can create requests, reply and resolve/reopen conversations.
+Internal admins manage these and store-admin requests in the admin Support inbox,
+and publish bilingual FAQ articles. Support replies/status updates use the existing
+notification inbox and push worker; taps open the specific conversation.
+
+The QR icon in Profile or Friends opens My QR and Scan code. Codes contain only a
+public profile code; scanning opens the person profile and never sends a request
+automatically. Manual code entry is available when camera access is unavailable.
+Scanning mounts the camera only while the scanner is visible and active. It needs
+a fresh native build with `expo-camera`; no microphone permission is requested.
+
+Deploy the support database migration and backend before distributing this app.
+See the backend's `docs/support.md` for deployment and API smoke checks.

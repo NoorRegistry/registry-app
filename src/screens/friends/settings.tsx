@@ -1,9 +1,10 @@
+import { ScreenSkeleton } from "@/components/Skeleton/layouts";
 import Typography from "@/components/Typography";
 import { updateFriendDiscoverability } from "@/services/friends.service";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Switch, View } from "react-native";
+import { Switch, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { ErrorState, FriendsTopBar, palette, styles } from "./components";
@@ -32,9 +33,9 @@ export default function FriendSettingsScreen() {
   return (
     <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
       <FriendsTopBar title={t("friends.settings")} />
-      {summary.isPending ? (
-        <ActivityIndicator style={{ marginTop: 80 }} color={palette.accent} />
-      ) : summary.isError ? (
+      {summary.isLoading ? (
+        <ScreenSkeleton kind="settings" />
+      ) : summary.isError || !summary.data ? (
         <ErrorState retry={() => void summary.refetch()} />
       ) : (
         <View style={styles.sectionContent}>

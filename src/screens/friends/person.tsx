@@ -1,9 +1,10 @@
+import { ScreenSkeleton } from "@/components/Skeleton/layouts";
 import Typography from "@/components/Typography";
 import { fetchPersonProfile } from "@/services/friends.service";
 import { useQuery } from "@tanstack/react-query";
 import { Redirect, router, Stack, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, I18nManager, ScrollView, View } from "react-native";
+import { I18nManager, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ActionButton,
@@ -35,8 +36,8 @@ export default function PersonScreen() {
     <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
       <Stack.Screen options={{ headerShown: false }} />
       <FriendsTopBar title={t("search.profile")} />
-      {query.isPending ? (
-        <ActivityIndicator style={{ marginTop: 70 }} color={palette.accent} />
+      {query.isLoading ? (
+        <ScreenSkeleton kind="person" />
       ) : query.isError || !profile ? (
         <ErrorState retry={() => void query.refetch()} />
       ) : (

@@ -1,3 +1,4 @@
+import { Skeleton, SkeletonBlock } from "@/components/Skeleton";
 import Typography from "@/components/Typography";
 import {
   useNotificationSettings,
@@ -80,8 +81,10 @@ export default function NotificationSettingsScreen() {
           }}
         >
           <Typography.Text>{t("notifications.activity")}</Typography.Text>
-          {summary.isPending ? (
-            <ActivityIndicator color={palette.accent} />
+          {summary.isLoading ? (
+            <Skeleton style={{ width: 46 }}>
+              <SkeletonBlock style={{ height: 28, borderRadius: 14 }} />
+            </Skeleton>
           ) : (
             <Switch
               accessibilityLabel={t("notifications.activity")}
@@ -105,7 +108,7 @@ export default function NotificationSettingsScreen() {
             />
           )}
         </View>
-        {summary.isError && (
+        {(summary.isError || summary.fetchStatus === "paused") && (
           <Pressable
             onPress={() => void summary.refetch()}
             style={{ paddingVertical: 14 }}

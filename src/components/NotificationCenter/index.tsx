@@ -71,6 +71,7 @@ export default function NotificationCenter() {
     const received = Notifications.addNotificationReceivedListener(() => {
       void queryClient.invalidateQueries({ queryKey: ["notifications"] });
       void queryClient.invalidateQueries({ queryKey: ["friends"] });
+      void queryClient.invalidateQueries({ queryKey: ["support"] });
     });
     return () => {
       taps.remove();
@@ -98,6 +99,8 @@ export default function NotificationCenter() {
     void queryClient.invalidateQueries({
       queryKey: ["registries", "items", pending.itemId],
     });
+    if (pending.supportRequestId)
+      void queryClient.invalidateQueries({ queryKey: ["support", userId] });
     if (pending.orderId)
       void queryClient.invalidateQueries({ queryKey: ["orders", userId] });
     router.push(notificationDestination(pending));

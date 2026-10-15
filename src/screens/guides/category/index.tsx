@@ -1,9 +1,8 @@
+import { ErrorState } from "@/screens/friends/components";
+import { ScreenSkeleton } from "@/components/Skeleton/layouts";
 import AnimatedHeaderText from "@/components/AnimatedHeaderText";
 import { Button } from "@/components/Button";
 import Typography from "@/components/Typography";
-import SkeletonLoader, {
-  HeaderSkeleton,
-} from "@/screens/shop/components/LoaderSkeleton";
 import { fetchGuidesCategoryData } from "@/services/guides.service";
 import { getEnArName } from "@/utils/helper";
 import { useQuery } from "@tanstack/react-query";
@@ -60,7 +59,11 @@ function GuidesHomeScreen() {
     extrapolate: "clamp",
   });
 
-  const { data: category, isFetching } = useQuery({
+  const {
+    data: category,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["guides", "categories", id],
     queryFn: () => fetchGuidesCategoryData(id),
   });
@@ -73,21 +76,21 @@ function GuidesHomeScreen() {
       }))
     : [];
 
-  if (isFetching) {
+  if (isLoading)
     return (
-      <View>
-        <Stack.Screen
-          options={{
-            headerTitle: "",
-          }}
-        />
-        <View className="px-4 pt-6">
-          <HeaderSkeleton />
-        </View>
-        <SkeletonLoader isVisible />
+      <View style={{ flex: 1 }}>
+        <Stack.Screen options={{ headerTitle: "" }} />
+        <ScreenSkeleton kind="guides" />
       </View>
     );
-  }
+
+  if (!category)
+    return (
+      <View style={{ flex: 1 }}>
+        <Stack.Screen options={{ headerTitle: "" }} />
+        <ErrorState retry={() => void refetch()} />
+      </View>
+    );
 
   return (
     <>

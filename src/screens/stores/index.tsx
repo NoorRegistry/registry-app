@@ -1,3 +1,5 @@
+import { CatalogSkeleton } from "@/components/Skeleton/layouts";
+import { ErrorState, EmptyState } from "@/screens/friends/components";
 import { ChevronRightIcon } from "@/components/icons/chevron";
 import { Colors } from "@/constants/Colors";
 import { fetchStores } from "@/services/stores.service";
@@ -58,11 +60,12 @@ const StoresScreen = () => {
   const { t } = useTranslation();
   const colorScheme = useColorScheme();
 
-  const { data: stores } = useQuery({
+  const query = useQuery({
     queryKey: ["stores"],
     queryFn: fetchStores,
   });
 
+  const stores = query.data;
   const filteredStores = useMemo(() => {
     const search = searchText.trim().toLowerCase();
     return (stores?.data ?? []).filter(
@@ -113,6 +116,15 @@ const StoresScreen = () => {
       <SafeAreaView className="flex-1" edges={["bottom"]}>
         <FlatList
           data={filteredStores}
+          ListEmptyComponent={
+            query.isLoading ? (
+              <CatalogSkeleton kind="stores" />
+            ) : query.isError ? (
+              <ErrorState retry={() => void query.refetch()} />
+            ) : (
+              <EmptyState title={t("common.noResultsFound")} />
+            )
+          }
           numColumns={2}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <RenderStore store={item} />}
@@ -124,30 +136,5 @@ const StoresScreen = () => {
     </>
   );
 };
-
-/* const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  searchBar: {
-    height: 50,
-    backgroundColor: "#fff",
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-    fontSize: 16,
-  },
-  storeItem: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    backgroundColor: "#fff",
-  },
-  storeText: {
-    fontSize: 16,
-    color: "#333",
-  },
-}); */
 
 export default StoresScreen;

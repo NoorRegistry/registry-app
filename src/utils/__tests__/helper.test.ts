@@ -1,5 +1,10 @@
 import { getStorageItem } from "../storage";
-import { formatPrice, getInitials, isAuthenticated } from "../helper";
+import {
+  formatPrice,
+  getInitials,
+  isAuthenticated,
+  getUserFirstLastName,
+} from "../helper";
 jest.mock("../storage", () => ({
   getStorageItem: jest.fn(),
   setStorageItem: jest.fn(),
@@ -59,4 +64,12 @@ describe("isAuthenticated", () => {
     (getStorageItem as jest.Mock).mockReturnValue("invalid-json");
     expect(isAuthenticated()).toBe(false);
   });
+});
+
+it("shows a profile name even when only a first name is saved", () => {
+  const encoded = `header.${btoa(JSON.stringify({ user: { firstName: "Commerce QA", lastName: null } }))}.signature`;
+  (getStorageItem as jest.Mock).mockReturnValue(
+    JSON.stringify({ accessToken: encoded }),
+  );
+  expect(getUserFirstLastName()).toBe("Commerce QA");
 });

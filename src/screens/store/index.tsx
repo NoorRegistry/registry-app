@@ -27,7 +27,6 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  TextInput,
   View,
   ViewToken,
   useAnimatedValue,
@@ -37,7 +36,8 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import StoreSkeletonLoader from "./components/StoreSkeletonLoader";
+import { SearchEntry } from "../shop/components/Browse";
+import { ScreenSkeleton } from "@/components/Skeleton/layouts";
 import {
   storeCatalogRows,
   storeSections,
@@ -65,7 +65,6 @@ export default function StoreScreen() {
     queryFn: () => fetchStore(id),
   });
   const store = storeQuery.data;
-  const [query, setQuery] = useState("");
   const [sort, setSort] = useState<StoreSort>("featured");
   const [activeCategory, setActiveCategory] = useState("");
   const [identityHeight, setIdentityHeight] = useState(88);
@@ -75,11 +74,8 @@ export default function StoreScreen() {
   const [logoFailed, setLogoFailed] = useState(false);
   const scrollY = useAnimatedValue(0);
   const listRef = useRef<FlatList<StoreCatalogRow>>(null);
-  const inputRef = useRef<TextInput>(null);
   const sortSheet = useRef<BottomSheetModal>(null);
   const railRef = useRef<ScrollView>(null);
-  const scrollOffset = useRef(0);
-  const pendingSearch = useRef(false);
   const pendingCategory = useRef<string | null>(null);
   const atBottom = useRef(false);
   const heights = useRef(new Map<string, number>());
@@ -90,8 +86,8 @@ export default function StoreScreen() {
     ? getEnArName(store.nameEn, store.nameAr)
     : (storeName ?? "");
   const sections = useMemo(
-    () => storeSections(store?.products ?? [], query, sort, i18n.language),
-    [store?.products, query, sort, i18n.language],
+    () => storeSections(store?.products ?? [], "", sort, i18n.language),
+    [store?.products, sort, i18n.language],
   );
   const rows = useMemo(() => storeCatalogRows(sections), [sections]);
   const selectedCategory = sections.some(
@@ -130,7 +126,6 @@ export default function StoreScreen() {
   const handleScrollPosition = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offset = event.nativeEvent.contentOffset.y;
-      scrollOffset.current = offset;
       atBottom.current =
         event.nativeEvent.contentSize.height > 0 &&
         offset + event.nativeEvent.layoutMeasurement.height >=
@@ -138,10 +133,6 @@ export default function StoreScreen() {
       if (atBottom.current && !pendingCategory.current && sections.length)
         setActiveCategory(sections[sections.length - 1].id);
       setShowHeaderSearch(offset >= searchBottom);
-      if (pendingSearch.current && offset <= 2) {
-        pendingSearch.current = false;
-        requestAnimationFrame(() => inputRef.current?.focus());
-      }
     },
     [searchBottom, sections],
   );
@@ -163,15 +154,8 @@ export default function StoreScreen() {
         animated: true,
       });
   }, [selectedCategory, width]);
-  const focusSearch = () => {
-    pendingCategory.current = null;
-    pendingSearch.current = true;
-    listRef.current?.scrollToOffset({ offset: 0, animated: true });
-    if (scrollOffset.current <= 2) {
-      pendingSearch.current = false;
-      inputRef.current?.focus();
-    }
-  };
+  const openSearch = () =>
+    router.push({ pathname: "/catalog-search", params: { storeId: id, name } });
   const scrollToCategory = (category: string) => {
     const index = rows.findIndex(
       (row) => row.kind === "products" && row.sectionId === category,
@@ -264,55 +248,12 @@ export default function StoreScreen() {
   const search = (
     <View
       onLayout={({ nativeEvent }) => setSearchHeight(nativeEvent.layout.height)}
-      style={{ paddingHorizontal: 16, paddingBottom: 12 }}
     >
-      <View
-        style={{
-          backgroundColor: BrandColors.soft,
-          borderRadius: 12,
-          flexDirection: "row",
-          alignItems: "center",
-          paddingHorizontal: 12,
-          gap: 9,
-        }}
-      >
-        <Ionicons name="search-outline" size={20} color={BrandColors.muted} />
-        <TextInput
-          testID="store-search"
-          ref={inputRef}
-          value={query}
-          onChangeText={(value) => {
-            pendingCategory.current = null;
-            setQuery(value);
-          }}
-          accessibilityLabel={t("store.search")}
-          placeholder={t("store.search")}
-          placeholderTextColor={BrandColors.muted}
-          autoCorrect={false}
-          returnKeyType="search"
-          style={{
-            flex: 1,
-            minHeight: 44,
-            paddingVertical: 10,
-            fontFamily:
-              i18n.language === "ar" ? "Tajawalregular" : "Poppinsregular",
-            textAlign: I18nManager.isRTL ? "right" : "left",
-            fontSize: 14,
-            color: BrandColors.ink,
-          }}
-        />
-        {!!query && (
-          <Pressable
-            accessibilityRole="button"
-            testID="store-clear-search"
-            accessibilityLabel={t("friends.clearSearch")}
-            onPress={() => setQuery("")}
-            hitSlop={12}
-          >
-            <Ionicons name="close-circle" size={18} color={BrandColors.muted} />
-          </Pressable>
-        )}
-      </View>
+      <SearchEntry
+        testID="store-search"
+        label={t("store.search")}
+        onPress={openSearch}
+      />
     </View>
   );
   const categoryRail = (
@@ -437,13 +378,7 @@ export default function StoreScreen() {
           }}
         >
           {item.products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              layout="store"
-              width={cardWidth}
-              reserveNameSpace
-            />
+            <ProductCard key={product.id} product={product} width={cardWidth} />
           ))}
         </View>
       );
@@ -522,7 +457,7 @@ export default function StoreScreen() {
                 testID="store-header-search"
                 accessibilityRole="button"
                 accessibilityLabel={t("store.search")}
-                onPress={focusSearch}
+                onPress={openSearch}
                 style={{
                   width: 40,
                   height: 44,
@@ -587,7 +522,7 @@ export default function StoreScreen() {
         {!store &&
         storeQuery.isPending &&
         storeQuery.fetchStatus !== "paused" ? (
-          <StoreSkeletonLoader />
+          <ScreenSkeleton kind="store" />
         ) : !store ? (
           <View
             style={{

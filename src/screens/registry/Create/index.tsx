@@ -1,3 +1,5 @@
+import { CatalogSkeleton } from "@/components/Skeleton/layouts";
+import { ErrorState } from "@/screens/friends/components";
 import { queryClient } from "@/api/queryClient";
 import BackButton from "@/components/BackButton";
 import { Button } from "@/components/Button";
@@ -64,10 +66,11 @@ function CreateRegistryScreen() {
   const [logoPreviewUri, setLogoPreviewUri] = useState<string | null>(null);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
-  const { data: categories } = useQuery({
+  const categoriesQuery = useQuery({
     queryKey: ["registryCategories"],
     queryFn: () => fetchRegistriesCategories(),
   });
+  const categories = categoriesQuery.data;
   const createRegistryMutation = useMutation({
     mutationFn: (data: ICreateRegistryPayload) => postRegistry(data),
     onSuccess: (data) => {
@@ -227,6 +230,15 @@ function CreateRegistryScreen() {
                   {() => {
                     return (
                       <View className="flex-row justify-between flex-wrap">
+                        {categoriesQuery.isLoading && (
+                          <CatalogSkeleton kind="categories" columns={2} />
+                        )}
+                        {(categoriesQuery.isError ||
+                          categoriesQuery.fetchStatus === "paused") && (
+                          <ErrorState
+                            retry={() => void categoriesQuery.refetch()}
+                          />
+                        )}
                         {categories?.map((category) => (
                           <TouchableOpacity
                             key={category.id}

@@ -1,3 +1,4 @@
+import { ScreenSkeleton } from "@/components/Skeleton/layouts";
 import RegistryAvatar from "@/components/RegistryAvatar";
 import { queryClient } from "@/api/queryClient";
 import Typography from "@/components/Typography";
@@ -180,8 +181,8 @@ export default function FriendDetailScreen() {
   return (
     <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
       <FriendsTopBar title={t("friends.friend")} />
-      {query.isPending ? (
-        <ActivityIndicator style={{ marginTop: 80 }} color={palette.accent} />
+      {query.isLoading ? (
+        <ScreenSkeleton kind="person" />
       ) : !data ? (
         <>
           <EmptyState title={t("friends.friendUnavailable")} />

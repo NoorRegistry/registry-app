@@ -6,6 +6,8 @@ import {
 const id = "00000000-0000-4000-8000-000000000001";
 const base = { notificationId: id, recipientId: id };
 it.each([
+  ["SUPPORT_REPLY", "supportRequestId", "/help/[id]"],
+  ["SUPPORT_UPDATED", "supportRequestId", "/help/[id]"],
   ["FRIEND_REQUEST", "requestId", "/friends/requests/[id]"],
   ["FRIEND_ACCEPTED", "friendId", "/friends/[id]"],
   ["REGISTRY_SHARED", "registryId", "/registry/guest-view"],
@@ -26,6 +28,7 @@ it.each([
 });
 it.each([
   null,
+  { ...base, type: "SUPPORT_REPLY", supportRequestId: "/admin" },
   {},
   { ...base, type: "FRIEND_REQUEST" },
   { ...base, type: "FRIEND_REQUEST", requestId: "/admin" },

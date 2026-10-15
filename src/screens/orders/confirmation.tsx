@@ -1,3 +1,4 @@
+import { ScreenSkeleton } from "@/components/Skeleton/layouts";
 import { BrandColors } from "@/constants/Colors";
 import Typography from "@/components/Typography";
 import { addressLine } from "@/hooks/useAddresses";
@@ -8,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import Animated, {
   FadeInDown,
   ReduceMotion,
@@ -111,8 +112,8 @@ export default function OrderConfirmationScreen() {
             </Typography.Text>
           </Animated.View>
         </View>
-        {order.isPending ? (
-          <ActivityIndicator color="#C78063" />
+        {order.isLoading ? (
+          <ScreenSkeleton kind="confirmation" />
         ) : data ? (
           <Animated.View
             entering={FadeInDown.delay(100)

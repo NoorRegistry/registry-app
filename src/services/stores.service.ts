@@ -7,5 +7,19 @@ export const fetchStores = async () => {
 };
 
 export const fetchStore = async (id: string) => {
-  return await http.get<IStoreDetails>(`${endpoints.stores.index}/${id}`);
+  const store = await http.get<IStoreDetails>(
+    `${endpoints.stores.index}/${id}`,
+  );
+  return {
+    ...store,
+    products: store.products.map((product) => ({
+      ...product,
+      store: { id: store.id, nameEn: store.nameEn, nameAr: store.nameAr },
+    })),
+  };
 };
+
+export const fetchShopStores = () =>
+  http.get<IPaginatedResponse<IStore>>(endpoints.stores.index, {
+    params: { page: 1, limit: 8 },
+  });

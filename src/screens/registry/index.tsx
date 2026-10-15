@@ -1,6 +1,6 @@
+import { ScreenSkeleton } from "@/components/Skeleton/layouts";
 import { useTranslation } from "react-i18next";
 import { BrandColors } from "@/constants/Colors";
-import { LoadingScreen } from "@/components/Loader/customLoader";
 import Typography from "@/components/Typography";
 import { useHeaderScrollState } from "@/hooks/useHeaderScrollState";
 import { fetchRegistries, fetchRegistry } from "@/services/registries.service";
@@ -38,7 +38,7 @@ function RegistryScreen() {
       !registryDetails &&
       detailsQuery.isPending &&
       detailsQuery.fetchStatus !== "paused");
-  if (loading) return <LoadingScreen />;
+  if (loading) return <ScreenSkeleton kind="registry" />;
   if (registries?.length === 0) return <RegistryCard />;
   if (!registryDetails) {
     return (

@@ -1,3 +1,4 @@
+import { ScreenSkeleton } from "@/components/Skeleton/layouts";
 import { BrandColors } from "@/constants/Colors";
 import AddressMap from "@/components/AddressMap";
 import { AddressPin } from "@/components/AddressMap/types";
@@ -371,11 +372,11 @@ export default function AddressEditScreen() {
       </Pressable>
     </View>
   );
-  if (id && addresses.isPending)
+  if (id && addresses.isLoading)
     return (
       <SafeAreaView style={styles.screen}>
         <FriendsTopBar title={t("addresses.edit")} />
-        <ActivityIndicator style={{ flex: 1 }} color={palette.accent} />
+        <ScreenSkeleton kind="address" />
       </SafeAreaView>
     );
   if (id && !existing)

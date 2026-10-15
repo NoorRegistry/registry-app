@@ -1,6 +1,6 @@
+import { ScreenSkeleton } from "@/components/Skeleton/layouts";
 import { queryClient } from "@/api/queryClient";
 import { IconButton } from "@/components/Button";
-import { LoadingScreen } from "@/components/Loader/customLoader";
 import QtyButton from "@/components/QtyButton";
 import Radio from "@/components/Radio";
 import Typography from "@/components/Typography";
@@ -57,7 +57,7 @@ function RegistryItemDetails() {
   const [qty, setItemQty] = useState<number>();
   const [showPurchasedSection, setShowPurchasedSection] = useState(false);
 
-  const { data: registryItem, isFetching: isFetchingRegistryItem } = useQuery({
+  const { data: registryItem, isLoading: isLoadingRegistryItem } = useQuery({
     queryKey: ["registries", "items", id],
     queryFn: () => fetchRegistryItemById(id),
     placeholderData: keepPreviousData,
@@ -192,7 +192,7 @@ function RegistryItemDetails() {
     });
   };
 
-  if (isFetchingRegistryItem) return <LoadingScreen />;
+  if (isLoadingRegistryItem) return <ScreenSkeleton kind="product" />;
   if (!registryItem)
     return (
       <View

@@ -8,6 +8,8 @@ export function parseNotificationData(value: unknown): NotificationData | null {
     typeof data[key] === "string" && uuid.test(data[key]);
   if (!validId("notificationId") || !validId("recipientId")) return null;
   const required = {
+    SUPPORT_REPLY: "supportRequestId",
+    SUPPORT_UPDATED: "supportRequestId",
     ORDER_PLACED: "orderId",
     ORDER_DISPATCHED: "orderId",
     ORDER_DELIVERED: "orderId",
@@ -28,7 +30,14 @@ export function parseNotificationData(value: unknown): NotificationData | null {
     recipientId: data.recipientId as string,
     type: data.type as NotificationData["type"],
     ...Object.fromEntries(
-      ["requestId", "friendId", "registryId", "itemId", "orderId"]
+      [
+        "requestId",
+        "friendId",
+        "registryId",
+        "itemId",
+        "orderId",
+        "supportRequestId",
+      ]
         .filter(validId)
         .map((key) => [key, data[key]]),
     ),
@@ -38,6 +47,12 @@ export function parseNotificationData(value: unknown): NotificationData | null {
 // Only internal, explicitly supported destinations; never navigate a payload URL.
 export function notificationDestination(data: NotificationData) {
   switch (data.type) {
+    case "SUPPORT_REPLY":
+    case "SUPPORT_UPDATED":
+      return {
+        pathname: "/help/[id]" as const,
+        params: { id: data.supportRequestId! },
+      };
     case "ORDER_PLACED":
     case "ORDER_DISPATCHED":
     case "ORDER_DELIVERED":

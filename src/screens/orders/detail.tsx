@@ -1,3 +1,4 @@
+import { ScreenSkeleton } from "@/components/Skeleton/layouts";
 import {
   CommerceText,
   CommerceTopBar,
@@ -20,13 +21,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
-import {
-  ActivityIndicator,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  View,
-} from "react-native";
+import { Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import OrderProgress from "./Progress";
 
@@ -69,10 +64,12 @@ export default function OrderDetailScreen() {
         title={t("orders.details")}
         onBack={back}
         action={t("profile.help")}
-        onAction={() => router.push("/help")}
+        onAction={() =>
+          router.push({ pathname: "/help", params: { orderId: id } })
+        }
       />
       {order.isPending && order.fetchStatus !== "paused" ? (
-        <ActivityIndicator style={{ flex: 1 }} color={BrandColors.primary} />
+        <ScreenSkeleton kind="order" />
       ) : !data ? (
         <View
           style={{

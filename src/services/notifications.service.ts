@@ -1,6 +1,8 @@
 import { http } from "@/api/http";
 
 export type NotificationType =
+  | "SUPPORT_REPLY"
+  | "SUPPORT_UPDATED"
   | "ORDER_PLACED"
   | "ORDER_DISPATCHED"
   | "ORDER_DELIVERED"
@@ -18,6 +20,7 @@ export type NotificationData = {
   registryId?: string;
   itemId?: string;
   orderId?: string;
+  supportRequestId?: string;
 };
 export type NotificationItem = {
   id: string;

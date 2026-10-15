@@ -1,9 +1,10 @@
+import { ScreenSkeleton } from "@/components/Skeleton/layouts";
 import Typography from "@/components/Typography";
 import { fetchFriendRequest } from "@/services/friends.service";
 import { useQuery } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, View } from "react-native";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ActionButton,
@@ -35,8 +36,8 @@ export default function FriendRequestScreen() {
   return (
     <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
       <FriendsTopBar title={t("friends.requestTitle")} />
-      {query.isPending ? (
-        <ActivityIndicator style={{ marginTop: 80 }} color={palette.accent} />
+      {query.isLoading ? (
+        <ScreenSkeleton kind="request" />
       ) : query.isError || !request || !person ? (
         <>
           <EmptyState title={t("friends.requestUnavailable")} />

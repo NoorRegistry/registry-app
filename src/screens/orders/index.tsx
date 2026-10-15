@@ -1,3 +1,4 @@
+import { ListSkeleton } from "@/components/Skeleton/layouts";
 import Typography from "@/components/Typography";
 import { FriendsTopBar, palette, styles } from "@/screens/friends/components";
 import { useRefreshOnFocus } from "@/screens/friends/hooks";
@@ -80,21 +81,27 @@ export default function OrdersScreen() {
           ) : null
         }
         ListEmptyComponent={
-          <View
-            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-          >
-            {orders.isPending ? (
-              <ActivityIndicator color={palette.accent} />
-            ) : orders.isError ? (
-              <Pressable onPress={() => void orders.refetch()}>
-                <Typography.Text>{t("notifications.retry")}</Typography.Text>
-              </Pressable>
-            ) : (
-              <Typography.Text style={{ color: palette.muted }}>
-                {t("orders.empty")}
-              </Typography.Text>
-            )}
-          </View>
+          orders.isLoading ? (
+            <ListSkeleton kind="orders" />
+          ) : (
+            <View
+              style={{
+                flex: 1,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {orders.isError || orders.fetchStatus === "paused" ? (
+                <Pressable onPress={() => void orders.refetch()}>
+                  <Typography.Text>{t("notifications.retry")}</Typography.Text>
+                </Pressable>
+              ) : (
+                <Typography.Text style={{ color: palette.muted }}>
+                  {t("orders.empty")}
+                </Typography.Text>
+              )}
+            </View>
+          )
         }
       />
     </SafeAreaView>

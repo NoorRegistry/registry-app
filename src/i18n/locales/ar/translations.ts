@@ -1,4 +1,80 @@
 const translations = {
+  qr: {
+    title: "\u0631\u0645\u0632 QR",
+    myCode: "\u0631\u0645\u0632\u064a",
+    scan: "\u0645\u0633\u062d \u0627\u0644\u0631\u0645\u0632",
+    profile:
+      "\u0627\u0644\u0645\u0644\u0641 \u0627\u0644\u0634\u062e\u0635\u064a",
+    share:
+      "\u0645\u0634\u0627\u0631\u0643\u0629 \u0627\u0644\u0645\u0644\u0641",
+    shareError:
+      "\u062a\u0639\u0630\u0631\u062a \u0645\u0634\u0627\u0631\u0643\u0629 \u0627\u0644\u0645\u0644\u0641",
+    enterCode:
+      "\u0623\u062f\u062e\u0644 \u0631\u0645\u0632 \u0627\u0644\u0645\u0644\u0641",
+    find: "\u0628\u062d\u062b",
+    scanAgain: "\u0645\u0633\u062d \u0645\u062c\u062f\u062f\u064b\u0627",
+    invalid:
+      "\u0647\u0630\u0627 \u0644\u064a\u0633 \u0631\u0645\u0632 \u0645\u0644\u0641 \u0633\u0645\u0628\u0644\u064a\u0633\u062a",
+    unavailable:
+      "\u0627\u0644\u0645\u0644\u0641 \u063a\u064a\u0631 \u0645\u062a\u0627\u062d",
+    loadError:
+      "\u062a\u0639\u0630\u0631 \u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u0645\u0644\u0641",
+    cameraPermission:
+      "\u0627\u0633\u0645\u062d \u0628\u0627\u0644\u0648\u0635\u0648\u0644 \u0644\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u0644\u0645\u0633\u062d \u0631\u0645\u0632 QR",
+    allowCamera:
+      "\u0627\u0644\u0633\u0645\u0627\u062d \u0628\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627",
+    openSettings:
+      "\u0641\u062a\u062d \u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a",
+    cameraError:
+      "\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627 \u063a\u064a\u0631 \u0645\u062a\u0627\u062d\u0629. \u064a\u0645\u0643\u0646\u0643 \u0625\u062f\u062e\u0627\u0644 \u0631\u0645\u0632 \u0627\u0644\u0645\u0644\u0641 \u0623\u062f\u0646\u0627\u0647.",
+    buildRequired:
+      "\u0627\u0644\u0645\u0633\u062d \u064a\u062a\u0637\u0644\u0628 \u062a\u062d\u062f\u064a\u062b \u0627\u0644\u062a\u0637\u0628\u064a\u0642. \u0623\u062f\u062e\u0644 \u0631\u0645\u0632 \u0627\u0644\u0645\u0644\u0641 \u0623\u062f\u0646\u0627\u0647.",
+    flash: "\u0627\u0644\u0641\u0644\u0627\u0634",
+  },
+  support: {
+    title: "الدعم",
+    contact: "تواصل مع الدعم",
+    latestOrder: "أحدث طلباتك",
+    order: "الطلب",
+    getHelp: "طلب مساعدة",
+    myRequests: "طلبات الدعم",
+    seeAll: "عرض الكل",
+    browseTopics: "تصفح المواضيع",
+    search: "ابحث في المساعدة",
+    results: "النتائج",
+    noResults: "لا توجد إجابات مطابقة",
+    empty: "لا توجد طلبات دعم بعد",
+    subject: "الموضوع",
+    message: "الرسالة",
+    linkOrder: "الطلب (اختياري)",
+    unlinkOrder: "إزالة الطلب",
+    change: "تغيير",
+    sendRequest: "إرسال الطلب",
+    sending: "جارٍ الإرسال…",
+    send: "إرسال",
+    reply: "اكتب ردًا",
+    request: "طلب الدعم",
+    team: "دعم سمبليست",
+    resolve: "حل الطلب",
+    reopen: "إعادة الفتح",
+    all: "الكل",
+    loadMore: "عرض المزيد",
+    loadError: "تعذر تحميل الدعم",
+    sendError: "تعذر الإرسال. حاول مرة أخرى.",
+    updateError: "تعذر تحديث الطلب",
+    refreshError: "تعذر التحديث. اضغط للمحاولة.",
+    noArticles: "لا توجد إجابات هنا بعد",
+    status: { OPEN: "مفتوح", RESOLVED: "تم الحل" },
+    events: { OPEN: "أُعيد فتح طلب الدعم", RESOLVED: "تم حل طلب الدعم" },
+    topics: {
+      ORDERS: "الطلبات والتوصيل",
+      REGISTRIES: "القوائم",
+      GIFTS: "الهدايا",
+      FRIENDS: "الأصدقاء والمشاركة",
+      ACCOUNT: "الحساب",
+      APP: "التطبيق والإشعارات",
+    },
+  },
   addresses: {
     selectLocation: "اختر الموقع",
     continue: "متابعة",
@@ -112,6 +188,8 @@ const translations = {
     unavailable: "هذا العنصر لم يعد متاحًا",
     logoutError: "تعذر تسجيل الخروج. حاول مرة أخرى",
     events: {
+      SUPPORT_REPLY: "رد الدعم على طلبك",
+      SUPPORT_UPDATED: "تم تحديث طلب الدعم",
       ORDER_PLACED: "تم استلام طلبك",
       ORDER_DISPATCHED: "طلبك في الطريق إليك",
       ORDER_DELIVERED: "تم توصيل طلبك",
@@ -377,6 +455,22 @@ const translations = {
     mostAddedProducts: "المنتجات الأكثر إضافة",
   },
   shop: {
+    findCategory: "ابحث عن فئات",
+    noCategories: "لم يتم العثور على فئات",
+    allCategories: "كل الفئات",
+    browseSearch: "ابحث عن منتجات ومتاجر",
+    categorySearch: "ابحث في {{name}}",
+    changeCategory: "تغيير الفئة",
+    allProducts: "كل المنتجات",
+    allIn: "كل منتجات {{name}}",
+    newArrivals: "وصل حديثًا",
+    stores: "المتاجر",
+    seeAll: "عرض الكل",
+    loadError: "تعذر تحميل المنتجات",
+    categoryError: "تعذر تحميل الفئات",
+    categoryMissing: "الفئة غير متاحة",
+    searchPrompt: "ابحث عن منتجات",
+
     title: "متجرنا",
     subtitle: "منتقى من قبل الخبراء…",
     searchPlaceholder: "ابحث عن المنتجات",

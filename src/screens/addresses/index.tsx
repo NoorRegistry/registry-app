@@ -1,3 +1,4 @@
+import { ListSkeleton } from "@/components/Skeleton/layouts";
 import { BrandColors } from "@/constants/Colors";
 import Typography from "@/components/Typography";
 import {
@@ -13,13 +14,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Pressable,
-  View,
-} from "react-native";
+import { Alert, FlatList, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 export default function AddressesScreen() {
@@ -111,21 +106,27 @@ export default function AddressesScreen() {
           </View>
         )}
         ListEmptyComponent={
-          <View
-            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-          >
-            {addresses.isPending ? (
-              <ActivityIndicator color={palette.accent} />
-            ) : addresses.isError ? (
-              <Pressable onPress={() => void addresses.refetch()}>
-                <Typography.Text>{t("notifications.retry")}</Typography.Text>
-              </Pressable>
-            ) : (
-              <Typography.Text style={{ color: palette.muted }}>
-                {t("addresses.empty")}
-              </Typography.Text>
-            )}
-          </View>
+          addresses.isLoading ? (
+            <ListSkeleton kind="addresses" />
+          ) : (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              {addresses.isError || addresses.fetchStatus === "paused" ? (
+                <Pressable onPress={() => void addresses.refetch()}>
+                  <Typography.Text>{t("notifications.retry")}</Typography.Text>
+                </Pressable>
+              ) : (
+                <Typography.Text style={{ color: palette.muted }}>
+                  {t("addresses.empty")}
+                </Typography.Text>
+              )}
+            </View>
+          )
         }
       />
       <View style={{ paddingHorizontal: 22, paddingVertical: 12 }}>

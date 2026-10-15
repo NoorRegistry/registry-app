@@ -1,3 +1,4 @@
+import { ListSkeleton } from "@/components/Skeleton/layouts";
 import AppBottomSheetModal from "@/components/BottomSheet/AppBottomSheetModal";
 import { queryClient } from "@/api/queryClient";
 import RegistryListItem from "@/components/RegistryListItem";
@@ -114,7 +115,7 @@ function SwitchRegistry({
 
   const handleSheetChanges = useCallback((index: number) => {}, []);
 
-  const { data: registries } = useQuery({
+  const { data: registries, isLoading } = useQuery({
     queryKey: ["registries"],
     queryFn: fetchRegistries,
   });
@@ -162,6 +163,9 @@ function SwitchRegistry({
           paddingHorizontal: 16,
           gap: 8,
         }}
+        ListEmptyComponent={
+          isLoading ? <ListSkeleton kind="registries" rows={3} /> : null
+        }
         ListHeaderComponent={
           <View className="items-center pt-6 mb-4">
             <Typography.Text weight="bold" size="xl">

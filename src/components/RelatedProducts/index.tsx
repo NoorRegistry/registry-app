@@ -34,18 +34,12 @@ const RelatedProducts = ({ productId }: RelatedProductsProps) => {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{
           paddingHorizontal: 16,
+          gap: 12,
         }}
         className="flex-row"
       >
-        {relatedProducts.map((product, index) => (
-          <View
-            key={product.id}
-            style={{
-              marginRight: index === relatedProducts.length - 1 ? 0 : 12,
-            }}
-          >
-            <ProductCard product={product} width={140} reserveNameSpace />
-          </View>
+        {relatedProducts.map((product) => (
+          <ProductCard key={product.id} product={product} width={140} />
         ))}
       </ScrollView>
     </View>

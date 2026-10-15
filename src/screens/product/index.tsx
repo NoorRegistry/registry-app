@@ -1,3 +1,5 @@
+import { ErrorState } from "@/screens/friends/components";
+import { ScreenSkeleton } from "@/components/Skeleton/layouts";
 import { BrandColors } from "@/constants/Colors";
 import BackButton from "@/components/BackButton";
 import LoadingSpinner from "@/components/Loader/customLoader";
@@ -33,7 +35,11 @@ function ProductScreen() {
     cart.data?.itemCount,
   );
   const cartAction = useCartActions();
-  const { data: product, isFetching } = useQuery({
+  const {
+    data: product,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["products", id],
     queryFn: () => fetchProductById(id),
   });
@@ -88,12 +94,35 @@ function ProductScreen() {
     ),
   }));
 
-  if (isFetching)
+  if (isLoading)
     return (
-      <View className="flex-1 justify-center items-center">
-        <Stack.Screen options={{ headerTransparent: true, headerTitle: "" }} />
-        <Typography.Text className="text-gray-500">Loading</Typography.Text>
+      <View className="flex-1 bg-white">
+        <Stack.Screen
+          options={{
+            headerTransparent: true,
+            headerTitle: "",
+            header: () => (
+              <SafeAreaView edges={["top"]}>
+                <View style={{ paddingHorizontal: 16 }}>
+                  <BackButton filled />
+                </View>
+              </SafeAreaView>
+            ),
+          }}
+        />
+        <ScreenSkeleton kind="product" />
       </View>
+    );
+
+  if (!product)
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={{ paddingHorizontal: 16 }}>
+          <BackButton />
+        </View>
+        <ErrorState retry={() => void refetch()} />
+      </SafeAreaView>
     );
 
   return (

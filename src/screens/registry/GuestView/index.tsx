@@ -1,8 +1,8 @@
+import { ScreenSkeleton } from "@/components/Skeleton/layouts";
 import RegistryAvatar from "@/components/RegistryAvatar";
 import AppBottomSheetModal from "@/components/BottomSheet/AppBottomSheetModal";
 import { queryClient } from "@/api/queryClient";
 import { Button } from "@/components/Button";
-import { LoadingScreen } from "@/components/Loader/customLoader";
 import QtyButton from "@/components/QtyButton";
 import Typography from "@/components/Typography";
 import { Colors } from "@/constants/Colors";
@@ -130,6 +130,7 @@ function GuestViewScreen({ onHeaderTitleChange }: GuestViewScreenProps) {
   const {
     data: registry,
     isFetching,
+    isLoading,
     error,
     isError,
   } = useQuery({
@@ -243,8 +244,8 @@ function GuestViewScreen({ onHeaderTitleChange }: GuestViewScreenProps) {
     );
   }
 
-  if (isFetching) {
-    return <LoadingScreen />;
+  if (isLoading) {
+    return <ScreenSkeleton kind="registry" />;
   }
 
   if (shouldShowPasswordPrompt) {

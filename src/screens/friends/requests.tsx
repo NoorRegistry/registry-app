@@ -72,8 +72,8 @@ export default function RequestsScreen() {
       <PagedList
         data={requests}
         keyExtractor={(item) => item.id}
-        loading={query.isPending}
-        error={query.isError}
+        loading={query.isLoading}
+        error={query.isError || query.fetchStatus === "paused"}
         refreshing={query.isRefetching}
         more={!!query.hasNextPage}
         loadingMore={query.isFetchingNextPage}

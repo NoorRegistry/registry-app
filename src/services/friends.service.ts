@@ -119,3 +119,6 @@ export type PersonProfile = {
 };
 export const fetchPersonProfile = (id: string) =>
   http.get<PersonProfile>(`${base}/people/${id}`);
+
+export const fetchPersonByCode = (code: string) =>
+  http.get<PersonProfile>(`${base}/people/code/${encodeURIComponent(code)}`);

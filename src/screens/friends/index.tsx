@@ -54,6 +54,13 @@ export default function FriendsScreen() {
     <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
       <FriendsTopBar title={t("friends.title")}>
         <MotionButton
+          label={t("qr.title")}
+          onPress={() => router.push("/friends/qr")}
+          style={styles.iconButton}
+        >
+          <Ionicons name="qr-code-outline" size={22} color={palette.ink} />
+        </MotionButton>
+        <MotionButton
           label={t("friends.addFriend")}
           onPress={() =>
             router.push({
@@ -147,8 +154,8 @@ export default function FriendsScreen() {
             </Typography.Text>
           </PersonRow>
         )}
-        loading={query.isPending}
-        error={query.isError}
+        loading={query.isLoading}
+        error={query.isError || query.fetchStatus === "paused"}
         refreshing={query.isRefetching}
         more={!!query.hasNextPage}
         loadingMore={query.isFetchingNextPage}
