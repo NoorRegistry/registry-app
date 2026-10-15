@@ -1,4 +1,5 @@
 import { CatalogSkeleton } from "@/components/Skeleton/layouts";
+import { useGridLayout } from "@/components/Grid";
 import { ErrorState, EmptyState } from "@/screens/friends/components";
 import { ChevronRightIcon } from "@/components/icons/chevron";
 import { Colors } from "@/constants/Colors";
@@ -11,7 +12,6 @@ import { Link, Stack, router } from "expo-router";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Dimensions,
   FlatList,
   I18nManager,
   Pressable,
@@ -22,10 +22,13 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const { width } = Dimensions.get("window");
-
-const RenderStore = ({ store }: { store: IStore }) => {
-  const cardWidth = width / 2 - 16 - 8;
+const RenderStore = ({
+  store,
+  cardWidth,
+}: {
+  store: IStore;
+  cardWidth: number;
+}) => {
   return (
     <Link
       href={{
@@ -56,6 +59,7 @@ const RenderStore = ({ store }: { store: IStore }) => {
 };
 
 const StoresScreen = () => {
+  const { itemWidth: cardWidth, onLayout } = useGridLayout(2, 16, 16);
   const [searchText, setSearchText] = useState("");
   const { t } = useTranslation();
   const colorScheme = useColorScheme();
@@ -113,8 +117,9 @@ const StoresScreen = () => {
           headerTitleAlign: "left",
         }}
       />
-      <SafeAreaView className="flex-1" edges={["bottom"]}>
+      <SafeAreaView className="flex-1" edges={["bottom", "left", "right"]}>
         <FlatList
+          onLayout={onLayout}
           data={filteredStores}
           ListEmptyComponent={
             query.isLoading ? (
@@ -127,10 +132,13 @@ const StoresScreen = () => {
           }
           numColumns={2}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <RenderStore store={item} />}
+          renderItem={({ item }) => (
+            <RenderStore store={item} cardWidth={cardWidth} />
+          )}
           horizontal={false}
-          className="flex-1 px-4 py-6"
-          columnWrapperClassName="justify-between"
+          className="flex-1"
+          contentContainerStyle={{ paddingVertical: 24 }}
+          columnWrapperStyle={{ paddingHorizontal: 16, gap: 16 }}
         />
       </SafeAreaView>
     </>

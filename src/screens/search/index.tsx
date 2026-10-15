@@ -1,7 +1,12 @@
 import { CatalogSkeleton } from "@/components/Skeleton/layouts";
 import ProductCard from "@/components/ProductCard";
 import { searchResultRows, SearchResultRow } from "./results";
-import { BrowseHeader, BrowseState } from "@/screens/shop/components/Browse";
+import {
+  BrowseHeader,
+  BrowseState,
+  CategoryGrid,
+} from "@/screens/shop/components/Browse";
+import { useGridLayout } from "@/components/Grid";
 import ResultRowsSkeleton from "@/components/ResultRowsSkeleton";
 import { useCart } from "@/hooks/useCart";
 import Typography from "@/components/Typography";
@@ -23,10 +28,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useDebounce } from "use-debounce";
 import {
   ActionButton,
@@ -66,10 +68,9 @@ function SearchContent({
 }) {
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
   const columns = width >= 700 ? 3 : 2;
-  const cardWidth =
-    (width - insets.left - insets.right - 32 - (columns - 1) * 12) / columns;
+  const { itemWidth: cardWidth, onLayout: onGridLayout } =
+    useGridLayout(columns);
   const hasCart = Boolean(useCart().data?.itemCount);
   const userId = getDecodedToken()?.user?.id ?? "";
   const historyKey = `search_history_${userId}`;
@@ -156,6 +157,7 @@ function SearchContent({
     if (item.kind === "product-row")
       return (
         <View
+          onLayout={onGridLayout}
           style={{
             flexDirection: "row",
             gap: 12,
@@ -380,49 +382,24 @@ function SearchContent({
               ))}
             </View>
           )}
-          {categories.isLoading && (
-            <CatalogSkeleton kind="categories" columns={4} />
-          )}
+          {categories.isLoading && <CatalogSkeleton kind="categories" />}
           {!!categories.data?.data?.length && (
-            <View style={{ marginHorizontal: 20, marginTop: 22 }}>
-              <Typography.Text weight="medium" style={{ marginBottom: 16 }}>
+            <View style={{ marginTop: 22 }}>
+              <Typography.Text
+                weight="medium"
+                style={{ marginHorizontal: 16, marginBottom: 16 }}
+              >
                 {t("search.categories")}
               </Typography.Text>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 16 }}>
-                {categories.data.data.slice(0, 8).map((category) => (
-                  <Pressable
-                    key={category.id}
-                    accessibilityRole="button"
-                    style={{ width: "21%", alignItems: "center", gap: 7 }}
-                    onPress={() =>
-                      router.push({
-                        pathname: "/category/[id]",
-                        params: { id: category.id },
-                      })
-                    }
-                  >
-                    <View
-                      style={{
-                        width: 64,
-                        height: 64,
-                        backgroundColor: "#F7F7F7",
-                        borderRadius: 12,
-                      }}
-                    >
-                      {category.logo && (
-                        <Image
-                          source={getImageUrl(category.logo)}
-                          style={{ width: 64, height: 64 }}
-                          contentFit="contain"
-                        />
-                      )}
-                    </View>
-                    <Typography.Text size="xs" numberOfLines={1}>
-                      {getEnArName(category.nameEn, category.nameAr)}
-                    </Typography.Text>
-                  </Pressable>
-                ))}
-              </View>
+              <CategoryGrid
+                categories={categories.data.data.slice(0, 8)}
+                onSelect={(category) =>
+                  router.push({
+                    pathname: "/category/[id]",
+                    params: { id: category.id },
+                  })
+                }
+              />
             </View>
           )}
           <Pressable

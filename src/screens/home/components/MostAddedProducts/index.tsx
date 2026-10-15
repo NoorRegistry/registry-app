@@ -1,15 +1,16 @@
 import { CatalogSkeleton } from "@/components/Skeleton/layouts";
 import ProductCard from "@/components/ProductCard";
+import { useGridLayout } from "@/components/Grid";
 import { fetchMostAddedProducts } from "@/services/products.service";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
 import React from "react";
-import { FlatList, View, useWindowDimensions } from "react-native";
+import { FlatList, View } from "react-native";
 import SectionTitle from "../SectionTitle";
 
 function MostAddedProducts() {
-  const { width } = useWindowDimensions();
+  const { containerWidth, onLayout } = useGridLayout(1, 0);
   const { t } = useTranslation();
 
   const { data: mostAddedProducts, isFetching } = useQuery({
@@ -32,8 +33,8 @@ function MostAddedProducts() {
     return null;
   }
 
-  const viewportWidth = width - 32;
-  const visibleCardCount = width >= 390 ? 2.2 : 1.7;
+  const viewportWidth = containerWidth;
+  const visibleCardCount = containerWidth >= 358 ? 2.2 : 1.7;
   const productCardWidth = viewportWidth / visibleCardCount;
 
   return (
@@ -43,6 +44,7 @@ function MostAddedProducts() {
       </View>
 
       <FlatList
+        onLayout={onLayout}
         horizontal
         data={mostAddedProducts}
         keyExtractor={(item) => item.id}

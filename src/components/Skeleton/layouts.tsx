@@ -1,5 +1,5 @@
 import { View, useWindowDimensions } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useGridLayout } from "@/components/Grid";
 import { Skeleton, SkeletonBlock as Block } from ".";
 
 export type CatalogSkeletonKind = "products" | "categories" | "stores";
@@ -8,28 +8,34 @@ function CatalogPlaceholders({
   horizontal = false,
   rows = 2,
   columns: customColumns,
+  padding = 16,
 }: {
   kind?: CatalogSkeletonKind;
   horizontal?: boolean;
   rows?: number;
   columns?: number;
+  padding?: number;
 }) {
   const { width, fontScale } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
-  const available = width - insets.left - insets.right - 32;
   const columns =
     customColumns ??
-    (kind === "categories" ? (width >= 700 ? 5 : 3) : width >= 700 ? 3 : 2);
+    (kind === "categories" ? (width >= 600 ? 5 : 3) : width >= 700 ? 3 : 2);
+  const { itemWidth, containerWidth, onLayout } = useGridLayout(
+    columns,
+    padding,
+  );
+  const available = Math.max(0, containerWidth - padding * 2);
   const size = horizontal
     ? kind === "products"
-      ? available / (width >= 390 ? 2.2 : 1.7)
+      ? available / (available >= 358 ? 2.2 : 1.7)
       : 72
-    : (available - (columns - 1) * 12) / columns;
+    : itemWidth;
   const products = kind === "products";
   return (
     <View
+      onLayout={onLayout}
       style={{
-        paddingHorizontal: 16,
+        paddingHorizontal: padding,
         paddingTop: 12,
         overflow: "hidden",
         gap: 12,

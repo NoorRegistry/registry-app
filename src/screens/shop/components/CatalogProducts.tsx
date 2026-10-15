@@ -1,6 +1,7 @@
 import AppBottomSheetModal from "@/components/BottomSheet/AppBottomSheetModal";
 import { CommerceText } from "@/components/Commerce";
 import ProductCard from "@/components/ProductCard";
+import { useGridLayout } from "@/components/Grid";
 import { BrandColors as colors } from "@/constants/Colors";
 import { useCart } from "@/hooks/useCart";
 import {
@@ -138,7 +139,6 @@ export default function CatalogProducts({
 }) {
   const { t, i18n } = useTranslation();
   const { width } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
   const hasCart = Boolean(useCart().data?.itemCount);
   const [sort, setSort] = useState<CatalogSort>("featured");
   const filters = {
@@ -159,8 +159,7 @@ export default function CatalogProducts({
       )
     : [];
   const columns = width >= 700 ? 3 : 2;
-  const cardWidth =
-    (width - insets.left - insets.right - 32 - (columns - 1) * 12) / columns;
+  const { itemWidth: cardWidth, onLayout } = useGridLayout(columns);
   const total = result.data?.pages[0]?.total;
   const loading =
     enabled && result.isPending && result.fetchStatus !== "paused";
@@ -169,6 +168,7 @@ export default function CatalogProducts({
     <FlatList
       key={`${categoryId ?? storeId ?? "all"}:${columns}`}
       testID="catalog-products"
+      onLayout={onLayout}
       data={data}
       numColumns={columns}
       keyExtractor={(item) => item.id}

@@ -2,6 +2,7 @@ import AppBottomSheetModal from "@/components/BottomSheet/AppBottomSheetModal";
 import CartBar from "@/components/CartBar";
 import { CommerceText } from "@/components/Commerce";
 import ProductCard from "@/components/ProductCard";
+import { useGridLayout } from "@/components/Grid";
 import { BrandColors } from "@/constants/Colors";
 import { useCart } from "@/hooks/useCart";
 import { fetchStore } from "@/services/stores.service";
@@ -99,7 +100,7 @@ export default function StoreScreen() {
     (count, section) => count + section.products.length,
     0,
   );
-  const cardWidth = (width - insets.left - insets.right - 44) / 2;
+  const { itemWidth: cardWidth, onLayout: onGridLayout } = useGridLayout(2);
   const searchBottom = identityHeight + searchHeight;
   const titleOpacity = scrollY.interpolate({
     inputRange: [identityHeight, identityHeight + 12],
@@ -547,6 +548,7 @@ export default function StoreScreen() {
           <View style={{ flex: 1 }}>
             <AnimatedFlatList
               testID="store-products"
+              onLayout={onGridLayout}
               ref={listRef}
               data={rows}
               renderItem={renderRow}

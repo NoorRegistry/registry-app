@@ -3,6 +3,7 @@ import {
   CatalogSkeletonKind,
 } from "@/components/Skeleton/layouts";
 import { CommerceText } from "@/components/Commerce";
+import Grid from "@/components/Grid";
 import Typography from "@/components/Typography";
 import { BrandColors as colors } from "@/constants/Colors";
 import { useCart } from "@/hooks/useCart";
@@ -197,27 +198,20 @@ export function CategoryGrid({
   onSelect: (category: IProductCategory) => void;
 }) {
   const { width, fontScale } = useWindowDimensions();
-  const usableWidth = availableWidth ?? width;
   const columns = availableWidth
     ? fontScale > 1.3
       ? 1
       : 2
     : width >= 600
       ? 5
-      : width < 350 || fontScale > 1.2
-        ? 2
-        : 3;
-  const size = (usableWidth - 32 - (columns - 1) * 12) / columns;
+      : 3;
   return (
-    <View
-      style={{
-        paddingHorizontal: 16,
-        flexDirection: "row",
-        flexWrap: "wrap",
-        gap: 12,
-      }}
-    >
-      {categories.map((category) => (
+    <Grid
+      data={categories}
+      columns={columns}
+      padding={16}
+      keyExtractor={(category) => category.id}
+      renderItem={(category, size) => (
         <Pressable
           testID={`category-tile-${category.id}`}
           key={category.id}
@@ -225,7 +219,6 @@ export function CategoryGrid({
           accessibilityLabel={getEnArName(category.nameEn, category.nameAr)}
           onPress={() => onSelect(category)}
           style={{
-            width: size,
             paddingBottom: 8,
             gap: 6,
             alignItems: "center",
@@ -240,8 +233,8 @@ export function CategoryGrid({
             {getEnArName(category.nameEn, category.nameAr)}
           </CommerceText>
         </Pressable>
-      ))}
-    </View>
+      )}
+    />
   );
 }
 export function BrowseState({

@@ -1,4 +1,5 @@
 import { CatalogSkeleton } from "@/components/Skeleton/layouts";
+import Grid from "@/components/Grid";
 import { Button } from "@/components/Button";
 import { ChevronRightMDIcon } from "@/components/icons/chevron_md";
 import { Colors } from "@/constants/Colors";
@@ -25,11 +26,17 @@ function PopularStores() {
   return (
     <View className="px-4 pt-0 pb-4 bg-white gap-5">
       <SectionTitle>{t("home.browsePopularStores")}</SectionTitle>
-      {isLoading && <CatalogSkeleton kind="stores" columns={3} rows={3} />}
+      {isLoading && (
+        <CatalogSkeleton kind="stores" columns={3} rows={3} padding={0} />
+      )}
       {stores && (
         <>
-          <View className="flex flex-wrap flex-row justify-between gap-y-4">
-            {stores?.data.map((store) => (
+          <Grid
+            data={stores.data}
+            columns={3}
+            gap={16}
+            keyExtractor={(store) => store.id}
+            renderItem={(store) => (
               <Link
                 href={{
                   pathname: "/stores/[id]",
@@ -43,7 +50,7 @@ function PopularStores() {
               >
                 <Pressable
                   key={store.id}
-                  className="w-[30%] h-24 p-2 items-center justify-center border border-neutral-200 rounded-3xl"
+                  className="w-full h-24 p-2 items-center justify-center border border-neutral-200 rounded-3xl"
                 >
                   <View className="flex-1 w-full">
                     <Image
@@ -54,8 +61,8 @@ function PopularStores() {
                   </View>
                 </Pressable>
               </Link>
-            ))}
-          </View>
+            )}
+          />
           <Button
             type="text"
             title={t("common.viewAll")}

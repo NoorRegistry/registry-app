@@ -1,4 +1,5 @@
 import { CatalogSkeleton } from "@/components/Skeleton/layouts";
+import Grid from "@/components/Grid";
 import { ErrorState } from "@/screens/friends/components";
 import { queryClient } from "@/api/queryClient";
 import BackButton from "@/components/BackButton";
@@ -28,13 +29,13 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
-  Dimensions,
   I18nManager,
   Keyboard,
   TextInput,
   TouchableOpacity,
   View,
   useColorScheme,
+  useWindowDimensions,
 } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import Animated, {
@@ -48,12 +49,11 @@ import {
 } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
-const { width, height } = Dimensions.get("window");
-const cardWidth = width / 2 - 24 - 8;
 const registryInputClassName =
   "rounded border border-primary-500 bg-[#fbfbfb] px-4 font-Poppinsregular text-base text-[#100E0E] shadow-sm shadow-neutral-100";
 
 function CreateRegistryScreen() {
+  const { height } = useWindowDimensions();
   const { t } = useTranslation();
   const colorScheme = useColorScheme();
   const { control, handleSubmit, setValue, getValues } =
@@ -229,9 +229,13 @@ function CreateRegistryScreen() {
                 <Form.Item name="categoryId" control={control}>
                   {() => {
                     return (
-                      <View className="flex-row justify-between flex-wrap">
+                      <View>
                         {categoriesQuery.isLoading && (
-                          <CatalogSkeleton kind="categories" columns={2} />
+                          <CatalogSkeleton
+                            kind="categories"
+                            columns={2}
+                            padding={0}
+                          />
                         )}
                         {(categoriesQuery.isError ||
                           categoriesQuery.fetchStatus === "paused") && (
@@ -239,44 +243,49 @@ function CreateRegistryScreen() {
                             retry={() => void categoriesQuery.refetch()}
                           />
                         )}
-                        {categories?.map((category) => (
-                          <TouchableOpacity
-                            key={category.id}
-                            style={{ width: cardWidth }}
-                            className="mb-4 rounded-xl bg-primary-50 border border-primary-100 shadow-sm shadow-neutral-100 gap-2 px-4 py-8"
-                            onPress={() => handleCardPress(category.id)}
-                          >
-                            <View className="justify-center items-center">
-                              <Image
-                                source={
-                                  category.registryBackground ||
-                                  category.registryPlaceHolder
-                                    ? {
-                                        uri: getImageUrl(
-                                          category.registryBackground ??
-                                            category.registryPlaceHolder,
-                                        ),
-                                      }
-                                    : require("@assets/images/icon.png")
-                                }
-                                style={{
-                                  width: 50,
-                                  height: 50,
-                                }}
-                                contentFit="contain"
-                              />
-                            </View>
-                            <Typography.Text
-                              numberOfLines={1}
-                              ellipsizeMode="tail"
-                              weight="medium"
-                              size="sm"
-                              className="text-center w-full text-gray-700 flex-1 mt-2"
+                        <Grid
+                          data={categories ?? []}
+                          columns={2}
+                          gap={16}
+                          keyExtractor={(category) => category.id}
+                          renderItem={(category) => (
+                            <TouchableOpacity
+                              key={category.id}
+                              className="w-full rounded-xl bg-primary-50 border border-primary-100 shadow-sm shadow-neutral-100 gap-2 px-4 py-8"
+                              onPress={() => handleCardPress(category.id)}
                             >
-                              {getEnArName(category.nameEn, category.nameAr)}
-                            </Typography.Text>
-                          </TouchableOpacity>
-                        ))}
+                              <View className="justify-center items-center">
+                                <Image
+                                  source={
+                                    category.registryBackground ||
+                                    category.registryPlaceHolder
+                                      ? {
+                                          uri: getImageUrl(
+                                            category.registryBackground ??
+                                              category.registryPlaceHolder,
+                                          ),
+                                        }
+                                      : require("@assets/images/icon.png")
+                                  }
+                                  style={{
+                                    width: 50,
+                                    height: 50,
+                                  }}
+                                  contentFit="contain"
+                                />
+                              </View>
+                              <Typography.Text
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
+                                weight="medium"
+                                size="sm"
+                                className="text-center w-full text-gray-700 flex-1 mt-2"
+                              >
+                                {getEnArName(category.nameEn, category.nameAr)}
+                              </Typography.Text>
+                            </TouchableOpacity>
+                          )}
+                        />
                       </View>
                     );
                   }}
