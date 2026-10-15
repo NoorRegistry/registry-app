@@ -7,7 +7,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { router, usePathname } from "expo-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Keyboard, Pressable, View } from "react-native";
+import { I18nManager, Keyboard, Pressable, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -88,7 +88,11 @@ export default function CartBar({
         <Typography.Text weight="medium" style={{ color: "#fff" }}>
           {t("cart.viewCart")}
         </Typography.Text>
-        <Ionicons name="chevron-forward" size={16} color="#fff" />
+        <Ionicons
+          name={I18nManager.isRTL ? "chevron-back" : "chevron-forward"}
+          size={16}
+          color="#fff"
+        />
       </Pressable>
     </Animated.View>
   );

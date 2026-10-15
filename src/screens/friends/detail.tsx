@@ -1,3 +1,4 @@
+import RegistryAvatar from "@/components/RegistryAvatar";
 import { queryClient } from "@/api/queryClient";
 import Typography from "@/components/Typography";
 import {
@@ -7,11 +8,10 @@ import {
   shareFriendRegistry,
   SharedRegistry,
 } from "@/services/friends.service";
-import { getEnArName, getImageUrl } from "@/utils/helper";
+import { getEnArName } from "@/utils/helper";
 import { getApiErrorMessage } from "@/utils/api-error";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -71,27 +71,7 @@ function RegistryRow({
         borderBottomColor: palette.line,
       }}
     >
-      <View
-        style={{
-          width: 48,
-          height: 48,
-          borderRadius: 15,
-          backgroundColor: palette.peach,
-          overflow: "hidden",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {registry.logo ? (
-          <Image
-            source={getImageUrl(registry.logo)}
-            style={{ width: 48, height: 48 }}
-            contentFit="cover"
-          />
-        ) : (
-          <Ionicons name="gift-outline" size={22} color={palette.accent} />
-        )}
-      </View>
+      <RegistryAvatar title={registry.title} logo={registry.logo} />
       <View style={{ flex: 1, gap: 4 }}>
         <Typography.Text weight="medium">{registry.title}</Typography.Text>
         <Typography.Text size="xs" style={{ color: palette.muted }}>

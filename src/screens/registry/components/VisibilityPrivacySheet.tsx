@@ -1,3 +1,4 @@
+import AppBottomSheetModal from "@/components/BottomSheet/AppBottomSheetModal";
 import { queryClient } from "@/api/queryClient";
 import Typography from "@/components/Typography";
 import { LightningIcon } from "@/components/icons/lightningIcon";
@@ -219,7 +220,7 @@ function VisibilityPrivacySheet({
   });
 
   return (
-    <BottomSheetModal
+    <AppBottomSheetModal
       ref={localRef}
       index={0}
       snapPoints={snapPoints}
@@ -368,7 +369,7 @@ function VisibilityPrivacySheet({
           </TouchableOpacity>
         </View>
       </BottomSheetView>
-    </BottomSheetModal>
+    </AppBottomSheetModal>
   );
 }
 

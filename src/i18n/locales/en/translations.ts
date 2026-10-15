@@ -67,6 +67,14 @@ const translations = {
     reviewCart: "Review your cart before checkout",
   },
   orders: {
+    details: "Order details",
+    unpaid: "Unpaid",
+    steps: {
+      PENDING: "Placed",
+      CONFIRMED: "Confirmed",
+      DISPATCHED: "Dispatched",
+      DELIVERED: "Delivered",
+    },
     thankYou: "Thank you, {{name}}!",
     confirmation: "Order {{reference}} placed",
     payOnDelivery: "Pay when your order arrives",
@@ -81,7 +89,7 @@ const translations = {
     status: {
       PENDING: "Order placed",
       CONFIRMED: "Confirmed",
-      DISPATCHED: "On the way",
+      DISPATCHED: "Dispatched",
       DELIVERED: "Delivered",
       CANCELLED: "Cancelled",
     },
@@ -167,6 +175,9 @@ const translations = {
     authFailed: "Sign up failed",
   },
   cart: {
+    addItems: "Add items",
+    summary: "Order summary",
+    quoteError: "Couldn’t load totals",
     title: "Cart",
     addToCart: "Add to cart",
     addToRegistry: "Add to registry",
@@ -370,6 +381,21 @@ const translations = {
     totalTimesAdded: "Added {{count}} times",
     recentlyPopular: "{{count}} recent additions",
   },
+  store: {
+    search: "Search this store",
+    all: "All",
+    productCount_one: "{{count}} product",
+    productCount_other: "{{count}} products",
+    empty: "No products found",
+    loadError: "Couldn’t load store",
+    sort: "Sort",
+    sorts: {
+      featured: "Default",
+      priceAsc: "Price: low to high",
+      priceDesc: "Price: high to low",
+      name: "Name",
+    },
+  },
   registry: {
     removeItem: "Remove item",
     removeItemConfirmation:
@@ -398,6 +424,10 @@ const translations = {
     markAnotherPurchase_other: "Mark Another Purchase",
     guestView: "Guest View",
     visibilityPrivacy: "Visibility & Privacy",
+    details: "Registry details",
+    greeting: "Greeting",
+    titleRequired: "Enter a title",
+    loadError: "Couldn't load your registry",
     visibilityPublicDescription: "Visitors can search for your registry",
     visibilityPrivateDescription:
       "Visitors must have the direct link to access your registry",

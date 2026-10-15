@@ -1,3 +1,4 @@
+import AppBottomSheetModal from "@/components/BottomSheet/AppBottomSheetModal";
 import { queryClient } from "@/api/queryClient";
 import RegistryListItem from "@/components/RegistryListItem";
 import Typography from "@/components/Typography";
@@ -13,7 +14,7 @@ import {
 } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Dimensions, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -33,7 +34,7 @@ function SwitchRegistry({
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const localRef = useRef<BottomSheetModal>(null);
-  const [navigateToNewRegistry, setNavigateToNewRegistry] = useState(false);
+  const navigateToNewRegistry = useRef(false);
   const setSelectedRegistryId = useGlobalStore(
     (state) => state.setSelectedRegistryId,
   );
@@ -65,11 +66,9 @@ function SwitchRegistry({
     setSelectedRegistryId(id);
     queryClient.setQueryData<IRegistry[] | undefined>(["registries"], (old) => {
       if (old && old.length) {
-        const index = old.findIndex((obj) => obj.id === id);
-        if (index > -1 && index !== 0) {
-          const [item] = old.splice(index, 1);
-          old.unshift(item);
-        }
+        const selected = old.find((item) => item.id === id);
+        if (selected)
+          return [selected, ...old.filter((item) => item.id !== id)];
       }
       return old;
     });
@@ -77,13 +76,13 @@ function SwitchRegistry({
   };
 
   const handleNewRegistry = () => {
-    localRef?.current?.close();
-    setNavigateToNewRegistry(true);
+    navigateToNewRegistry.current = true;
+    localRef.current?.dismiss();
   };
 
   const handleOnDismiss = () => {
-    if (navigateToNewRegistry) {
-      setNavigateToNewRegistry(false);
+    if (navigateToNewRegistry.current) {
+      navigateToNewRegistry.current = false;
       router.push("/(protected)/registry/create");
     }
   };
@@ -121,7 +120,7 @@ function SwitchRegistry({
   });
 
   return (
-    <BottomSheetModal
+    <AppBottomSheetModal
       ref={localRef}
       index={1}
       snapPoints={snapPoints}
@@ -178,6 +177,7 @@ function SwitchRegistry({
         <TouchableOpacity
           className="flex-row gap-3 items-center"
           onPress={handleNewRegistry}
+          testID="registry-create-new"
         >
           <View className="bg-[#CF8169] rounded-lg items-center justify-center w-[26px] h-[26px]">
             <PlusIcon size={16} color="#FFFFFF" />
@@ -187,7 +187,7 @@ function SwitchRegistry({
           </Typography.Text>
         </TouchableOpacity>
       </View>
-    </BottomSheetModal>
+    </AppBottomSheetModal>
   );
 }
 

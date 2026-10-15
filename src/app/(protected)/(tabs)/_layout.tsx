@@ -55,6 +55,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="registry"
           options={{
+            tabBarButtonTestID: "tab-registry",
             title: t("common.registry"),
             tabBarIcon: ({ color }) => <RegistryIcon color={color} />,
           }}

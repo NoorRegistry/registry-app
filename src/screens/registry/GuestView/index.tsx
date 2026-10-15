@@ -1,3 +1,5 @@
+import RegistryAvatar from "@/components/RegistryAvatar";
+import AppBottomSheetModal from "@/components/BottomSheet/AppBottomSheetModal";
 import { queryClient } from "@/api/queryClient";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/Loader/customLoader";
@@ -365,11 +367,7 @@ function GuestRegistryHeader({ registry }: GuestRegistryHeaderProps) {
 
   return (
     <View className="px-5 pt-5 pb-5 items-center gap-2.5 bg-white">
-      <Image
-        source={getImageUrl(registry.logo)}
-        style={{ width: 72, height: 72, borderRadius: 36 }}
-        contentFit="cover"
-      />
+      <RegistryAvatar title={registry.title} logo={registry.logo} size={72} />
       <Typography.Text
         weight="medium"
         size="base"
@@ -454,21 +452,11 @@ function GuestRegistryPasswordGate({
       <View className="flex-1 px-6 pt-6 pb-10">
         <View className="flex-1 justify-center gap-8">
           <View className="items-center gap-5">
-            <View className="h-24 w-24 items-center justify-center rounded-full bg-primary-50">
-              {registry?.logo ? (
-                <Image
-                  source={getImageUrl(registry.logo)}
-                  style={{ width: 88, height: 88, borderRadius: 44 }}
-                  contentFit="cover"
-                />
-              ) : (
-                <MaterialCommunityIcons
-                  name="lock-outline"
-                  size={36}
-                  color="#CF8169"
-                />
-              )}
-            </View>
+            <RegistryAvatar
+              title={registry?.title}
+              logo={registry?.logo}
+              size={88}
+            />
 
             <View className="items-center gap-3">
               <View className="flex-row items-center gap-2 rounded-full bg-[#FAF2F0] px-3 py-1.5">
@@ -872,7 +860,7 @@ function GuestPurchaseSheet({
   const maxQty = item ? item.qtyLeft : MIN_PURCHASE_QTY;
 
   return (
-    <BottomSheetModal
+    <AppBottomSheetModal
       ref={localRef}
       index={1}
       snapPoints={snapPoints}
@@ -1006,7 +994,7 @@ function GuestPurchaseSheet({
           />
         </View>
       </BottomSheetScrollView>
-    </BottomSheetModal>
+    </AppBottomSheetModal>
   );
 }
 

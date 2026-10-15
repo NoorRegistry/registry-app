@@ -8,6 +8,7 @@ import {
   Platform,
   TouchableOpacity,
   useColorScheme,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { OtpInput } from "react-native-otp-entry";
@@ -38,6 +39,9 @@ const formatResendTimer = (seconds: number) => {
 export default function VerifyOtpScreen() {
   const { t } = useTranslation();
   const colorScheme = useColorScheme();
+  const { width } = useWindowDimensions();
+  const otpRowWidth = Math.min(350, width - 48);
+  const otpBoxWidth = (otpRowWidth - 5 * 8) / 6;
   const { authFlow, email } = useLocalSearchParams<{
     authFlow?: "login" | "signup";
     email: string;
@@ -199,14 +203,17 @@ export default function VerifyOtpScreen() {
               theme={{
                 containerStyle: {
                   alignSelf: "center",
+                  width: otpRowWidth,
+                  gap: 8,
                   marginVertical: 20,
                 },
                 pinCodeContainerStyle: {
                   backgroundColor: Colors[colorScheme ?? "light"].background,
                   borderColor: Colors[colorScheme ?? "light"].neutral300,
-                  borderWidth: 1,
+                  borderWidth: 2,
                   borderRadius: 8,
-                  width: 50,
+                  width: otpBoxWidth,
+                  flexShrink: 0,
                   height: 50,
                 },
                 pinCodeTextStyle: {
@@ -218,8 +225,7 @@ export default function VerifyOtpScreen() {
                   backgroundColor: Colors[colorScheme ?? "light"].tint,
                 },
                 focusedPinCodeContainerStyle: {
-                  borderColor: Colors[colorScheme ?? "light"].neutral300,
-                  borderWidth: 2,
+                  borderColor: Colors[colorScheme ?? "light"].tint,
                 },
               }}
             />

@@ -1,175 +1,712 @@
-import { queryClient } from "@/api/queryClient";
-import AnimatedHeaderText from "@/components/AnimatedHeaderText";
+import AppBottomSheetModal from "@/components/BottomSheet/AppBottomSheetModal";
 import CartBar from "@/components/CartBar";
-import HeaderRightButtons from "@/components/Header/HeaderRightButtons";
+import { CommerceText } from "@/components/Commerce";
 import ProductCard from "@/components/ProductCard";
-import Typography from "@/components/Typography";
-import Wave from "@/components/Wave";
+import { BrandColors } from "@/constants/Colors";
+import { useCart } from "@/hooks/useCart";
 import { fetchStore } from "@/services/stores.service";
-import { IProduct, TProductCard } from "@/types";
+import { dismissTopSheet } from "@/store/sheetNavigationStore";
 import { getEnArName, getImageUrl } from "@/utils/helper";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import {
+  BottomSheetBackdrop,
+  BottomSheetModal,
+  BottomSheetView,
+} from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
-import { Stack, useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import { Stack, router, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
-  useAnimatedValue,
   Animated,
   FlatList,
+  I18nManager,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Pressable,
   RefreshControl,
+  ScrollView,
+  TextInput,
   View,
+  ViewToken,
+  useAnimatedValue,
+  useWindowDimensions,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import StoreSkeletonLoader from "./components/StoreSkeletonLoader";
+import {
+  storeCatalogRows,
+  storeSections,
+  StoreCatalogRow,
+  StoreSort,
+} from "./products";
 
-// Wrap FlatList with Animated.createAnimatedComponent
 const AnimatedFlatList = Animated.createAnimatedComponent(
-  FlatList<TProductCard>,
+  FlatList<StoreCatalogRow>,
 );
-
-const PRODUCT_NAME_WRAP_THRESHOLD = 22;
-
-const shouldReserveProductNameSpace = (
-  rowProducts: { nameEn: string; nameAr: string }[],
-) => {
-  return rowProducts.some(
-    (product) =>
-      getEnArName(product.nameEn, product.nameAr).length >
-      PRODUCT_NAME_WRAP_THRESHOLD,
-  );
-};
+const viewabilityConfig = { itemVisiblePercentThreshold: 25 };
+const sorts: StoreSort[] = ["featured", "priceAsc", "priceDesc", "name"];
 
 export default function StoreScreen() {
   const { id, storeName } = useLocalSearchParams<{
     id: string;
     storeName?: string;
   }>();
-
-  const {
-    data: store,
-    isFetching,
-    isRefetching,
-  } = useQuery({
+  const { t, i18n } = useTranslation();
+  const { width, fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const cart = useCart();
+  const storeQuery = useQuery({
     queryKey: ["store", id],
     queryFn: () => fetchStore(id),
   });
-
+  const store = storeQuery.data;
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<StoreSort>("featured");
+  const [activeCategory, setActiveCategory] = useState("");
+  const [identityHeight, setIdentityHeight] = useState(88);
+  const [searchHeight, setSearchHeight] = useState(56);
+  const [railHeight, setRailHeight] = useState(54);
+  const [showHeaderSearch, setShowHeaderSearch] = useState(false);
+  const [logoFailed, setLogoFailed] = useState(false);
   const scrollY = useAnimatedValue(0);
-  const [headerHeight, setHeaderHeight] = useState(0);
-
-  // Initialize animated values
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [150, Math.max(151, headerHeight - 150)],
+  const listRef = useRef<FlatList<StoreCatalogRow>>(null);
+  const inputRef = useRef<TextInput>(null);
+  const sortSheet = useRef<BottomSheetModal>(null);
+  const railRef = useRef<ScrollView>(null);
+  const scrollOffset = useRef(0);
+  const pendingSearch = useRef(false);
+  const pendingCategory = useRef<string | null>(null);
+  const atBottom = useRef(false);
+  const heights = useRef(new Map<string, number>());
+  const categoryFrames = useRef(
+    new Map<string, { x: number; width: number }>(),
+  );
+  const name = store
+    ? getEnArName(store.nameEn, store.nameAr)
+    : (storeName ?? "");
+  const sections = useMemo(
+    () => storeSections(store?.products ?? [], query, sort, i18n.language),
+    [store?.products, query, sort, i18n.language],
+  );
+  const rows = useMemo(() => storeCatalogRows(sections), [sections]);
+  const selectedCategory = sections.some(
+    (section) => section.id === activeCategory,
+  )
+    ? activeCategory
+    : sections[0]?.id;
+  const productCount = sections.reduce(
+    (count, section) => count + section.products.length,
+    0,
+  );
+  const cardWidth = (width - insets.left - insets.right - 44) / 2;
+  const searchBottom = identityHeight + searchHeight;
+  const titleOpacity = scrollY.interpolate({
+    inputRange: [identityHeight, identityHeight + 12],
     outputRange: [0, 1],
     extrapolate: "clamp",
   });
-
-  // Remove elevation animation (not supported with native driver when animating shadow props)
-  const handleScroll = Animated.event(
-    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-    { useNativeDriver: true },
+  const searchOpacity = scrollY.interpolate({
+    inputRange: [searchBottom, searchBottom + 12],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+  const onViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken<StoreCatalogRow>[] }) => {
+      if (pendingCategory.current) return;
+      const ordered = viewableItems
+        .slice()
+        .sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
+      const candidates = atBottom.current ? ordered.reverse() : ordered;
+      const row = candidates.find(({ item }) => item.kind === "products")?.item;
+      if (row?.kind === "products") setActiveCategory(row.sectionId);
+    },
+    [],
   );
-
-  const headerShadowOpacity = headerOpacity; // reuse same interpolation
-
-  const storeHeader = (
+  const handleScrollPosition = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const offset = event.nativeEvent.contentOffset.y;
+      scrollOffset.current = offset;
+      atBottom.current =
+        event.nativeEvent.contentSize.height > 0 &&
+        offset + event.nativeEvent.layoutMeasurement.height >=
+          event.nativeEvent.contentSize.height - 2;
+      if (atBottom.current && !pendingCategory.current && sections.length)
+        setActiveCategory(sections[sections.length - 1].id);
+      setShowHeaderSearch(offset >= searchBottom);
+      if (pendingSearch.current && offset <= 2) {
+        pendingSearch.current = false;
+        requestAnimationFrame(() => inputRef.current?.focus());
+      }
+    },
+    [searchBottom, sections],
+  );
+  const handleScroll = useMemo(
+    () =>
+      // Animated.event stores the callback; refs are read only on native scroll events.
+      // eslint-disable-next-line react-hooks/refs
+      Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+        useNativeDriver: true,
+        listener: handleScrollPosition,
+      }),
+    [scrollY, handleScrollPosition],
+  );
+  useEffect(() => {
+    const frame = categoryFrames.current.get(selectedCategory ?? "");
+    if (frame)
+      railRef.current?.scrollTo({
+        x: Math.max(0, frame.x - (width - frame.width) / 2),
+        animated: true,
+      });
+  }, [selectedCategory, width]);
+  const focusSearch = () => {
+    pendingCategory.current = null;
+    pendingSearch.current = true;
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+    if (scrollOffset.current <= 2) {
+      pendingSearch.current = false;
+      inputRef.current?.focus();
+    }
+  };
+  const scrollToCategory = (category: string) => {
+    const index = rows.findIndex(
+      (row) => row.kind === "products" && row.sectionId === category,
+    );
+    if (index < 0) return;
+    pendingCategory.current = category;
+    setActiveCategory(category);
+    listRef.current?.scrollToIndex({
+      index,
+      animated: true,
+      viewOffset: railHeight,
+    });
+  };
+  const estimatedHeight = (row: StoreCatalogRow) => {
+    if (row.kind === "products") return cardWidth + 48 + 60 * fontScale;
+    if (row.kind === "empty") return 80;
+    return row.key === "identity"
+      ? identityHeight
+      : row.key === "search"
+        ? searchHeight
+        : row.key === "categories"
+          ? railHeight
+          : 60;
+  };
+  const rowHeight = (row: StoreCatalogRow) =>
+    heights.current.get(row.key) ?? estimatedHeight(row);
+  const identity = (
     <View
-      onLayout={(event) => {
-        const { height } = event.nativeEvent.layout;
-        setHeaderHeight(height);
+      testID="store-identity"
+      onLayout={({ nativeEvent }) =>
+        setIdentityHeight(nativeEvent.layout.height)
+      }
+      style={{
+        paddingHorizontal: 16,
+        paddingTop: 10,
+        paddingBottom: 18,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
       }}
     >
-      <View className="bg-background-dark relative p-4 pb-0 items-center gap-3">
+      {store?.storeLogo && !logoFailed ? (
         <Image
-          source={{ uri: getImageUrl(store?.storeLogo) }}
-          style={{ width: 150, height: 150, borderRadius: 999 }}
+          source={getImageUrl(store.storeLogo)}
+          onError={() => setLogoFailed(true)}
           contentFit="contain"
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: 24,
+            backgroundColor: BrandColors.soft,
+          }}
         />
-        <Typography.Text weight="bold" size="xl" className="mt-2">
-          {getEnArName(store?.nameEn ?? "", store?.nameAr ?? "")}
-        </Typography.Text>
-        <Typography.Text weight="light" type="secondary">
-          {getEnArName(store?.descriptionEn ?? "", store?.descriptionAr ?? "")}
-        </Typography.Text>
+      ) : (
+        <View
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: 24,
+            backgroundColor: BrandColors.soft,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <CommerceText
+            size="lg"
+            weight="medium"
+            style={{ color: BrandColors.deep }}
+          >
+            {Array.from(name.trim())[0] ?? "S"}
+          </CommerceText>
+        </View>
+      )}
+      <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+        <CommerceText size="lg" weight="bold" numberOfLines={2}>
+          {name}
+        </CommerceText>
+        {!!getEnArName(store?.descriptionEn, store?.descriptionAr) && (
+          <CommerceText
+            size="xs"
+            style={{ color: BrandColors.muted }}
+            numberOfLines={1}
+          >
+            {getEnArName(store?.descriptionEn, store?.descriptionAr)}
+          </CommerceText>
+        )}
       </View>
-      <Wave />
     </View>
   );
-
-  if (isFetching) return <StoreSkeletonLoader />;
-
+  const search = (
+    <View
+      onLayout={({ nativeEvent }) => setSearchHeight(nativeEvent.layout.height)}
+      style={{ paddingHorizontal: 16, paddingBottom: 12 }}
+    >
+      <View
+        style={{
+          backgroundColor: BrandColors.soft,
+          borderRadius: 12,
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: 12,
+          gap: 9,
+        }}
+      >
+        <Ionicons name="search-outline" size={20} color={BrandColors.muted} />
+        <TextInput
+          testID="store-search"
+          ref={inputRef}
+          value={query}
+          onChangeText={(value) => {
+            pendingCategory.current = null;
+            setQuery(value);
+          }}
+          accessibilityLabel={t("store.search")}
+          placeholder={t("store.search")}
+          placeholderTextColor={BrandColors.muted}
+          autoCorrect={false}
+          returnKeyType="search"
+          style={{
+            flex: 1,
+            minHeight: 44,
+            paddingVertical: 10,
+            fontFamily:
+              i18n.language === "ar" ? "Tajawalregular" : "Poppinsregular",
+            textAlign: I18nManager.isRTL ? "right" : "left",
+            fontSize: 14,
+            color: BrandColors.ink,
+          }}
+        />
+        {!!query && (
+          <Pressable
+            accessibilityRole="button"
+            testID="store-clear-search"
+            accessibilityLabel={t("friends.clearSearch")}
+            onPress={() => setQuery("")}
+            hitSlop={12}
+          >
+            <Ionicons name="close-circle" size={18} color={BrandColors.muted} />
+          </Pressable>
+        )}
+      </View>
+    </View>
+  );
+  const categoryRail = (
+    <View
+      testID="store-category-rail"
+      onLayout={({ nativeEvent }) => setRailHeight(nativeEvent.layout.height)}
+      style={{
+        backgroundColor: "white",
+        borderBottomWidth: 1,
+        borderBottomColor: BrandColors.line,
+      }}
+    >
+      <ScrollView
+        ref={railRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          gap: 24,
+          paddingTop: 6,
+        }}
+      >
+        {sections.map((section) => (
+          <Pressable
+            testID={`store-category-${section.id}`}
+            key={section.id}
+            onLayout={({ nativeEvent }) =>
+              categoryFrames.current.set(section.id, nativeEvent.layout)
+            }
+            accessibilityRole="tab"
+            accessibilityState={{ selected: selectedCategory === section.id }}
+            onPress={() => scrollToCategory(section.id)}
+            style={{
+              minHeight: 42,
+              justifyContent: "center",
+              borderBottomWidth: 2,
+              borderBottomColor:
+                selectedCategory === section.id
+                  ? BrandColors.primary
+                  : "transparent",
+            }}
+          >
+            <CommerceText
+              weight="medium"
+              style={{
+                color:
+                  selectedCategory === section.id
+                    ? BrandColors.deep
+                    : BrandColors.muted,
+              }}
+            >
+              {getEnArName(section.nameEn, section.nameAr)}
+            </CommerceText>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+  );
+  const results = (
+    <View
+      style={{
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 10,
+      }}
+    >
+      <CommerceText size="xs" style={{ flex: 1, color: BrandColors.muted }}>
+        {t("store.productCount", { count: productCount })}
+      </CommerceText>
+      <Pressable
+        testID="store-sort"
+        accessibilityRole="button"
+        onPress={() => sortSheet.current?.present()}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 5,
+          minHeight: 36,
+        }}
+      >
+        <Ionicons
+          name="swap-vertical-outline"
+          size={18}
+          color={BrandColors.muted}
+        />
+        <CommerceText
+          size="xs"
+          style={{
+            color: sort === "featured" ? BrandColors.muted : BrandColors.deep,
+          }}
+        >
+          {t(sort === "featured" ? "store.sort" : `store.sorts.${sort}`)}
+        </CommerceText>
+      </Pressable>
+    </View>
+  );
+  const renderRow = ({ item }: { item: StoreCatalogRow }) => {
+    let content;
+    if (item.kind === "chrome")
+      content = { identity, search, categories: categoryRail, results }[
+        item.key
+      ];
+    else if (item.kind === "empty")
+      content = (
+        <CommerceText
+          style={{ padding: 24, textAlign: "center", color: BrandColors.muted }}
+        >
+          {t("store.empty")}
+        </CommerceText>
+      );
+    else
+      content = (
+        <View
+          style={{
+            paddingHorizontal: 16,
+            paddingBottom: 16,
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}
+        >
+          {item.products.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              layout="store"
+              width={cardWidth}
+              reserveNameSpace
+            />
+          ))}
+        </View>
+      );
+    return (
+      <View
+        onLayout={({ nativeEvent }) =>
+          heights.current.set(item.key, nativeEvent.layout.height)
+        }
+        style={
+          item.kind === "chrome" && item.key === "categories"
+            ? { backgroundColor: "white", zIndex: 2 }
+            : undefined
+        }
+      >
+        {content}
+      </View>
+    );
+  };
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerTitleAlign: "left",
-          headerShadowVisible: false,
-          headerBackground: () => (
-            <Animated.View className="flex-1 bg-white">
-              <Animated.View
-                pointerEvents="none"
-                className="absolute left-0 right-0 bottom-0"
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: "white" }}
+        edges={["top", "bottom", "left", "right"]}
+      >
+        <View
+          testID="store-header"
+          style={{
+            minHeight: 54,
+            paddingHorizontal: 12,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+            borderBottomWidth: showHeaderSearch ? 1 : 0,
+            borderBottomColor: BrandColors.line,
+          }}
+        >
+          <Pressable
+            testID="store-back"
+            accessibilityRole="button"
+            accessibilityLabel={t("common.back")}
+            onPress={() => {
+              if (dismissTopSheet()) return;
+              if (router.canGoBack()) router.back();
+              else router.replace("/shop");
+            }}
+            style={{
+              width: 40,
+              height: 44,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Ionicons
+              name={I18nManager.isRTL ? "arrow-forward" : "arrow-back"}
+              size={22}
+              color={BrandColors.ink}
+            />
+          </Pressable>
+          <Animated.View
+            style={{ flex: 1, minWidth: 0, opacity: titleOpacity }}
+          >
+            <CommerceText
+              testID="store-header-title"
+              weight="medium"
+              size="base"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {name}
+            </CommerceText>
+          </Animated.View>
+          {showHeaderSearch && (
+            <Animated.View style={{ opacity: searchOpacity }}>
+              <Pressable
+                testID="store-header-search"
+                accessibilityRole="button"
+                accessibilityLabel={t("store.search")}
+                onPress={focusSearch}
                 style={{
-                  height: 1,
-                  backgroundColor: "rgba(0,0,0,0.15)",
-                  opacity: headerShadowOpacity,
+                  width: 40,
+                  height: 44,
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
-              />
+              >
+                <Ionicons
+                  name="search-outline"
+                  size={21}
+                  color={BrandColors.ink}
+                />
+              </Pressable>
             </Animated.View>
-          ),
-          headerTitle: () => (
-            <AnimatedHeaderText
-              opacity={headerOpacity}
-              title={
-                storeName ??
-                getEnArName(store?.nameEn ?? "", store?.nameAr ?? "")
+          )}
+          <Pressable
+            testID="store-cart"
+            accessibilityRole="button"
+            accessibilityLabel={`${t("cart.viewCart")} ${t("cart.itemCount", { count: cart.data?.itemCount ?? 0 })}`}
+            onPress={() => router.push("/cart")}
+            style={{
+              width: 40,
+              height: 44,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons name="bag-outline" size={22} color={BrandColors.ink} />
+            {!!cart.data?.itemCount && (
+              <View
+                pointerEvents="none"
+                style={{
+                  position: "absolute",
+                  top: 2,
+                  end: 0,
+                  minWidth: 18,
+                  height: 18,
+                  paddingHorizontal: 3,
+                  borderRadius: 9,
+                  backgroundColor: BrandColors.primary,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <CommerceText
+                  size="xs"
+                  weight="medium"
+                  allowFontScaling={false}
+                  style={{
+                    color: "white",
+                    fontSize: 10,
+                    lineHeight: 14,
+                    textAlign: "center",
+                  }}
+                >
+                  {cart.data.itemCount > 99 ? "99+" : cart.data.itemCount}
+                </CommerceText>
+              </View>
+            )}
+          </Pressable>
+        </View>
+        {!store &&
+        storeQuery.isPending &&
+        storeQuery.fetchStatus !== "paused" ? (
+          <StoreSkeletonLoader />
+        ) : !store ? (
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 14,
+            }}
+          >
+            <CommerceText>{t("store.loadError")}</CommerceText>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => void storeQuery.refetch()}
+              style={{ padding: 12 }}
+            >
+              <CommerceText style={{ color: BrandColors.deep }}>
+                {t("cart.retry")}
+              </CommerceText>
+            </Pressable>
+          </View>
+        ) : (
+          <View style={{ flex: 1 }}>
+            <AnimatedFlatList
+              testID="store-products"
+              ref={listRef}
+              data={rows}
+              renderItem={renderRow}
+              keyExtractor={(row) => row.key}
+              stickyHeaderIndices={[2]}
+              initialNumToRender={8}
+              removeClippedSubviews={false}
+              getItemLayout={(_, index) => ({
+                index,
+                length: rowHeight(rows[index]),
+                offset: rows
+                  .slice(0, index)
+                  .reduce((sum, row) => sum + rowHeight(row), 0),
+              })}
+              onViewableItemsChanged={onViewableItemsChanged}
+              viewabilityConfig={viewabilityConfig}
+              onScrollBeginDrag={() => {
+                pendingCategory.current = null;
+              }}
+              contentContainerStyle={{
+                paddingBottom: cart.data?.itemCount ? 100 : 24,
+              }}
+              keyboardDismissMode="on-drag"
+              keyboardShouldPersistTaps="handled"
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
+              refreshControl={
+                <RefreshControl
+                  tintColor={BrandColors.primary}
+                  refreshing={storeQuery.isRefetching}
+                  onRefresh={() => void storeQuery.refetch()}
+                />
               }
             />
-          ),
-          headerRight: () => <HeaderRightButtons />,
-        }}
-      />
-      <SafeAreaView
-        className="flex-1 bg-white"
-        edges={["bottom", "left", "right"]}
-      >
-        <AnimatedFlatList
-          ListHeaderComponent={storeHeader}
-          data={store?.products ?? []}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item, index }) => {
-            const products = store?.products ?? [];
-            const rowStartIndex = index - (index % 2);
-            const rowProducts = products.slice(
-              rowStartIndex,
-              rowStartIndex + 2,
-            );
-
-            return (
-              <ProductCard
-                product={item as IProduct}
-                reserveNameSpace={shouldReserveProductNameSpace(rowProducts)}
-              />
-            );
-          }}
-          numColumns={2}
-          horizontal={false}
-          className="flex-1"
-          columnWrapperClassName="justify-between px-4"
-          ItemSeparatorComponent={() => <View className="h-4" />}
-          onScroll={handleScroll}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefetching} // Use isRefetching from React Query
-              onRefresh={() => {
-                queryClient.invalidateQueries({ queryKey: ["store", id] });
-              }} // Call refetch directly
-            />
-          }
-          ListFooterComponent={<View className="pb-32" />}
-        />
-        <CartBar placement="screen" />
+            <CartBar placement="screen" />
+          </View>
+        )}
       </SafeAreaView>
+      <AppBottomSheetModal
+        ref={sortSheet}
+        index={0}
+        enableDynamicSizing
+        topInset={insets.top}
+        enablePanDownToClose
+        backdropComponent={(props) => (
+          <BottomSheetBackdrop
+            {...props}
+            appearsOnIndex={0}
+            disappearsOnIndex={-1}
+            pressBehavior="close"
+          />
+        )}
+        backgroundStyle={{ backgroundColor: "white" }}
+        handleIndicatorStyle={{ backgroundColor: BrandColors.line }}
+      >
+        <BottomSheetView
+          style={{
+            paddingHorizontal: 22,
+            paddingTop: 10,
+            paddingBottom: insets.bottom + 18,
+          }}
+        >
+          <CommerceText size="base" weight="bold" style={{ marginBottom: 8 }}>
+            {t("store.sort")}
+          </CommerceText>
+          {sorts.map((value) => (
+            <Pressable
+              key={value}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: sort === value }}
+              onPress={() => {
+                setSort(value);
+                sortSheet.current?.dismiss();
+              }}
+              style={{
+                minHeight: 48,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 12,
+              }}
+            >
+              <CommerceText style={{ flex: 1 }}>
+                {t(`store.sorts.${value}`)}
+              </CommerceText>
+              {sort === value && (
+                <Ionicons
+                  name="checkmark"
+                  size={20}
+                  color={BrandColors.primary}
+                />
+              )}
+            </Pressable>
+          ))}
+        </BottomSheetView>
+      </AppBottomSheetModal>
     </>
   );
 }

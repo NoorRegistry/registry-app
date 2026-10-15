@@ -1,3 +1,4 @@
+import AppBottomSheetModal from "@/components/BottomSheet/AppBottomSheetModal";
 import { useBottomSheetStore } from "@/store/bottomSheetStore";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import React, { useRef } from "react";
@@ -35,8 +36,9 @@ const BottomSheetProvider: React.FC = () => {
   }, [isVisible]);
 
   return (
-    <BottomSheetModal
+    <AppBottomSheetModal
       ref={bottomSheetModalRef}
+      guardNavigation={false}
       index={1}
       snapPoints={["50%"]}
       onDismiss={resetContent} // Reset content on dismiss
@@ -60,7 +62,7 @@ const BottomSheetProvider: React.FC = () => {
       }}
     >
       {content}
-    </BottomSheetModal>
+    </AppBottomSheetModal>
   );
 };
 

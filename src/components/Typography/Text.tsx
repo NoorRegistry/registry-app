@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import { clsx } from "clsx";
 import { useTranslation } from "react-i18next";
 import {
   Text as DefaultText,
@@ -7,6 +7,7 @@ import {
   TextStyle,
   type TextProps,
 } from "react-native";
+import { textFontFamily, textLineHeight } from "./metrics";
 
 export interface IText {
   /**
@@ -37,12 +38,6 @@ export interface IText {
 }
 
 export type CustomTextProps = IText & TextProps;
-
-const getFontFamily = (weight: IText["weight"], language: string) => {
-  return language === "en"
-    ? `Poppins${weight === "extralight" ? "light" : weight}`
-    : `Tajawal${weight}`;
-};
 
 const hasTextAlignClass = (className?: string) =>
   /\b!?text-(left|right|center|justify|start|end)\b/.test(className ?? "");
@@ -78,7 +73,13 @@ const Text = ({
   );
 
   const fontfamilyStyle: StyleProp<TextStyle> = {
-    fontFamily: getFontFamily(weight, language),
+    fontFamily: textFontFamily(weight, language, children),
+    lineHeight: textLineHeight(
+      size,
+      className,
+      StyleSheet.flatten(style)?.fontSize,
+    ),
+    includeFontPadding: false,
     writingDirection: isRTL ? "rtl" : "ltr",
   };
 

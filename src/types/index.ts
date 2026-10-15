@@ -40,7 +40,11 @@ export interface IStore {
 export interface IStoreDetails extends IStore {
   descriptionEn: string;
   descriptionAr: string;
-  products: TProductCard[];
+  products: (IProduct & {
+    productCategories?: {
+      category: { id: string; nameEn: string; nameAr: string };
+    }[];
+  })[];
 }
 
 export type TCreateStore = Omit<IStoreDetails, "id">;
@@ -292,6 +296,9 @@ export interface ICreateRegistryPayload {
 }
 
 export interface IUpdateRegistryPayload {
+  title?: string;
+  greeting?: string;
+  logo?: string;
   visibility?: "Private" | "Public";
   isProtected?: boolean;
   code?: string;

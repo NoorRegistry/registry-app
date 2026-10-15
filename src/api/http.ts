@@ -24,6 +24,7 @@ enum StatusCode {
 
 export interface IApiError {
   detail: string;
+  status?: number;
 }
 
 const headers: Readonly<Record<string, string | boolean>> = {
@@ -180,6 +181,7 @@ class Http {
       }
       apiError = {
         detail: normalizedDetail || normalizedMessage || error?.message,
+        status: error.response?.status,
       };
     } else {
       apiError = {

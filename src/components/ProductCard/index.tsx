@@ -1,3 +1,4 @@
+import AppBottomSheetModal from "@/components/BottomSheet/AppBottomSheetModal";
 import { BrandColors } from "@/constants/Colors";
 import { View } from "@/components/Themed";
 import LoadingSpinner from "@/components/Loader/customLoader";
@@ -96,10 +97,12 @@ const ProductCard = ({
   product,
   width: customWidth,
   reserveNameSpace = false,
+  layout = "default",
 }: {
   product: IProduct;
   width?: number;
   reserveNameSpace?: boolean;
+  layout?: "default" | "store";
 }) => {
   const finalWidth = customWidth || cardWidth;
   const { t } = useTranslation();
@@ -127,6 +130,40 @@ const ProductCard = ({
 
   const openActions = () => actionSheetRef.current?.present();
   const closeActions = () => actionSheetRef.current?.dismiss();
+  const addButton = (
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityLabel={t("cart.addOptions")}
+      testID="product-add-options"
+      hitSlop={6}
+      className="h-8 w-8 items-center justify-center"
+      style={
+        layout === "store"
+          ? {
+              position: "absolute",
+              top: finalWidth - 40,
+              end: 8,
+              backgroundColor: "white",
+              borderRadius: 18,
+            }
+          : undefined
+      }
+      disabled={isAddingProductToRegistry || cartAction.isPending}
+      onPress={openActions}
+    >
+      {isAddingProductToRegistry || cartAction.isPending ? (
+        <LoadingSpinner size="small" />
+      ) : layout === "store" ? (
+        <Ionicons
+          name="add-circle-outline"
+          size={30}
+          color={BrandColors.primary}
+        />
+      ) : (
+        <GreenPlusCircleIcon size={30} />
+      )}
+    </TouchableOpacity>
+  );
 
   return (
     <>
@@ -161,7 +198,7 @@ const ProductCard = ({
               />
             </View>
             <View className="pt-3 w-full gap-1">
-              {product?.store && (
+              {product?.store && layout !== "store" && (
                 <Typography.Text
                   numberOfLines={2}
                   ellipsizeMode="tail"
@@ -175,9 +212,18 @@ const ProductCard = ({
               <Typography.Text
                 numberOfLines={2}
                 ellipsizeMode="tail"
-                weight="light"
-                size="xs"
-                className={reserveNameSpace ? "h-8" : ""}
+                weight={layout === "store" ? "regular" : "light"}
+                size={layout === "store" ? "sm" : "xs"}
+                style={
+                  layout === "store"
+                    ? {
+                        color: BrandColors.ink,
+                        textAlign: "left",
+                        minHeight: reserveNameSpace ? 40 : undefined,
+                      }
+                    : undefined
+                }
+                className={reserveNameSpace && layout !== "store" ? "h-8" : ""}
               >
                 {getEnArName(product.nameEn, product.nameAr)}
               </Typography.Text>
@@ -190,25 +236,23 @@ const ProductCard = ({
             ellipsizeMode="tail"
             weight="medium"
             className="flex-1"
+            style={
+              layout === "store"
+                ? {
+                    color: BrandColors.deep,
+                    fontSize: 14,
+                    textAlign: "left",
+                  }
+                : undefined
+            }
           >
             {formatPrice(product.price, product.currencyCode)}
           </Typography.Text>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel={t("cart.addOptions")}
-            className="h-8 w-8 items-center justify-center"
-            disabled={isAddingProductToRegistry || cartAction.isPending}
-            onPress={openActions}
-          >
-            {isAddingProductToRegistry || cartAction.isPending ? (
-              <LoadingSpinner size="small" />
-            ) : (
-              <GreenPlusCircleIcon size={30} />
-            )}
-          </TouchableOpacity>
+          {layout !== "store" && addButton}
         </View>
+        {layout === "store" && addButton}
       </View>
-      <BottomSheetModal
+      <AppBottomSheetModal
         ref={actionSheetRef}
         accessible={false}
         index={0}
@@ -245,7 +289,7 @@ const ProductCard = ({
             cartAction.mutate({ kind: "add", productId: product.id });
           }}
         />
-      </BottomSheetModal>
+      </AppBottomSheetModal>
       {addedToRegistryOverlay}
     </>
   );

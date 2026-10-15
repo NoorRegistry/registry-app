@@ -26,6 +26,10 @@ import * as Sentry from "@sentry/react-native";
 import { useTranslation } from "react-i18next";
 
 import BottomSheetProvider from "@/components/BottomSheet";
+import {
+  BottomSheetBackHandler,
+  GlobalBottomSheetNavigationGuard,
+} from "@/components/BottomSheet/AppBottomSheetModal";
 import NotificationCenter from "@/components/NotificationCenter";
 import "@/i18n";
 import "@/theme/global.css";
@@ -106,11 +110,11 @@ function RootLayout() {
     Poppinsregular: require("@assets/fonts/OpenSans-Regular.ttf"),
     Poppinsmedium: require("@assets/fonts/OpenSans-Medium.ttf"),
     Poppinsbold: require("@assets/fonts/OpenSans-Bold.ttf"),
-    Tajawalextralight: require("@assets/fonts/Tajawal-ExtraLight.ttf"),
-    Tajawallight: require("@assets/fonts/Tajawal-Light.ttf"),
-    Tajawalregular: require("@assets/fonts/Tajawal-Regular.ttf"),
-    Tajawalmedium: require("@assets/fonts/Tajawal-Medium.ttf"),
-    Tajawalbold: require("@assets/fonts/Tajawal-Bold.ttf"),
+    Tajawalextralight: require("@assets/fonts/normalized/Tajawal-ExtraLight.ttf"),
+    Tajawallight: require("@assets/fonts/normalized/Tajawal-Light.ttf"),
+    Tajawalregular: require("@assets/fonts/normalized/Tajawal-Regular.ttf"),
+    Tajawalmedium: require("@assets/fonts/normalized/Tajawal-Medium.ttf"),
+    Tajawalbold: require("@assets/fonts/normalized/Tajawal-Bold.ttf"),
     ...FontAwesome.font,
   });
 
@@ -164,6 +168,11 @@ function RootLayoutNav() {
               <BottomSheetModalProvider>
                 <Stack
                   screenOptions={{ headerBackButtonDisplayMode: "minimal" }}
+                  screenLayout={({ children }) => (
+                    <GlobalBottomSheetNavigationGuard>
+                      {children}
+                    </GlobalBottomSheetNavigationGuard>
+                  )}
                 >
                   <Stack.Screen
                     name="(protected)"
@@ -183,6 +192,7 @@ function RootLayoutNav() {
                 <ToastProvider />
                 <NotificationCenter />
                 <BottomSheetProvider />
+                <BottomSheetBackHandler />
               </BottomSheetModalProvider>
             </CustomThemeProvider>
           </LoadingProvider>

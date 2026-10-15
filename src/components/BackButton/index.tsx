@@ -1,4 +1,5 @@
 import { Colors } from "@/constants/Colors";
+import { dismissTopSheet } from "@/store/sheetNavigationStore";
 import clsx from "clsx";
 import { router } from "expo-router";
 import React from "react";
@@ -18,6 +19,7 @@ const BackButton = ({ size = 24, color, filled = false }: BackButtonProps) => {
   }
 
   const handlePress = () => {
+    if (dismissTopSheet()) return;
     if (router.canGoBack()) {
       router.back();
     } else {
@@ -28,6 +30,7 @@ const BackButton = ({ size = 24, color, filled = false }: BackButtonProps) => {
   return (
     <TouchableOpacity
       onPress={handlePress}
+      testID="screen-back"
       className={clsx(
         filled &&
           "bg-white rounded-full w-10 h-10 p-0 items-center justify-center",

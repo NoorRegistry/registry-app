@@ -1,12 +1,14 @@
+import { useTranslation } from "react-i18next";
+import { BrandColors } from "@/constants/Colors";
 import { LoadingScreen } from "@/components/Loader/customLoader";
 import Typography from "@/components/Typography";
 import { useHeaderScrollState } from "@/hooks/useHeaderScrollState";
 import { fetchRegistries, fetchRegistry } from "@/services/registries.service";
-import { useGlobalStore } from "@/store";
+import { useRegistrySelection } from "@/hooks/useRegistrySelection";
 import { getEnArName } from "@/utils/helper";
 import { useQuery } from "@tanstack/react-query";
-import React, { useEffect } from "react";
-import { SectionList, View } from "react-native";
+import React from "react";
+import { Pressable, SectionList, View } from "react-native";
 import RegistryCard from "../home/components/RegistryCard";
 import EmptyRegistry from "./components/EmptyRegistry";
 import RegistryHeader from "./components/RegistryHeader";
@@ -14,44 +16,60 @@ import RegistryItem from "./components/RegistryItem";
 
 function RegistryScreen() {
   const handleHeaderScroll = useHeaderScrollState();
-  const selectedRegistryId = useGlobalStore(
-    (state) => state.selectedRegistryId,
-  );
-  console.log("🚀 ~ RegistryScreen ~ selectedRegistryId:", selectedRegistryId);
-
-  const setSelectedRegistryId = useGlobalStore(
-    (state) => state.setSelectedRegistryId,
-  );
-
-  const { data: registries, isFetching: isFetchingRegistries } = useQuery({
+  const { t } = useTranslation();
+  const registriesQuery = useQuery({
     queryKey: ["registries"],
     queryFn: fetchRegistries,
   });
 
-  useEffect(() => {
-    if (registries?.length) {
-      if (selectedRegistryId !== registries?.[0]?.id)
-        setSelectedRegistryId(registries?.[0]?.id);
-    }
-  }, [registries]);
-
-  const { data: registryDetails, isFetching: isFetchingRegistryDetails } =
-    useQuery({
-      queryKey: ["registryById", selectedRegistryId],
-      queryFn: () =>
-        selectedRegistryId
-          ? fetchRegistry(selectedRegistryId)
-          : Promise.reject(),
-      enabled: !!selectedRegistryId, // Only fetch details if registryId is available
-    });
-
-  if (isFetchingRegistries || isFetchingRegistryDetails)
-    return <LoadingScreen />;
-
+  const registries = registriesQuery.data;
+  const selected = useRegistrySelection(registries);
+  const detailsQuery = useQuery({
+    queryKey: ["registryById", selected?.id],
+    queryFn: () => fetchRegistry(selected!.id),
+    enabled: !!selected,
+  });
+  const registryDetails = detailsQuery.data;
+  const loading =
+    (!registries &&
+      registriesQuery.isPending &&
+      registriesQuery.fetchStatus !== "paused") ||
+    (!!selected &&
+      !registryDetails &&
+      detailsQuery.isPending &&
+      detailsQuery.fetchStatus !== "paused");
+  if (loading) return <LoadingScreen />;
   if (registries?.length === 0) return <RegistryCard />;
-
-  if (!registryDetails)
-    return <Typography.Text>No details found</Typography.Text>;
+  if (!registryDetails) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 16,
+        }}
+      >
+        <Typography.Text>{t("registry.loadError")}</Typography.Text>
+        <Pressable
+          testID="registry-retry"
+          accessibilityRole="button"
+          onPress={async () => {
+            const refreshed = await registriesQuery.refetch();
+            if (refreshed.data?.some(({ id }) => id === selected?.id))
+              await detailsQuery.refetch();
+          }}
+        >
+          <Typography.Text
+            weight="medium"
+            style={{ color: BrandColors.primary }}
+          >
+            {t("notifications.retry")}
+          </Typography.Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   return (
     <SectionList
@@ -59,7 +77,9 @@ function RegistryScreen() {
       onScroll={handleHeaderScroll}
       scrollEventThrottle={16}
       keyExtractor={(item) => item.id}
-      ListHeaderComponent={<RegistryHeader registry={registryDetails} />}
+      ListHeaderComponent={
+        <RegistryHeader key={registryDetails.id} registry={registryDetails} />
+      }
       ListEmptyComponent={<EmptyRegistry />}
       renderSectionHeader={({ section }) => (
         <View className="px-4 py-2 mb-2 bg-white">

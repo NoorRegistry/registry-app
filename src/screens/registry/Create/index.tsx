@@ -14,7 +14,7 @@ import {
   uploadRegistryLogo,
 } from "@/services/upload.service";
 import { useGlobalStore } from "@/store";
-import { ICreateRegistryPayload } from "@/types";
+import { ICreateRegistryPayload, IRegistry } from "@/types";
 import { getEnArName, getImageUrl } from "@/utils/helper";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { clsx } from "clsx";
@@ -72,6 +72,10 @@ function CreateRegistryScreen() {
     mutationFn: (data: ICreateRegistryPayload) => postRegistry(data),
     onSuccess: (data) => {
       registryCreatedRef.current = true;
+      queryClient.setQueryData<IRegistry[]>(["registries"], (previous) => [
+        data,
+        ...(previous ?? []).filter(({ id }) => id !== data.id),
+      ]);
       selectedRegistryId(data.id);
       queryClient.invalidateQueries({ queryKey: ["registries"] });
       router.dismissTo("/(protected)/(tabs)/registry");

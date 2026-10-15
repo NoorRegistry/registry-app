@@ -8,11 +8,10 @@ export function useOnlineManager() {
     // React Query already supports on reconnect auto refetch in web browser
     if (Platform.OS !== "web") {
       return NetInfo.addEventListener((state) => {
-        onlineManager.setOnline(
-          state.isConnected != null &&
-            state.isConnected &&
-            Boolean(state.isInternetReachable),
-        );
+        // Connectivity probes can be unknown or fail while our API is reachable
+        // (including local development servers). Let requests try on a connected
+        // network and use their own timeout/error handling.
+        onlineManager.setOnline(state.isConnected !== false);
       });
     }
   }, []);

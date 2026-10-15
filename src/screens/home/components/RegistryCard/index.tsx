@@ -1,13 +1,13 @@
+import RegistryAvatar from "@/components/RegistryAvatar";
 import NoRegistryCard from "@/components/NoRegistryCard";
 import Typography from "@/components/Typography";
 import { fetchRegistries } from "@/services/registries.service";
-import { useGlobalStore } from "@/store";
+import { useRegistrySelection } from "@/hooks/useRegistrySelection";
 import { IRegistry } from "@/types";
-import { getImageUrl } from "@/utils/helper";
 import { useQuery } from "@tanstack/react-query";
-import { Image, ImageBackground } from "expo-image";
+import { ImageBackground } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import React, { useEffect } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import RegistrySkeleton, {
@@ -15,29 +15,12 @@ import RegistrySkeleton, {
 } from "./RegistryCardSkeleton";
 
 export default function RegistryCard() {
-  const selectedRegistryId = useGlobalStore(
-    (state) => state.selectedRegistryId,
-  );
-  const setSelectedRegistryId = useGlobalStore(
-    (state) => state.setSelectedRegistryId,
-  );
-
   const { data: registries, isFetching: isFetchingRegistries } = useQuery({
     queryKey: ["registries"],
     queryFn: fetchRegistries,
   });
 
-  useEffect(() => {
-    if (registries && registries.length) {
-      if (selectedRegistryId !== registries?.[0]?.id)
-        setSelectedRegistryId(registries?.[0]?.id);
-    }
-  }, [registries]);
-
-  // if (isFetchingRegistries) return <LoadingScreen />;
-  const selectedRegistry =
-    registries?.find((registry) => registry.id === selectedRegistryId) ??
-    registries?.[0];
+  const selectedRegistry = useRegistrySelection(registries);
 
   const registryCardBackgroundSource = require("@assets/images/home/create-registry-background.jpg");
 
@@ -93,25 +76,10 @@ const DisplaySelectedRegistryInfo = ({
   const { t } = useTranslation();
   if (!registry) return null;
 
-  const logoUrl = getImageUrl(registry.logo);
-  const initials = registry.title?.trim()?.charAt(0)?.toUpperCase() ?? "";
-
   return (
     <View className="gap-8">
       <View className="flex-row items-center gap-4">
-        <View className="w-14 h-14 rounded-full bg-[#d8efff] items-center justify-center">
-          {logoUrl ? (
-            <Image
-              source={logoUrl}
-              style={{ width: 56, height: 56, borderRadius: 28 }}
-              contentFit="cover"
-            />
-          ) : (
-            <Typography.Text weight="bold" className="text-[#212121]">
-              {initials}
-            </Typography.Text>
-          )}
-        </View>
+        <RegistryAvatar title={registry.title} logo={registry.logo} size={56} />
         <View className="flex-1">
           <Typography.Text
             size="xl"

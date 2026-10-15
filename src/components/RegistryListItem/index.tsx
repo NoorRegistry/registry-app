@@ -1,9 +1,8 @@
+import RegistryAvatar from "@/components/RegistryAvatar";
 import Typography from "@/components/Typography";
 import { CheckCircleIcon } from "@/components/icons/circle_check";
 import { Colors } from "@/constants/Colors";
 import { IRegistry } from "@/types";
-import { getImageUrl } from "@/utils/helper";
-import { Image } from "expo-image";
 import React from "react";
 import { Pressable, View, useColorScheme } from "react-native";
 
@@ -27,8 +26,6 @@ const RegistryListItem = ({
   badgeLabel,
 }: RegistryListItemProps) => {
   const colorScheme = useColorScheme();
-  const logoUrl = getImageUrl(registry.logo);
-  const initials = registry.title?.trim()?.charAt(0)?.toUpperCase() ?? "";
 
   return (
     <Pressable
@@ -54,19 +51,11 @@ const RegistryListItem = ({
       <View className="px-3 py-5">
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-2">
-            {logoUrl ? (
-              <Image
-                source={logoUrl}
-                style={{ width: 50, height: 50, borderRadius: 999 }}
-                contentFit="cover"
-              />
-            ) : (
-              <View className="bg-[#F2F4FD] items-center justify-center rounded-full w-[50px] h-[50px]">
-                <Typography.Text weight="bold" className="text-[#212121]">
-                  {initials}
-                </Typography.Text>
-              </View>
-            )}
+            <RegistryAvatar
+              title={registry.title}
+              logo={registry.logo}
+              size={50}
+            />
             <View className="gap-1">
               <Typography.Text weight="medium" size="base">
                 {registry.title}

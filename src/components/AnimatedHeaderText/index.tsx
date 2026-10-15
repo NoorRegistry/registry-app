@@ -1,5 +1,5 @@
 import React from "react";
-import { Animated } from "react-native";
+import { Animated, useWindowDimensions } from "react-native";
 import Typography from "../Typography";
 
 function AnimatedHeaderText({
@@ -9,21 +9,25 @@ function AnimatedHeaderText({
   title: string;
   opacity: number | Animated.Value | Animated.AnimatedInterpolation<number>;
 }) {
+  const { width } = useWindowDimensions();
   return (
-    <Typography.AnimatedText
-      animatedStyle={{
+    <Animated.View
+      style={{
         opacity,
+        width: Math.max(80, width - 180),
+        justifyContent: "center",
       }}
-      className="flex-1"
-      weight="medium"
-      size="base"
-      numberOfLines={1}
-      ellipsizeMode="tail"
-      style={{ textAlignVertical: "center" }}
     >
-      {title}
-    </Typography.AnimatedText>
+      <Typography.Text
+        weight="medium"
+        size="base"
+        numberOfLines={1}
+        ellipsizeMode="tail"
+        style={{ textAlignVertical: "center" }}
+      >
+        {title}
+      </Typography.Text>
+    </Animated.View>
   );
 }
-
 export default AnimatedHeaderText;
