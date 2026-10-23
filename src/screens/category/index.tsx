@@ -3,10 +3,18 @@ import { CommerceText } from "@/components/Commerce";
 import { BrandColors as colors } from "@/constants/Colors";
 import { fetchProductCategories } from "@/services/products.service";
 import { getEnArName } from "@/utils/helper";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack, router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView, View } from "react-native";
+import { I18nManager, Pressable, StyleSheet, View } from "react-native";
+import Animated, {
+  Easing,
+  FadeInLeft,
+  FadeInRight,
+  FadeOut,
+  ReduceMotion,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   BrowseHeader,
@@ -18,10 +26,14 @@ import {
 import CatalogProducts from "../shop/components/CatalogProducts";
 import CategorySwitcher from "../shop/components/CategorySwitcher";
 import { categoryChildren, categoryPath } from "./tree";
+import CategoryTabs from "./components/CategoryTabs";
+import { catalogProductsOptions } from "../shop/catalog";
 
 export default function CategoryScreen() {
   const { id, view } = useLocalSearchParams<{ id: string; view?: string }>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const queryClient = useQueryClient();
+  const [direction, setDirection] = useState(I18nManager.isRTL ? -1 : 1);
   const categories = useQuery({
     queryKey: ["categories"],
     queryFn: fetchProductCategories,
@@ -33,6 +45,30 @@ export default function CategoryScreen() {
   const children = categoryChildren(category);
   const parent = path.at(-2);
   const showGrid = children.length > 0 && view !== "all";
+  const tabs = children.length ? children : categoryChildren(parent);
+  const groupId = children.length ? id : parent?.id;
+  useEffect(() => {
+    if (showGrid || !groupId) return;
+    const ids = [groupId, ...tabs.map((tab) => tab.id)];
+    const selectedIndex = ids.indexOf(id);
+    // Warm nearby tabs without downloading the entire category catalog.
+    ids.forEach((categoryId, index) => {
+      if (
+        categoryId === id ||
+        (index !== 0 && Math.abs(index - selectedIndex) > 2)
+      )
+        return;
+      const options = catalogProductsOptions({
+        categoryId,
+        sort: "featured",
+        language: i18n.language,
+      });
+      // Keep any pages already loaded by the user intact.
+      if (!queryClient.getQueryData(options.queryKey)) {
+        void queryClient.prefetchInfiniteQuery({ ...options, pages: 1 });
+      }
+    });
+  }, [groupId, id, i18n.language, queryClient, showGrid, tabs]);
   const name = category
     ? getEnArName(category.nameEn, category.nameAr)
     : t("common.categories");
@@ -43,7 +79,14 @@ export default function CategoryScreen() {
       params: { id: target, ...(all ? { view: "all" } : {}) },
     });
   };
-  const tabs = children.length ? children : categoryChildren(parent);
+  const switchTab = (target: string, all = false) => {
+    if (target === id && (view === "all") === all) return;
+    const ids = [groupId, ...tabs.map((tab) => tab.id)];
+    const forward = ids.indexOf(target) >= ids.indexOf(id);
+    setDirection((forward ? 1 : -1) * (I18nManager.isRTL ? -1 : 1));
+    // Keep tab selections on this route so Back follows the category hierarchy.
+    router.setParams({ id: target, view: all ? "all" : undefined });
+  };
   const header = (
     <>
       <CategorySwitcher roots={roots} path={path} onSelect={open} />
@@ -52,7 +95,7 @@ export default function CategoryScreen() {
           <SectionTitle
             title={t("common.categories")}
             action={t("shop.allProducts")}
-            onPress={() => open(id, true)}
+            onPress={() => switchTab(id, true)}
           />
           <CategoryGrid
             categories={children.slice(0, 6)}
@@ -77,61 +120,13 @@ export default function CategoryScreen() {
         </>
       ) : (
         tabs.length > 0 && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16, gap: 20 }}
-            style={{
-              flexGrow: 0,
-              flexShrink: 0,
-              borderBottomWidth: 1,
-              borderBottomColor: colors.line,
-            }}
-          >
-            <Pressable
-              accessibilityRole="tab"
-              accessibilityState={{ selected: children.length > 0 }}
-              onPress={() => open(children.length ? id : parent!.id, true)}
-              style={{
-                minHeight: 46,
-                justifyContent: "center",
-                borderBottomWidth: children.length ? 2 : 0,
-                borderBottomColor: colors.primary,
-              }}
-            >
-              <CommerceText
-                size="xs"
-                style={{ color: children.length ? colors.deep : colors.muted }}
-              >
-                {t("store.all")}
-              </CommerceText>
-            </Pressable>
-            {tabs.map((child) => (
-              <Pressable
-                testID={`category-tab-${child.id}`}
-                key={child.id}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: child.id === id }}
-                onPress={() => open(child.id)}
-                style={{
-                  minHeight: 46,
-                  justifyContent: "center",
-                  borderBottomWidth: child.id === id ? 2 : 0,
-                  borderBottomColor: colors.primary,
-                }}
-              >
-                <CommerceText
-                  size="xs"
-                  numberOfLines={1}
-                  style={{
-                    color: child.id === id ? colors.deep : colors.muted,
-                  }}
-                >
-                  {getEnArName(child.nameEn, child.nameAr)}
-                </CommerceText>
-              </Pressable>
-            ))}
-          </ScrollView>
+          <CategoryTabs
+            categories={tabs}
+            selectedId={children.length ? undefined : id}
+            onSelect={(target) =>
+              switchTab(target ?? (children.length ? id : parent!.id), !target)
+            }
+          />
         )
       )}
     </>
@@ -158,12 +153,25 @@ export default function CategoryScreen() {
         {category ? (
           <View style={{ flex: 1 }}>
             {!showGrid && header}
-            <CatalogProducts
-              key={id + (view ?? "")}
-              categoryId={id}
-              header={showGrid ? header : undefined}
-              onRefresh={() => categories.refetch()}
-            />
+            <View style={{ flex: 1, overflow: "hidden" }}>
+              <Animated.View
+                key={id + (view ?? "")}
+                entering={(direction > 0 ? FadeInRight : FadeInLeft)
+                  .duration(280)
+                  .easing(Easing.out(Easing.cubic))
+                  .reduceMotion(ReduceMotion.System)}
+                exiting={FadeOut.duration(160).reduceMotion(
+                  ReduceMotion.System,
+                )}
+                style={StyleSheet.absoluteFill}
+              >
+                <CatalogProducts
+                  categoryId={id}
+                  header={showGrid ? header : undefined}
+                  onRefresh={() => categories.refetch()}
+                />
+              </Animated.View>
+            </View>
             <CartBar placement="screen" />
           </View>
         ) : (

@@ -72,6 +72,8 @@ export default function TabLayout() {
         <Tabs.Screen
           name="guides"
           options={{
+            // Re-enable once guides are ready.
+            href: null,
             title: t("common.guides"),
             tabBarIcon: ({ color }) => <GuidesIcon color={color} />,
           }}

@@ -93,6 +93,11 @@ function RegistryItemDetails() {
 
       setItemNote(normalizedNotes);
       setItemQty(normalizedQty);
+      void queryClient.invalidateQueries({
+        queryKey: ["registries"],
+        exact: true,
+      });
+      void queryClient.invalidateQueries({ queryKey: ["registryById"] });
 
       queryClient.setQueriesData<IRegistryDetails | undefined>(
         {
@@ -564,6 +569,11 @@ const MarkPurchasedForm = ({
       } catch (error) {
         console.error(error);
       }
+      void queryClient.invalidateQueries({ queryKey: ["registryById"] });
+      void queryClient.invalidateQueries({
+        queryKey: ["registries"],
+        exact: true,
+      });
     },
   });
 

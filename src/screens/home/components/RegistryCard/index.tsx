@@ -1,136 +1,281 @@
+import { CommerceText } from "@/components/Commerce";
 import RegistryAvatar from "@/components/RegistryAvatar";
-import NoRegistryCard from "@/components/NoRegistryCard";
-import Typography from "@/components/Typography";
-import { fetchRegistries } from "@/services/registries.service";
+import { BrandColors as C } from "@/constants/Colors";
 import { useRegistrySelection } from "@/hooks/useRegistrySelection";
+import { fetchRegistries } from "@/services/registries.service";
+import { useGlobalStore } from "@/store";
 import { IRegistry } from "@/types";
+import Feather from "@expo/vector-icons/Feather";
 import { useQuery } from "@tanstack/react-query";
-import { ImageBackground } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
+import { router } from "expo-router";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, View } from "react-native";
-import RegistrySkeleton, {
-  resolveRegistrySkeletonVariant,
-} from "./RegistryCardSkeleton";
+import {
+  I18nManager,
+  Pressable,
+  StyleSheet,
+  View,
+  useWindowDimensions,
+} from "react-native";
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+  ReduceMotion,
+  useSharedValue,
+} from "react-native-reanimated";
+import { Carousel, CarouselRef } from "react-native-reanimated-carousel";
+import RegistrySkeleton from "./RegistryCardSkeleton";
+import { paginationWindow, selectedRegistryFirst } from "./pagination";
+import PaginationDot from "./PaginationDot";
 
 export default function RegistryCard() {
-  const { data: registries, isFetching: isFetchingRegistries } = useQuery({
+  const { t } = useTranslation();
+  const { fontScale } = useWindowDimensions();
+  const [width, setWidth] = useState(0);
+  const query = useQuery({
     queryKey: ["registries"],
     queryFn: fetchRegistries,
   });
-
-  const selectedRegistry = useRegistrySelection(registries);
-
-  const registryCardBackgroundSource = require("@assets/images/home/create-registry-background.jpg");
-
-  const registryCardGradientColors = [
-    "rgba(0,0,0,0.05)",
-    "rgba(0,0,0,0.5)",
-    "rgba(0,0,0,0.9)",
-  ] as const;
-
+  const selected = useRegistrySelection(query.data);
+  const registries = useMemo(
+    () => selectedRegistryFirst(query.data ?? [], selected?.id),
+    [query.data, selected?.id],
+  );
   return (
-    <View className="relative">
-      <View className="w-full pb-4 items-center px-4">
-        {isFetchingRegistries && !registries ? (
-          <RegistrySkeleton
-            variant={resolveRegistrySkeletonVariant(registries)}
-          />
-        ) : (
-          <View className="w-full mt-6 rounded-2xl shadow-sm overflow-hidden">
-            <ImageBackground
-              source={registryCardBackgroundSource}
-              contentFit="cover"
-              className="flex-1 relative"
-              style={{ width: "100%" }}
+    <View style={styles.section}>
+      {!query.data && query.isPending && query.fetchStatus !== "paused" ? (
+        <RegistrySkeleton />
+      ) : (
+        <>
+          <View style={styles.actions}>
+            <Pressable
+              testID="home-my-registries"
+              accessibilityRole="button"
+              onPress={() => router.push("/(protected)/(tabs)/registry")}
+              style={[styles.action, { backgroundColor: C.soft }]}
+            >
+              <Feather name="gift" size={29} color={C.ink} />
+              <CommerceText
+                weight="medium"
+                size="base"
+                style={styles.actionLabel}
+              >
+                {t("home.myRegistries")}
+              </CommerceText>
+            </Pressable>
+            <Pressable
+              testID="home-create-registry"
+              accessibilityRole="button"
+              onPress={() => router.push("/(protected)/registry/create")}
+              style={styles.action}
             >
               <LinearGradient
-                colors={registryCardGradientColors}
-                locations={[0, 0.55, 1]}
-                start={{ x: 0, y: 0.05 }}
-                end={{ x: 1, y: 0.95 }}
+                colors={["#D78A70", C.primary]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
                 style={StyleSheet.absoluteFill}
-                pointerEvents="none"
               />
-              <View className="p-6">
-                {registries?.length ? (
-                  <DisplaySelectedRegistryInfo registry={selectedRegistry} />
-                ) : (
-                  <NoRegistryCard />
-                )}
-              </View>
-            </ImageBackground>
+              <Feather name="plus-circle" size={29} color="white" />
+              <CommerceText
+                weight="medium"
+                size="base"
+                style={[styles.actionLabel, { color: "white" }]}
+              >
+                {t("home.createRegistry")}
+              </CommerceText>
+            </Pressable>
           </View>
-        )}
-      </View>
+          <View
+            onLayout={({ nativeEvent }) => setWidth(nativeEvent.layout.width)}
+          >
+            {!query.data &&
+            (query.isError || query.fetchStatus === "paused") ? (
+              <Pressable
+                testID="home-registries-retry"
+                accessibilityRole="button"
+                onPress={() => void query.refetch()}
+                style={styles.retry}
+              >
+                <CommerceText style={{ color: C.muted }}>
+                  {t("registry.loadError")}
+                </CommerceText>
+                <CommerceText weight="medium" style={{ color: C.deep }}>
+                  {t("friends.retry")}
+                </CommerceText>
+              </Pressable>
+            ) : registries.length > 0 && width > 0 ? (
+              <RegistryCarousel
+                // A new selection, deletion or viewport size starts with the selected registry.
+                key={`${selected?.id}:${registries.map(({ id }) => id).join(",")}:${width}`}
+                registries={registries}
+                width={width}
+                height={Math.max(92, 28 + 64 * fontScale)}
+              />
+            ) : null}
+          </View>
+        </>
+      )}
     </View>
   );
 }
 
-const DisplaySelectedRegistryInfo = ({
-  registry,
+function RegistryCarousel({
+  registries,
+  width,
+  height,
 }: {
-  registry?: IRegistry;
-}) => {
+  registries: IRegistry[];
+  width: number;
+  height: number;
+}) {
   const { t } = useTranslation();
-  if (!registry) return null;
-
-  return (
-    <View className="gap-8">
-      <View className="flex-row items-center gap-4">
-        <RegistryAvatar title={registry.title} logo={registry.logo} size={56} />
-        <View className="flex-1">
-          <Typography.Text
-            size="xl"
-            numberOfLines={2}
-            ellipsizeMode="tail"
-            weight="bold"
-            className="!text-white"
-            style={{ lineHeight: 30 }}
-          >
-            {registry.title}
-          </Typography.Text>
-        </View>
+  const [active, setActive] = useState(0);
+  const progress = useSharedValue(0);
+  const ref = useRef<CarouselRef>(null);
+  const select = useGlobalStore((state) => state.setSelectedRegistryId);
+  const open = (registry: IRegistry) => {
+    select(registry.id);
+    router.push("/(protected)/(tabs)/registry");
+  };
+  const renderRegistry = (registry: IRegistry) => (
+    <Pressable
+      testID={`home-registry-${registry.id}`}
+      accessibilityRole="button"
+      onPress={() => open(registry)}
+      style={[styles.registry, { minHeight: height }]}
+    >
+      <RegistryAvatar title={registry.title} logo={registry.logo} size={62} />
+      <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+        <CommerceText size="base" weight="bold" numberOfLines={1}>
+          {registry.title}
+        </CommerceText>
+        <CommerceText style={{ color: C.muted }} numberOfLines={2}>
+          {t("home.registryItems", { count: registry._count.totalItems })}
+          {" · "}
+          {t("home.registryPurchased", {
+            count: registry._count.totalPurchased,
+          })}
+        </CommerceText>
       </View>
-      <View className="flex-row gap-8">
-        <View className="flex-1 gap-2">
-          <Typography.Text
-            size="sm"
-            weight="bold"
-            className="uppercase !text-white"
-            style={{ opacity: 0.9, letterSpacing: 0.5 }}
-          >
-            {t("registry.itemsAdded")}
-          </Typography.Text>
-          <Typography.Text
-            weight="bold"
-            className="!text-white"
-            style={{ fontSize: 56, lineHeight: 58 }}
-          >
-            {formatCount(registry._count.totalItems)}
-          </Typography.Text>
-        </View>
-        <View className="flex-1 gap-2">
-          <Typography.Text
-            size="sm"
-            weight="bold"
-            className="uppercase !text-white"
-            style={{ opacity: 0.9, letterSpacing: 0.5 }}
-          >
-            {t("registry.giftsPurchased")}
-          </Typography.Text>
-          <Typography.Text
-            weight="bold"
-            className="!text-white"
-            style={{ fontSize: 56, lineHeight: 58 }}
-          >
-            {formatCount(registry._count.totalPurchased)}
-          </Typography.Text>
-        </View>
-      </View>
-    </View>
+      <Feather
+        name={I18nManager.isRTL ? "chevron-left" : "chevron-right"}
+        size={23}
+        color={C.muted}
+      />
+    </Pressable>
   );
-};
+  return (
+    <>
+      {registries.length === 1 ? (
+        renderRegistry(registries[0])
+      ) : (
+        <Carousel
+          testID="home-registry-carousel"
+          ref={ref}
+          data={registries}
+          keyExtractor={(registry) => registry.id}
+          itemSize={width}
+          progress={progress}
+          loop={false}
+          snapMode="page"
+          style={{ width, height }}
+          animation={{
+            type: "timing",
+            duration: 280,
+            reduceMotion: ReduceMotion.System,
+          }}
+          onConfigurePanGesture={(gesture) =>
+            gesture.activeOffsetX([-12, 12]).failOffsetY([-10, 10])
+          }
+          onSnapToItem={setActive}
+          renderItem={({ item }) => renderRegistry(item)}
+        />
+      )}
+      {registries.length > 1 && (
+        <View testID="home-registry-pagination" style={styles.dots}>
+          {paginationWindow(registries.length, active).map(
+            ({ index, small }) => (
+              <Animated.View
+                key={registries[index].id}
+                entering={FadeIn.duration(180).reduceMotion(
+                  ReduceMotion.System,
+                )}
+                exiting={FadeOut.duration(120).reduceMotion(
+                  ReduceMotion.System,
+                )}
+                layout={LinearTransition.springify()
+                  .damping(24)
+                  .stiffness(260)
+                  .reduceMotion(ReduceMotion.System)}
+              >
+                <Pressable
+                  testID={`home-registry-dot-${index}`}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("home.registryPage", {
+                    current: String(index + 1),
+                    total: String(registries.length),
+                  })}
+                  accessibilityState={{ selected: index === active }}
+                  onPress={() =>
+                    ref.current?.scrollTo({ index, animated: true })
+                  }
+                  style={styles.dotTarget}
+                >
+                  <PaginationDot
+                    index={index}
+                    small={small}
+                    progress={progress}
+                  />
+                </Pressable>
+              </Animated.View>
+            ),
+          )}
+        </View>
+      )}
+    </>
+  );
+}
 
-const formatCount = (value: number) => value.toString().padStart(2, "0");
+const styles = StyleSheet.create({
+  section: {
+    marginHorizontal: 16,
+    paddingTop: 12,
+    marginBottom: 20,
+    paddingBottom: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: C.line,
+  },
+  actions: { flexDirection: "row", gap: 10, marginBottom: 10 },
+  action: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 88,
+    padding: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  actionLabel: { textAlign: "center" },
+  registry: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+    paddingVertical: 14,
+  },
+  dots: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  dotTarget: {
+    width: 28,
+    height: 28,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  retry: { gap: 6, paddingVertical: 20, alignItems: "center" },
+});

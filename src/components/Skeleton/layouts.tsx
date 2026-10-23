@@ -267,18 +267,72 @@ export function ScreenSkeleton({ kind }: { kind: ScreenSkeletonKind }) {
         );
       case "registry":
         return (
-          <View style={{ padding: 20, gap: 26 }}>
-            <View style={{ alignItems: "center", gap: 18 }}>
-              <Block style={{ width: 84, height: 84, borderRadius: 42 }} />
-              <Block style={{ width: "55%", height: 22 }} />
-              <View style={{ flexDirection: "row", gap: 24 }}>
-                {[0, 1, 2].map((i) => (
-                  <Block key={i} style={{ width: 64, height: 12 }} />
-                ))}
+          <View style={{ flex: 1 }}>
+            <View style={{ padding: 16, gap: 20 }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 16 }}
+              >
+                <Block style={{ width: 84, height: 84, borderRadius: 42 }} />
+                <View style={{ flex: 1, gap: 12 }}>
+                  <Block style={{ width: "72%", height: 20 }} />
+                  <Block style={{ width: "86%", height: 12 }} />
+                  <View style={{ flexDirection: "row", gap: 10 }}>
+                    {[0, 1, 2].map((i) => (
+                      <Block key={i} style={{ flex: 1, height: 12 }} />
+                    ))}
+                  </View>
+                </View>
+              </View>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 14 }}
+              >
+                <Block style={{ flex: 1, height: 6, borderRadius: 3 }} />
+                <Block style={{ width: 40, height: 11 }} />
               </View>
             </View>
-            <Block style={{ width: "25%", height: 16 }} />
-            <ItemRows />
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 12,
+                padding: 16,
+              }}
+            >
+              {[0, 1, 2].map((i) => (
+                <Block
+                  key={i}
+                  style={{ flex: 1, height: 36, borderRadius: 20 }}
+                />
+              ))}
+              <Block style={{ width: 24, height: 24 }} />
+            </View>
+            <View
+              style={{ flex: 1, overflow: "hidden", paddingHorizontal: 16 }}
+            >
+              {[0, 1, 2, 3].map((i) => (
+                <View
+                  key={i}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 16,
+                    paddingVertical: 12,
+                  }}
+                >
+                  <Block style={{ width: 92, height: 94, borderRadius: 6 }} />
+                  <View style={{ flex: 1, gap: 10 }}>
+                    <Block style={{ width: "38%", height: 10 }} />
+                    <Block style={{ width: "88%", height: 15 }} />
+                    <Block style={{ width: "52%", height: 12 }} />
+                    <Block style={{ width: "48%", height: 10 }} />
+                  </View>
+                  <Block style={{ width: 20, height: 20 }} />
+                </View>
+              ))}
+            </View>
+            <View style={{ paddingHorizontal: 16, paddingVertical: 10 }}>
+              <Block style={{ height: 46, borderRadius: 9 }} />
+            </View>
           </View>
         );
       case "address":

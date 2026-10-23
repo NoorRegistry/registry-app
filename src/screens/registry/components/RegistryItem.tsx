@@ -1,73 +1,124 @@
-import Typography from "@/components/Typography";
-import PencilIcon from "@/components/icons/pencil";
-import { IRegistryItem } from "@/types";
+import { CommerceText } from "@/components/Commerce";
+import { BrandColors as C } from "@/constants/Colors";
 import { formatPrice, getEnArName, getImageUrl } from "@/utils/helper";
+import Feather from "@expo/vector-icons/Feather";
 import { Image } from "expo-image";
-import { Link } from "expo-router";
-import React from "react";
+import { router } from "expo-router";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { TouchableOpacity, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import { RegistryFilter, RegistryRow } from "../items";
 
-function RegistryItem({ registryItem }: { registryItem: IRegistryItem }) {
+export default function RegistryItem({
+  registryItem: item,
+  filter,
+  divider,
+}: {
+  registryItem: RegistryRow;
+  filter: RegistryFilter;
+  divider: boolean;
+}) {
   const { t } = useTranslation();
-  const href = `/products/${registryItem.product.id}` as "/products/${string}";
-
+  const image = getImageUrl(item.product.images?.[0]?.path);
+  const [failed, setFailed] = useState<string | null>(null);
+  const showPurchased = filter === "purchased" || item.qtyLeft === 0;
+  const name = getEnArName(item.product.nameEn, item.product.nameAr);
   return (
-    <View className="flex-row items-center bg-white p-2 rounded-md mb-4 shadow shadow-neutral-200 mx-4 gap-4">
-      <Link href={href}>
-        <Image
-          source={
-            registryItem.product.images?.[0]?.path
-              ? getImageUrl(registryItem.product.images[0].path)
-              : require("@assets/images/icon.png") // Fallback to app icon
-          }
-          style={{ width: 80, height: 80, borderRadius: 6 }}
-        />
-      </Link>
-      <View className="flex-1 gap-2">
-        <Link href={href} asChild>
-          <TouchableOpacity>
-            <Typography.Text size="xs" weight="light">
-              {getEnArName(
-                registryItem.product.nameEn,
-                registryItem.product.nameAr,
-              )}
-            </Typography.Text>
-          </TouchableOpacity>
-        </Link>
-        {registryItem.qty - registryItem.qtyLeft > 0 && (
-          <Typography.Text className="text-xs text-gray-400">
-            {t("registry.purchasedOutOf", {
-              purchased: String(registryItem.qty - registryItem.qtyLeft),
-              total: String(registryItem.qty),
-            })}
-          </Typography.Text>
+    <View style={[styles.row, divider && styles.divider]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={name}
+        onPress={() =>
+          router.push({
+            pathname: "/products/[id]",
+            params: { id: item.product.id },
+          })
+        }
+        style={styles.image}
+      >
+        {image && image !== failed ? (
+          <Image
+            source={image}
+            contentFit="cover"
+            style={StyleSheet.absoluteFill}
+            onError={() => setFailed(image)}
+          />
+        ) : (
+          <Feather name="gift" size={27} color={C.deep} />
         )}
-        <View className="flex-row justify-between">
-          <Typography.Text weight="medium">
-            {formatPrice(
-              registryItem.product.price,
-              registryItem.product.currencyCode,
-            )}
-          </Typography.Text>
-          <Link
-            href={{
-              pathname: "/(protected)/registry/item/[id]",
-              params: {
-                id: registryItem.id,
-                registryItem: JSON.stringify(registryItem),
-              },
-            }}
-            asChild
-          >
-            <TouchableOpacity className="rounded-full bg-neutral-100 p-2">
-              <PencilIcon size={18} />
-            </TouchableOpacity>
-          </Link>
-        </View>
-      </View>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() =>
+          router.push({
+            pathname: "/products/[id]",
+            params: { id: item.product.id },
+          })
+        }
+        style={{ flex: 1, minWidth: 0, gap: 4 }}
+      >
+        <CommerceText size="xs" numberOfLines={1} style={{ color: C.muted }}>
+          {getEnArName(item.category.nameEn, item.category.nameAr)}
+        </CommerceText>
+        <CommerceText size="base" numberOfLines={2}>
+          {name}
+        </CommerceText>
+        <CommerceText style={{ color: "#171717" }}>
+          {formatPrice(item.product.price, item.product.currencyCode)}
+        </CommerceText>
+        <CommerceText
+          size="xs"
+          style={{ color: showPurchased ? "#408467" : C.deep }}
+        >
+          {showPurchased
+            ? filter === "purchased" && item.qtyLeft > 0
+              ? t("home.registryPurchased", { count: item.purchasedQty })
+              : t("registry.purchasedLabel")
+            : t("registry.unpurchasedQty", { count: item.qtyLeft })}
+        </CommerceText>
+      </Pressable>
+      <Pressable
+        testID={`registry-edit-${item.id}`}
+        accessibilityRole="button"
+        accessibilityLabel={t("registry.editItem", { name })}
+        onPress={() =>
+          router.push({
+            pathname: "/(protected)/registry/item/[id]",
+            params: { id: item.id },
+          })
+        }
+        style={styles.edit}
+      >
+        <Feather name="edit-2" size={21} color={C.ink} />
+      </Pressable>
     </View>
   );
 }
-
-export default RegistryItem;
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+    paddingVertical: 12,
+    marginHorizontal: 16,
+  },
+  divider: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: C.line,
+  },
+  image: {
+    width: 92,
+    height: 94,
+    borderRadius: 6,
+    backgroundColor: "#F7F4F2",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  edit: {
+    width: 34,
+    minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

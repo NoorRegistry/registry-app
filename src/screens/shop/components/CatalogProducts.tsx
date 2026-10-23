@@ -4,11 +4,7 @@ import ProductCard from "@/components/ProductCard";
 import { useGridLayout } from "@/components/Grid";
 import { BrandColors as colors } from "@/constants/Colors";
 import { useCart } from "@/hooks/useCart";
-import {
-  CatalogFilter,
-  CatalogSort,
-  fetchCatalogProducts,
-} from "@/services/products.service";
+import { CatalogFilter, CatalogSort } from "@/services/products.service";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   BottomSheetBackdrop,
@@ -28,18 +24,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BrowseState, browseStyles } from "./Browse";
+import { catalogProductsOptions } from "../catalog";
 
 export function useCatalogProducts(filters: CatalogFilter, enabled = true) {
   return useInfiniteQuery({
-    queryKey: ["catalogProducts", filters],
-    queryFn: ({ pageParam, signal }) =>
-      fetchCatalogProducts(filters, pageParam, signal),
-    initialPageParam: 1,
-    getNextPageParam: (last) =>
-      last.page && last.totalPages && last.page < last.totalPages
-        ? last.page + 1
-        : undefined,
-    staleTime: 30000,
+    ...catalogProductsOptions(filters),
     enabled,
   });
 }
@@ -141,6 +130,7 @@ export default function CatalogProducts({
   const { width } = useWindowDimensions();
   const hasCart = Boolean(useCart().data?.itemCount);
   const [sort, setSort] = useState<CatalogSort>("featured");
+  const [refreshing, setRefreshing] = useState(false);
   const filters = {
     categoryId,
     storeId,
@@ -239,10 +229,18 @@ export default function CatalogProducts({
       refreshControl={
         <RefreshControl
           tintColor={colors.primary}
-          refreshing={result.isRefetching && !result.isFetchingNextPage}
-          onRefresh={() => {
-            if (enabled) void result.refetch();
-            void onRefresh?.();
+          refreshing={refreshing}
+          onRefresh={async () => {
+            if (refreshing) return;
+            setRefreshing(true);
+            try {
+              await Promise.all([
+                enabled ? result.refetch() : undefined,
+                onRefresh?.(),
+              ]);
+            } finally {
+              setRefreshing(false);
+            }
           }}
         />
       }

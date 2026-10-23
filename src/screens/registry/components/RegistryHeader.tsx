@@ -1,16 +1,9 @@
 import RegistryAvatar from "@/components/RegistryAvatar";
 import { BrandColors } from "@/constants/Colors";
 import { useRegistryPhoto } from "@/hooks/useRegistryPhoto";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import Feather from "@expo/vector-icons/Feather";
+import { CommerceText } from "@/components/Commerce";
 import { Image } from "expo-image";
-import { IconButton } from "@/components/Button";
-import Typography from "@/components/Typography";
-import { EyeIcon } from "@/components/icons/eye";
-import InfoCircleIcon from "@/components/icons/infoCircle";
-import { LockIcon } from "@/components/icons/lockIcon";
-import { PlusCircleIcon } from "@/components/icons/pluscircle";
-import { ShareIcon } from "@/components/icons/share";
-import { UnlockIcon } from "@/components/icons/unlockIcon";
 import { IRegistryDetails } from "@/types";
 import { buildRegistryShareLink } from "@/utils/registry-share";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -21,7 +14,8 @@ import {
   ActivityIndicator,
   Pressable,
   Share,
-  TouchableOpacity,
+  StyleSheet,
+  useWindowDimensions,
   View,
 } from "react-native";
 import Toast from "react-native-toast-message";
@@ -37,6 +31,13 @@ const RegistryHeader = ({ registry }: { registry: IRegistryDetails }) => {
   const detailsSheetRef = useRef<RegistryDetailsSheetHandle>(null);
   const photo = useRegistryPhoto(registry);
   const { t } = useTranslation();
+  const { width, fontScale } = useWindowDimensions();
+  const actionsBelow = width < 390 || fontScale > 1.15;
+  const total = registry._count.totalItems;
+  const purchased = Math.min(
+    total,
+    Math.max(0, registry._count.totalPurchased),
+  );
   // callbacks
   const handlePresentModalPress = useCallback(() => {
     bottomSheetModalRef.current?.present();
@@ -71,9 +72,37 @@ const RegistryHeader = ({ registry }: { registry: IRegistryDetails }) => {
     }
   }, [registry.id, registry.title, t]);
 
+  const actions = (
+    <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8 }}>
+      <HeaderAction
+        id="registry-guest-view"
+        icon="eye"
+        title={t("registry.guestView")}
+        onPress={handleGuestViewPress}
+      />
+      <View style={styles.actionDivider} />
+      <HeaderAction
+        id="registry-visibility"
+        icon={registry.visibility === "Private" ? "lock" : "unlock"}
+        title={t(
+          registry.visibility === "Private"
+            ? "common.private"
+            : "common.public",
+        )}
+        onPress={handleVisibilityPress}
+      />
+      <View style={styles.actionDivider} />
+      <HeaderAction
+        id="registry-share"
+        icon="share-2"
+        title={t("common.share")}
+        onPress={handleSharePress}
+      />
+    </View>
+  );
   return (
-    <View className="px-4 pt-2 pb-3 mb-6 border-b border-neutral-200">
-      <View className="gap-4 items-center">
+    <View style={styles.header}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
         <Pressable
           testID="registry-photo"
           accessibilityRole="button"
@@ -86,130 +115,114 @@ const RegistryHeader = ({ registry }: { registry: IRegistryDetails }) => {
           {photo.previewUri ? (
             <Image
               source={photo.previewUri}
-              style={{ width: 80, height: 80, borderRadius: 40 }}
+              style={{ width: 84, height: 84, borderRadius: 42 }}
               contentFit="cover"
             />
-          ) : registry.logo ? (
+          ) : (
             <RegistryAvatar
               title={registry.title}
               logo={registry.logo}
-              size={80}
+              size={84}
             />
-          ) : (
-            <View
-              style={{
-                width: 80,
-                height: 80,
-                borderRadius: 40,
-                backgroundColor: BrandColors.soft,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Ionicons
-                name="camera-outline"
-                size={28}
-                color={BrandColors.deep}
-              />
-            </View>
           )}
-          {photo.isUploading ? (
-            <View
-              style={{
-                position: "absolute",
-                inset: 0,
-                borderRadius: 40,
-                backgroundColor: "rgba(255,255,255,0.65)",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
+          <View style={styles.camera}>
+            <Feather name="camera" size={15} color="white" />
+          </View>
+          {photo.isUploading && (
+            <View style={styles.uploading}>
               <ActivityIndicator color={BrandColors.primary} />
             </View>
-          ) : registry.logo ? (
-            <View
+          )}
+        </Pressable>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <Pressable
+              testID="registry-switch"
+              accessibilityRole="button"
+              accessibilityLabel={t("registry.switch")}
+              onPress={handlePresentModalPress}
               style={{
-                position: "absolute",
-                bottom: 0,
-                right: 0,
-                width: 24,
-                height: 24,
-                borderRadius: 12,
+                flex: 1,
+                minWidth: 0,
+                minHeight: 40,
+                flexDirection: "row",
                 alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: BrandColors.primary,
-                borderWidth: 2,
-                borderColor: "white",
+                gap: 7,
               }}
             >
-              <Ionicons name="camera" size={13} color="white" />
-            </View>
-          ) : null}
-        </Pressable>
-        <View className="flex-row gap-1 items-center">
-          <Typography.Text weight="medium" size="lg">
-            {registry.title}
-          </Typography.Text>
-          <IconButton
-            icon={<PlusCircleIcon />}
-            onPress={handlePresentModalPress}
-            testID="registry-switch"
+              <CommerceText
+                size="xl"
+                weight="bold"
+                numberOfLines={1}
+                style={{ flexShrink: 1 }}
+              >
+                {registry.title}
+              </CommerceText>
+              <Feather name="chevron-down" size={21} color={BrandColors.ink} />
+            </Pressable>
+            <Pressable
+              testID="registry-details"
+              accessibilityRole="button"
+              accessibilityLabel={t("registry.details")}
+              onPress={() => detailsSheetRef.current?.present()}
+              style={{
+                width: 36,
+                height: 40,
+                justifyContent: "center",
+                alignItems: "flex-end",
+              }}
+            >
+              <Feather name="info" size={21} color={BrandColors.ink} />
+            </Pressable>
+          </View>
+          <CommerceText size="xs" style={{ color: BrandColors.muted }}>
+            {t("home.registryItems", { count: total })}
+            {" · "}
+            {t("home.registryPurchased", { count: purchased })}
+          </CommerceText>
+          {!actionsBelow && actions}
+        </View>
+      </View>
+      {actionsBelow && actions}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 14,
+          marginTop: 18,
+        }}
+      >
+        <View
+          accessibilityRole="progressbar"
+          accessibilityLabel={t("registry.purchases")}
+          accessibilityValue={{
+            min: 0,
+            max: Math.max(1, total),
+            now: purchased,
+          }}
+          style={{
+            flex: 1,
+            height: 6,
+            borderRadius: 4,
+            overflow: "hidden",
+            backgroundColor: BrandColors.line,
+          }}
+        >
+          <View
+            style={{
+              width: `${total ? (purchased / total) * 100 : 0}%`,
+              height: "100%",
+              borderRadius: 4,
+              backgroundColor: BrandColors.primary,
+            }}
           />
         </View>
-
-        {/* Action Buttons */}
-        <View className="flex-row w-full justify-evenly gap-2 mb-2">
-          <TouchableOpacity
-            className="flex-row gap-2 items-center"
-            onPress={handleGuestViewPress}
-          >
-            <EyeIcon size={20} />
-            <Typography.Text type="secondary">
-              {t("registry.guestView")}
-            </Typography.Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="flex-row gap-2 items-center"
-            onPress={handleVisibilityPress}
-            testID="registry-visibility"
-          >
-            {registry.visibility === "Private" ? (
-              <LockIcon size={18} />
-            ) : (
-              <UnlockIcon size={18} />
-            )}
-            <Typography.Text type="secondary">
-              {registry.visibility === "Private"
-                ? t("common.private")
-                : t("common.public")}
-            </Typography.Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="flex-row gap-2 items-center"
-            onPress={handleSharePress}
-          >
-            <ShareIcon size={18} />
-            <Typography.Text type="secondary">
-              {t("common.share")}
-            </Typography.Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Display item count and info button */}
-        <View className="flex-row items-center justify-between w-full">
-          <Typography.Text size="base" weight="medium">
-            {t("registry.items", { count: registry._count.totalItems })}
-          </Typography.Text>
-          <TouchableOpacity
-            hitSlop={10}
-            accessibilityRole="button"
-            accessibilityLabel={t("registry.details")}
-            testID="registry-details"
-            onPress={() => detailsSheetRef.current?.present()}
-          >
-            <InfoCircleIcon />
-          </TouchableOpacity>
-        </View>
+        <CommerceText size="xs" style={{ color: BrandColors.muted }}>
+          {t("registry.purchasedCount", {
+            purchased: String(purchased),
+            total: String(total),
+          })}
+        </CommerceText>
       </View>
       <SwitchRegistry ref={bottomSheetModalRef} />
       <RegistryDetailsSheet ref={detailsSheetRef} registry={registry} />
@@ -220,5 +233,80 @@ const RegistryHeader = ({ registry }: { registry: IRegistryDetails }) => {
     </View>
   );
 };
-
+function HeaderAction({
+  id,
+  icon,
+  title,
+  onPress,
+}: {
+  id: string;
+  icon: React.ComponentProps<typeof Feather>["name"];
+  title: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      testID={id}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      onPress={onPress}
+      style={styles.action}
+    >
+      <Feather name={icon} size={18} color={BrandColors.ink} />
+      <CommerceText
+        size="xs"
+        numberOfLines={1}
+        style={{ color: BrandColors.muted, flexShrink: 1 }}
+      >
+        {title}
+      </CommerceText>
+    </Pressable>
+  );
+}
+const styles = StyleSheet.create({
+  action: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 40,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  actionDivider: {
+    height: 18,
+    width: 1,
+    backgroundColor: "#DED7D3",
+    marginHorizontal: 7,
+  },
+  header: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 18,
+    backgroundColor: "white",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: BrandColors.line,
+  },
+  camera: {
+    position: "absolute",
+    bottom: 0,
+    end: 0,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: "white",
+    backgroundColor: BrandColors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  uploading: {
+    position: "absolute",
+    inset: 0,
+    borderRadius: 42,
+    backgroundColor: "rgba(255,255,255,0.65)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
 export default RegistryHeader;

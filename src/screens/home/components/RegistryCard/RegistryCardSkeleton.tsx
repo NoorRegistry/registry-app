@@ -1,121 +1,27 @@
-import React, { useEffect } from "react";
-import { useAnimatedValue, Animated, Easing, View } from "react-native";
+import { Skeleton, SkeletonBlock } from "@/components/Skeleton";
+import { View } from "react-native";
 
-type RegistrySkeletonVariant = "registry" | "noRegistry";
-
-const RegistrySkeleton: React.FC<{ variant?: RegistrySkeletonVariant }> = ({
-  variant = "registry",
-}) => {
-  const shimmerAnim = useAnimatedValue(0);
-
-  useEffect(() => {
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnim, {
-          toValue: 1,
-          duration: 1500,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnim, {
-          toValue: 0,
-          duration: 0,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    animation.start();
-    return () => animation.stop();
-  }, [shimmerAnim]);
-
-  const shimmerTranslate = shimmerAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-1, 1],
-  });
-
-  const renderShimmer = () => (
-    <Animated.View
-      className="absolute inset-0 bg-white/30"
-      style={{
-        transform: [
-          {
-            translateX: shimmerTranslate.interpolate({
-              inputRange: [-1, 1],
-              outputRange: [-300, 300], // Adjust to match skeleton width
-            }),
-          },
-        ],
-      }}
-    />
-  );
-
+export default function RegistrySkeleton() {
   return (
-    <View className="p-6 w-full mt-6 rounded-2xl shadow-sm bg-[#F3F3F3]">
-      {variant === "registry" ? (
-        <>
-          <View className="flex-row items-center gap-4">
-            <View className="relative w-14 h-14 rounded-full bg-gray-300 overflow-hidden">
-              {renderShimmer()}
-            </View>
-            <View className="flex-1 gap-2">
-              <View className="relative h-7 w-4/5 bg-gray-300 rounded-md overflow-hidden">
-                {renderShimmer()}
-              </View>
-              <View className="relative h-4 w-2/3 bg-gray-300 rounded-md overflow-hidden">
-                {renderShimmer()}
-              </View>
-            </View>
-          </View>
-
-          <View className="flex-row gap-8 mt-8">
-            <View className="flex-1 gap-2">
-              <View className="relative h-4 w-3/4 bg-gray-300 rounded-md overflow-hidden">
-                {renderShimmer()}
-              </View>
-              <View className="relative h-14 w-2/3 bg-gray-300 rounded-md overflow-hidden">
-                {renderShimmer()}
-              </View>
-            </View>
-            <View className="flex-1 gap-2">
-              <View className="relative h-4 w-3/4 bg-gray-300 rounded-md overflow-hidden">
-                {renderShimmer()}
-              </View>
-              <View className="relative h-14 w-2/3 bg-gray-300 rounded-md overflow-hidden">
-                {renderShimmer()}
-              </View>
-            </View>
-          </View>
-        </>
-      ) : (
-        <View className="gap-6">
-          <View className="gap-3">
-            <View className="relative h-7 w-4/5 bg-gray-300 rounded-md overflow-hidden">
-              {renderShimmer()}
-            </View>
-            <View className="relative h-4 w-full bg-gray-300 rounded-md overflow-hidden">
-              {renderShimmer()}
-            </View>
-            <View className="relative h-4 w-5/6 bg-gray-300 rounded-md overflow-hidden">
-              {renderShimmer()}
-            </View>
-          </View>
-          <View className="relative h-12 w-full bg-gray-300 rounded-lg overflow-hidden">
-            {renderShimmer()}
-          </View>
+    <Skeleton testID="home-registry-skeleton" style={{ paddingVertical: 0 }}>
+      <View style={{ flexDirection: "row", gap: 10, marginBottom: 10 }}>
+        <SkeletonBlock style={{ flex: 1, height: 88, borderRadius: 8 }} />
+        <SkeletonBlock style={{ flex: 1, height: 88, borderRadius: 8 }} />
+      </View>
+      <View
+        style={{
+          paddingVertical: 14,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 16,
+        }}
+      >
+        <SkeletonBlock style={{ width: 62, height: 62, borderRadius: 31 }} />
+        <View style={{ flex: 1, gap: 10 }}>
+          <SkeletonBlock style={{ width: "58%", height: 16 }} />
+          <SkeletonBlock style={{ width: "80%", height: 12 }} />
         </View>
-      )}
-    </View>
+      </View>
+    </Skeleton>
   );
-};
-
-export const resolveRegistrySkeletonVariant = (
-  registries?: unknown[],
-): RegistrySkeletonVariant => {
-  if (Array.isArray(registries) && registries.length === 0) {
-    return "noRegistry";
-  }
-
-  return "registry";
-};
-
-export default RegistrySkeleton;
+}

@@ -35,36 +35,54 @@ const Header = ({ props }: { props?: BottomTabHeaderProps }) => {
   const firstName = getUserFirstName();
   const greetingKey = getGreetingKey();
   const notifications = useNotificationSummary();
+  const isRegistry = props?.route.name === "registry";
 
   return (
     <SafeAreaView edges={["top"]} className="w-full bg-white">
       <View
         className={clsx(
-          "h-[78px] w-full flex-row items-center justify-between gap-3 border-b px-4",
-          isHeaderScrolled ? "border-neutral-200" : "border-transparent",
+          "w-full flex-row items-center justify-between gap-3 border-b px-4",
+          isRegistry ? "h-[54px]" : "h-[78px]",
+          isRegistry || isHeaderScrolled
+            ? "border-neutral-200"
+            : "border-transparent",
         )}
       >
-        <View className="min-w-0 flex-1 gap-1">
-          <Typography.Text
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            weight="bold"
-            size="xl"
-            className="w-full max-w-full"
-          >
-            {t(greetingKey, { name: firstName })}
-          </Typography.Text>
-          <Typography.Text
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            size="sm"
-            weight="regular"
-            type="primary"
-            className="w-full max-w-full"
-          >
-            {t("common.welcomeBack")}
-          </Typography.Text>
-        </View>
+        {isRegistry ? (
+          <>
+            <View style={{ width: 42 }} />
+            <Typography.Text
+              size="lg"
+              weight="medium"
+              numberOfLines={1}
+              style={{ flex: 1, textAlign: "center" }}
+            >
+              {t("home.myRegistries")}
+            </Typography.Text>
+          </>
+        ) : (
+          <View className="min-w-0 flex-1 gap-1">
+            <Typography.Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              weight="bold"
+              size="xl"
+              className="w-full max-w-full"
+            >
+              {t(greetingKey, { name: firstName })}
+            </Typography.Text>
+            <Typography.Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              size="sm"
+              weight="regular"
+              type="primary"
+              className="w-full max-w-full"
+            >
+              {t("common.welcomeBack")}
+            </Typography.Text>
+          </View>
+        )}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t("notifications.title")}

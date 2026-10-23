@@ -1,5 +1,5 @@
 import React from "react";
-import { SectionList, Text as mockText } from "react-native";
+import { FlatList, Text as mockText } from "react-native";
 import { act, create, ReactTestRenderer } from "react-test-renderer";
 import {
   onlineManager,
@@ -28,7 +28,10 @@ jest.mock("../components/RegistryHeader", () => {
       React.createElement(mockText, null, registry.title),
   };
 });
-jest.mock("../components/EmptyRegistry", () => () => null);
+jest.mock("../components/RegistryFiltersSheet", () => () => null);
+jest.mock("@expo/vector-icons/Feather", () => "Icon");
+jest.mock("expo-linear-gradient", () => ({ LinearGradient: "Gradient" }));
+jest.mock("expo-router", () => ({ router: { navigate: jest.fn() } }));
 jest.mock("../components/RegistryItem", () => () => null);
 jest.mock("@/utils/helper", () => ({ getEnArName: (name: string) => name }));
 jest.mock("@/services/registries.service", () => ({
@@ -36,7 +39,7 @@ jest.mock("@/services/registries.service", () => ({
   fetchRegistry: jest.fn(),
 }));
 jest.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({ t: (key: string) => key, i18n: { language: "en" } }),
 }));
 jest.mock("@/store", () => {
   const { create } = jest.requireActual("zustand");
@@ -99,7 +102,7 @@ it("loads the first registry immediately when selection is unset or invalid", as
   expect(fetchRegistry).toHaveBeenCalledWith("first");
   expect(fetchRegistry).not.toHaveBeenCalledWith("deleted");
   expect(
-    tree.root.findByType(SectionList).props.ListHeaderComponent.props.registry
+    tree.root.findByType(FlatList).props.ListHeaderComponent.props.registry
       .title,
   ).toBe("Loaded first");
 });
@@ -127,7 +130,7 @@ it("shows Retry after a failed detail request and recovers without restarting th
   );
   await settle();
   expect(
-    tree.root.findByType(SectionList).props.ListHeaderComponent.props.registry
+    tree.root.findByType(FlatList).props.ListHeaderComponent.props.registry
       .title,
   ).toBe("Loaded first");
 });
