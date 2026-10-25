@@ -2,7 +2,6 @@ import { BrandColors } from "@/constants/Colors";
 import Typography from "@/components/Typography";
 import { useCart } from "@/hooks/useCart";
 import { useCartAddedAnimation } from "@/hooks/useCartAddedAnimation";
-import { formatPrice } from "@/utils/helper";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router, usePathname } from "expo-router";
 import { useEffect, useState } from "react";
@@ -81,8 +80,7 @@ export default function CartBar({
         </Animated.View>
         <View style={{ flex: 1 }}>
           <Typography.Text weight="medium" style={{ color: "#fff" }}>
-            {t("cart.itemCount", { count: cart.data.itemCount })} ·{" "}
-            {formatPrice(cart.data.subtotal, cart.data.currencyCode)}
+            {t("cart.itemCount", { count: cart.data.itemCount })}
           </Typography.Text>
         </View>
         <Typography.Text weight="medium" style={{ color: "#fff" }}>
