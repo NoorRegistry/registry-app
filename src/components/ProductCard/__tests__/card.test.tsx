@@ -49,10 +49,16 @@ jest.mock("@/components/BottomSheet/AppBottomSheetModal", () => {
   const React = jest.requireActual("react");
   return {
     __esModule: true,
-    default: React.forwardRef(function Sheet({ children }: any, ref: any) {
+    default: React.forwardRef(function Sheet(
+      { children, onDismiss }: any,
+      ref: any,
+    ) {
       React.useImperativeHandle(ref, () => ({
         present: mockPresent,
-        dismiss: mockDismiss,
+        dismiss: () => {
+          mockDismiss();
+          onDismiss?.();
+        },
       }));
       return children;
     }),

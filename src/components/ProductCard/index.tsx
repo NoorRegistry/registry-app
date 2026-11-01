@@ -112,6 +112,7 @@ const ProductCard = ({
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const actionSheetRef = useRef<BottomSheetModal>(null);
+  const openRegistryAfterDismissRef = useRef(false);
   const cartAction = useCartActions();
   const {
     addProductToRegistry,
@@ -226,6 +227,12 @@ const ProductCard = ({
       </View>
       <AppBottomSheetModal
         ref={actionSheetRef}
+        onDismiss={() => {
+          if (openRegistryAfterDismissRef.current) {
+            openRegistryAfterDismissRef.current = false;
+            addProductToRegistry();
+          }
+        }}
         accessible={false}
         index={0}
         topInset={insets.top}
@@ -253,8 +260,8 @@ const ProductCard = ({
         <ProductActionSheet
           outOfStock={product.qty <= 0}
           onAddToRegistry={() => {
+            openRegistryAfterDismissRef.current = true;
             closeActions();
-            addProductToRegistry();
           }}
           onAddToCart={() => {
             closeActions();

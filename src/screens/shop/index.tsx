@@ -125,7 +125,7 @@ export default function ShopScreen() {
           })
         }
       />
-      <CatalogProducts header={header} bottomTabs onRefresh={refresh} />
+      <CatalogProducts header={header} onRefresh={refresh} />
     </SafeAreaView>
   );
 }

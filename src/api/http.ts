@@ -22,7 +22,19 @@ enum StatusCode {
   InternalServerError = 500,
 }
 
+export interface RegistryAccessDenied {
+  reason: "FRIENDSHIP_REQUIRED" | "REQUEST_PENDING" | "NOT_SHARED";
+  owner: {
+    id: string;
+    firstName: string | null;
+    lastName: string | null;
+  } | null;
+  canRequest: boolean;
+  requestId: string | null;
+  requestDirection: "sent" | "incoming" | null;
+}
 export interface IApiError {
+  access?: RegistryAccessDenied;
   detail: string;
   status?: number;
 }
@@ -180,6 +192,10 @@ class Http {
         }
       }
       apiError = {
+        access:
+          error.response?.status === 403
+            ? (error.response.data as RegistryAccessDenied)
+            : undefined,
         detail: normalizedDetail || normalizedMessage || error?.message,
         status: error.response?.status,
       };

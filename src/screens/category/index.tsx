@@ -1,4 +1,3 @@
-import CartBar from "@/components/CartBar";
 import { CommerceText } from "@/components/Commerce";
 import { BrandColors as colors } from "@/constants/Colors";
 import { fetchProductCategories } from "@/services/products.service";
@@ -172,7 +171,6 @@ export default function CategoryScreen() {
                 />
               </Animated.View>
             </View>
-            <CartBar placement="screen" />
           </View>
         ) : (
           <BrowseState

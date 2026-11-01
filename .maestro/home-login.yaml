@@ -1,0 +1,24 @@
+appId: com.shiftgiftme.mobile.dev
+---
+- openLink: shiftgiftme:///onboard
+- tapOn:
+    text: Start Exploring
+    waitToSettleTimeoutMs: 1000
+- tapOn:
+    text: example@gmail.com
+    waitToSettleTimeoutMs: 1000
+- eraseText: 100
+- inputText: ${QA_EMAIL}
+- tapOn:
+    text: Sign in to your Account
+    waitToSettleTimeoutMs: 1000
+- tapOn:
+    text: LOG IN
+    waitToSettleTimeoutMs: 1000
+- extendedWaitUntil:
+    visible: Verify OTP
+    timeout: 20000
+- inputText: ${QA_OTP}
+- extendedWaitUntil:
+    notVisible: Verify OTP
+    timeout: 20000

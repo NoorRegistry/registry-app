@@ -6,7 +6,7 @@ import { useHeaderScrollState } from "@/hooks/useHeaderScrollState";
 import { fetchRegistries, fetchRegistry } from "@/services/registries.service";
 import { useRegistrySelection } from "@/hooks/useRegistrySelection";
 import { CommerceText } from "@/components/Commerce";
-import { IRegistryDetails } from "@/types";
+import { IRegistry, IRegistryDetails } from "@/types";
 import Feather from "@expo/vector-icons/Feather";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { LinearGradient } from "expo-linear-gradient";
@@ -32,7 +32,13 @@ import RegistryCard from "../home/components/RegistryCard";
 import RegistryHeader from "./components/RegistryHeader";
 import RegistryItem from "./components/RegistryItem";
 
-function RegistryScreen() {
+function RegistryScreen({
+  registryId,
+  onSelectRegistry,
+}: {
+  registryId?: string;
+  onSelectRegistry?: (registry: IRegistry) => void;
+}) {
   const { t } = useTranslation();
   const registriesQuery = useQuery({
     queryKey: ["registries"],
@@ -40,7 +46,7 @@ function RegistryScreen() {
   });
 
   const registries = registriesQuery.data;
-  const selected = useRegistrySelection(registries);
+  const selected = useRegistrySelection(registries, registryId);
   const detailsQuery = useQuery({
     queryKey: ["registryById", selected?.id],
     queryFn: () => fetchRegistry(selected!.id),
@@ -92,6 +98,7 @@ function RegistryScreen() {
     <RegistryContent
       key={registryDetails.id}
       registry={registryDetails}
+      onSelectRegistry={onSelectRegistry}
       onRefresh={async () => {
         await Promise.all([registriesQuery.refetch(), detailsQuery.refetch()]);
       }}
@@ -102,9 +109,11 @@ function RegistryScreen() {
 function RegistryContent({
   registry,
   onRefresh,
+  onSelectRegistry,
 }: {
   registry: IRegistryDetails;
   onRefresh: () => Promise<void>;
+  onSelectRegistry?: (registry: IRegistry) => void;
 }) {
   const { t, i18n } = useTranslation();
   const handleScroll = useHeaderScrollState();
@@ -147,7 +156,12 @@ function RegistryContent({
         stickyHeaderIndices={[1]}
         onScroll={handleScroll}
         scrollEventThrottle={16}
-        ListHeaderComponent={<RegistryHeader registry={registry} />}
+        ListHeaderComponent={
+          <RegistryHeader
+            registry={registry}
+            onSelectRegistry={onSelectRegistry}
+          />
+        }
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

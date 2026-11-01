@@ -1,4 +1,5 @@
 import { http } from "@/api/http";
+export type ProfileVisibility = "Public" | "Private";
 
 const base = "/v1/api/users/friends";
 export type Person = {
@@ -36,6 +37,7 @@ export type FriendsPage<T> = {
   totalPages: number;
 };
 export type FriendsSummary = {
+  profileVisibility: ProfileVisibility;
   friends: number;
   incoming: number;
   sent: number;
@@ -53,6 +55,7 @@ export type FriendDetails = Omit<
   Friendship,
   "sharedCount" | "totalRegistries"
 > & {
+  profileVisibility: ProfileVisibility;
   sharedWithYou: SharedRegistry[];
   yourRegistries: SharedRegistry[];
 };
@@ -106,8 +109,12 @@ export const shareFriendRegistry = (
     { shared },
   );
 export const removeFriend = (id: string) => http.delete(`${base}/${id}`);
+export const updateFriendSettings = (settings: {
+  discoverable?: boolean;
+  profileVisibility?: ProfileVisibility;
+}) => http.patch(`${base}/settings`, settings);
 export const updateFriendDiscoverability = (discoverable: boolean) =>
-  http.patch(`${base}/settings`, { discoverable });
+  updateFriendSettings({ discoverable });
 
 export type PersonProfile = {
   person: Person;
@@ -115,7 +122,9 @@ export type PersonProfile = {
   connectedAt: string | null;
   relationship: "SELF" | DiscoveryPerson["relationship"];
   requestId: string | null;
-  sharedRegistries: SharedRegistry[];
+  profileVisibility: ProfileVisibility;
+  canRequest: boolean;
+  registries: SharedRegistry[];
 };
 export const fetchPersonProfile = (id: string) =>
   http.get<PersonProfile>(`${base}/people/${id}`);

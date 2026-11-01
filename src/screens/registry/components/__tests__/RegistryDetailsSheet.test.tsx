@@ -10,6 +10,7 @@ import { updateRegistry } from "@/services/registries.service";
 import { cacheRegistryUpdate } from "@/utils/registry-cache";
 const mockDismiss = jest.fn();
 let mockSubmitted: Promise<unknown>;
+jest.mock("@/components/EventDateField", () => "EventDateField");
 jest.mock("@/components/Typography", () => ({
   __esModule: true,
   default: { Text: mockText },
@@ -131,4 +132,18 @@ it("keeps the draft open after a save failure", async () => {
   });
   expect(mockDismiss).not.toHaveBeenCalled();
   expect(field("registry-details-title").props.value).toBe("New title");
+});
+
+it("saves and clears the optional event date", async () => {
+  await act(async () =>
+    tree.root.findByType("EventDateField" as any).props.onChange("2026-12-12"),
+  );
+  await act(async () => {
+    field("registry-details-save").props.onPress();
+    await mockSubmitted;
+  });
+  expect(updateRegistry).toHaveBeenLastCalledWith(
+    "registry",
+    expect.objectContaining({ eventDate: "2026-12-12" }),
+  );
 });

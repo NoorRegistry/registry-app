@@ -1,0 +1,156 @@
+appId: com.shiftgiftme.mobile.dev
+---
+- runFlow:
+    when:
+      true: ${QA_LOGIN === "true"}
+    file: home-login.yaml
+- openLink: shiftgiftme:///
+- scrollUntilVisible:
+    element:
+      id: home-cart
+    direction: UP
+    timeout: 20000
+- extendedWaitUntil:
+    visible:
+      id: home-cart
+    timeout: 30000
+- assertVisible: Your next step
+- assertNotVisible: View cart
+- takeScreenshot: home-top
+- tapOn:
+    waitToSettleTimeoutMs: 1000
+    id: home-cart
+- extendedWaitUntil:
+    visible: ".*Home QA Dutch oven.*"
+    timeout: 20000
+- takeScreenshot: home-header-cart
+- openLink: shiftgiftme:///
+- scrollUntilVisible:
+    element:
+      id: home-cart
+    direction: UP
+    timeout: 20000
+- tapOn:
+    id: home-registry-dot-0
+    waitToSettleTimeoutMs: 1000
+- tapOn:
+    waitToSettleTimeoutMs: 1000
+    id: home-registry-next
+    index: 0
+- assertVisible: "2/3"
+- tapOn:
+    waitToSettleTimeoutMs: 1000
+    id: home-next-search
+- tapOn:
+    text: Registry title or owner name
+    waitToSettleTimeoutMs: 1000
+- inputText: Friend QA
+- hideKeyboard
+- extendedWaitUntil:
+    visible: ".*Home QA Public.*"
+    timeout: 20000
+- assertNotVisible: ".*Home QA Private.*"
+- takeScreenshot: home-find-registry
+- openLink: shiftgiftme:///
+- scrollUntilVisible:
+    element:
+      id: home-cart
+    direction: UP
+    timeout: 20000
+- tapOn:
+    waitToSettleTimeoutMs: 1000
+    id: home-next-plus
+- scrollUntilVisible:
+    element:
+      id: registry-create-category-${QA_REGISTRY_CATEGORY_ID}
+    direction: DOWN
+- tapOn:
+    id: registry-create-category-${QA_REGISTRY_CATEGORY_ID}
+    waitToSettleTimeoutMs: 1000
+- scrollUntilVisible:
+    element:
+      id: event-date-field
+    direction: DOWN
+- tapOn:
+    waitToSettleTimeoutMs: 1000
+    id: event-date-field
+- tapOn:
+    text: ${QA_DATE_LABEL}
+    waitToSettleTimeoutMs: 1000
+- assertVisible: Clear date
+- takeScreenshot: home-event-date
+- tapOn:
+    text: Clear date
+    waitToSettleTimeoutMs: 1000
+- assertNotVisible: Clear date
+- openLink: shiftgiftme:///
+- scrollUntilVisible:
+    element:
+      id: home-cart
+    direction: UP
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      id: home-featured-gifts
+    direction: DOWN
+    centerElement: true
+- assertVisible: ".*Home QA Dutch oven.*"
+- takeScreenshot: home-featured-original-cards
+- repeat:
+    times: 2
+    commands:
+      - swipe:
+          from:
+            id: home-featured-gifts
+            point: 90%, 50%
+          direction: LEFT
+          duration: 500
+- tapOn:
+    text: See all featured gifts
+    waitToSettleTimeoutMs: 1000
+- extendedWaitUntil:
+    visible: ".*Home QA Towels.*"
+    timeout: 20000
+- tapOn:
+    waitToSettleTimeoutMs: 1000
+    id: product-add-options
+    index: 0
+- assertVisible: Add to registry
+- assertVisible: Add to cart
+- tapOn:
+    text: Add to cart
+    waitToSettleTimeoutMs: 1000
+- openLink: shiftgiftme:///
+- scrollUntilVisible:
+    element:
+      id: home-cart
+    direction: UP
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      id: home-featured-stores
+    direction: DOWN
+    centerElement: true
+- swipe:
+    from:
+      id: home-featured-stores
+      point: 90%, 50%
+    direction: LEFT
+    duration: 500
+- tapOn:
+    text: See all featured stores
+    waitToSettleTimeoutMs: 1000
+- assertVisible: ".*Home QA Studio.*"
+- takeScreenshot: home-featured-stores
+- openLink: shiftgiftme:///registry/activity
+- extendedWaitUntil:
+    visible: ".*Friend QA purchased a gift.*"
+    timeout: 20000
+- assertVisible: ".*Friend QA shared a registry with you.*"
+- takeScreenshot: home-activity
+- openLink: shiftgiftme:///
+- scrollUntilVisible:
+    element:
+      id: home-cart
+    direction: UP
+    timeout: 20000

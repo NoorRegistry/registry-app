@@ -1,3 +1,4 @@
+import EventDateField from "@/components/EventDateField";
 import { CatalogSkeleton } from "@/components/Skeleton/layouts";
 import Grid from "@/components/Grid";
 import { ErrorState } from "@/screens/friends/components";
@@ -65,6 +66,7 @@ function CreateRegistryScreen() {
   const [uploadedLogoPath, setUploadedLogoPath] = useState<string | null>(null);
   const [logoPreviewUri, setLogoPreviewUri] = useState<string | null>(null);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [eventDate, setEventDate] = useState<string | null>(null);
 
   const categoriesQuery = useQuery({
     queryKey: ["registryCategories"],
@@ -81,7 +83,10 @@ function CreateRegistryScreen() {
       ]);
       selectedRegistryId(data.id);
       queryClient.invalidateQueries({ queryKey: ["registries"] });
-      router.dismissTo("/(protected)/(tabs)/registry");
+      router.dismissTo({
+        pathname: "/(protected)/registry/[id]",
+        params: { id: data.id },
+      });
     },
     onError: (error) => {
       console.error("Registry creation error", JSON.stringify(error));
@@ -251,6 +256,7 @@ function CreateRegistryScreen() {
                           renderItem={(category) => (
                             <TouchableOpacity
                               key={category.id}
+                              testID={`registry-create-category-${category.id}`}
                               className="w-full rounded-xl bg-primary-50 border border-primary-100 shadow-sm shadow-neutral-100 gap-2 px-4 py-8"
                               onPress={() => handleCardPress(category.id)}
                             >
@@ -371,7 +377,7 @@ function CreateRegistryScreen() {
                       <TextInput
                         placeholder={t("registry.titlePlaceholder")}
                         onChangeText={onChange}
-                        value={value}
+                        value={value ?? ""}
                         className={clsx("h-[60px]", registryInputClassName)}
                         textAlign={I18nManager.isRTL ? "right" : "left"}
                         placeholderTextColor={
@@ -381,6 +387,11 @@ function CreateRegistryScreen() {
                       />
                     )}
                   </Form.Item>
+                  <EventDateField
+                    value={eventDate}
+                    onChange={setEventDate}
+                    disabled={createRegistryMutation.isPending}
+                  />
                   <Form.Item
                     name="greeting"
                     label={t("registry.greetings")}
@@ -392,7 +403,7 @@ function CreateRegistryScreen() {
                         <TextInput
                           placeholder={t("registry.greetingsPlaceholder")}
                           onChangeText={onChange}
-                          value={value}
+                          value={value ?? ""}
                           className={clsx(
                             "h-28 w-full py-4",
                             registryInputClassName,
@@ -427,7 +438,7 @@ function CreateRegistryScreen() {
                       onPress={() => {
                         Keyboard.dismiss();
                         handleSubmit((data) => {
-                          createRegistryMutation.mutate(data);
+                          createRegistryMutation.mutate({ ...data, eventDate });
                         })();
                       }}
                     />

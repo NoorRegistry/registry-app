@@ -4,7 +4,7 @@ import { useRegistryPhoto } from "@/hooks/useRegistryPhoto";
 import Feather from "@expo/vector-icons/Feather";
 import { CommerceText } from "@/components/Commerce";
 import { Image } from "expo-image";
-import { IRegistryDetails } from "@/types";
+import { IRegistry, IRegistryDetails } from "@/types";
 import { buildRegistryShareLink } from "@/utils/registry-share";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
@@ -20,14 +20,18 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message";
 import SwitchRegistry from "./SwitchRegistrySheet";
-import VisibilityPrivacySheet from "./VisibilityPrivacySheet";
 import RegistryDetailsSheet, {
   RegistryDetailsSheetHandle,
 } from "./RegistryDetailsSheet";
 
-const RegistryHeader = ({ registry }: { registry: IRegistryDetails }) => {
+const RegistryHeader = ({
+  registry,
+  onSelectRegistry,
+}: {
+  registry: IRegistryDetails;
+  onSelectRegistry?: (registry: IRegistry) => void;
+}) => {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const visibilitySheetModalRef = useRef<BottomSheetModal>(null);
   const detailsSheetRef = useRef<RegistryDetailsSheetHandle>(null);
   const photo = useRegistryPhoto(registry);
   const { t } = useTranslation();
@@ -42,18 +46,14 @@ const RegistryHeader = ({ registry }: { registry: IRegistryDetails }) => {
   const handlePresentModalPress = useCallback(() => {
     bottomSheetModalRef.current?.present();
   }, []);
-  const handleVisibilityPress = useCallback(() => {
-    visibilitySheetModalRef.current?.present();
-  }, []);
   const handleGuestViewPress = useCallback(() => {
     router.push({
       pathname: "/(protected)/registry/guest-view",
       params: {
         id: registry.id,
-        code: registry.code ?? "",
       },
     });
-  }, [registry.code, registry.id]);
+  }, [registry.id]);
   const handleSharePress = useCallback(async () => {
     try {
       const shareLink = buildRegistryShareLink(registry.id);
@@ -79,17 +79,6 @@ const RegistryHeader = ({ registry }: { registry: IRegistryDetails }) => {
         icon="eye"
         title={t("registry.guestView")}
         onPress={handleGuestViewPress}
-      />
-      <View style={styles.actionDivider} />
-      <HeaderAction
-        id="registry-visibility"
-        icon={registry.visibility === "Private" ? "lock" : "unlock"}
-        title={t(
-          registry.visibility === "Private"
-            ? "common.private"
-            : "common.public",
-        )}
-        onPress={handleVisibilityPress}
       />
       <View style={styles.actionDivider} />
       <HeaderAction
@@ -122,6 +111,7 @@ const RegistryHeader = ({ registry }: { registry: IRegistryDetails }) => {
             <RegistryAvatar
               title={registry.title}
               logo={registry.logo}
+              category={registry.category}
               size={84}
             />
           )}
@@ -224,12 +214,11 @@ const RegistryHeader = ({ registry }: { registry: IRegistryDetails }) => {
           })}
         </CommerceText>
       </View>
-      <SwitchRegistry ref={bottomSheetModalRef} />
-      <RegistryDetailsSheet ref={detailsSheetRef} registry={registry} />
-      <VisibilityPrivacySheet
-        ref={visibilitySheetModalRef}
-        registry={registry}
+      <SwitchRegistry
+        ref={bottomSheetModalRef}
+        onSelectRegistry={onSelectRegistry}
       />
+      <RegistryDetailsSheet ref={detailsSheetRef} registry={registry} />
     </View>
   );
 };

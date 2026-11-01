@@ -1,4 +1,3 @@
-import CartBar from "@/components/CartBar";
 import { BrandColors as colors } from "@/constants/Colors";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Stack, useLocalSearchParams } from "expo-router";
@@ -86,7 +85,6 @@ export default function CatalogSearch() {
             search={search}
             enabled={search.length >= 2}
           />
-          <CartBar placement="screen" />
         </View>
       </SafeAreaView>
     </>

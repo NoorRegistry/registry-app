@@ -1,0 +1,55 @@
+appId: com.shiftgiftme.mobile.dev
+---
+- stopApp
+- launchApp
+- openLink: shiftgiftme://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8081
+- extendedWaitUntil:
+    visible:
+      id: home-cart
+    timeout: 30000
+- openLink: shiftgiftme:///settings
+- waitForAnimationToEnd
+- tapOn:
+    text: Arabic|العربية
+    retryTapIfNoChange: true
+- waitForAnimationToEnd
+- stopApp
+- launchApp
+- openLink: shiftgiftme://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8081
+- extendedWaitUntil:
+    visible:
+      id: home-cart
+    timeout: 30000
+- tapOn:
+    id: tab-registry
+- extendedWaitUntil:
+    visible:
+      id: overview-ownership-yours
+    timeout: 30000
+- assertVisible: قوائمي
+- assertVisible: عرض المزيد.*
+- takeScreenshot: registry-overview-rtl
+- tapOn:
+    id: overview-ownership-shared
+- assertVisible:
+    id: overview-registry-open-81bf5aef-b03c-47e7-af31-fc07f785d844
+- takeScreenshot: registry-overview-rtl-shared
+- openLink: shiftgiftme:///settings
+- waitForAnimationToEnd
+- tapOn:
+    text: English
+    retryTapIfNoChange: true
+- waitForAnimationToEnd
+- stopApp
+- launchApp
+- openLink: shiftgiftme://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8081
+- extendedWaitUntil:
+    visible:
+      id: home-cart
+    timeout: 30000
+- tapOn:
+    id: tab-registry
+- extendedWaitUntil:
+    visible:
+      id: overview-ownership-yours
+    timeout: 30000

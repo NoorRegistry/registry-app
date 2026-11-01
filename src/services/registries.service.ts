@@ -17,6 +17,16 @@ export const fetchRegistries = async () => {
   return await http.get<IRegistry[]>(endpoints.registries.index);
 };
 
+export type SharedRegistryOverview = Pick<
+  IRegistry,
+  "id" | "title" | "category" | "_count" | "eventDate"
+> & { logo: string | null; ownerName: string | null };
+
+export const fetchSharedRegistries = (signal?: AbortSignal) =>
+  http.get<SharedRegistryOverview[]>(`${endpoints.registries.index}/shared`, {
+    signal,
+  });
+
 export const fetchRegistriesCategories = async () => {
   return await http.get<IRegistryCategory[]>(
     `${endpoints.registries.index}/categories/`,
@@ -29,12 +39,9 @@ export const fetchRegistry = async (id: string) => {
   );
 };
 
-export const fetchRegistryGuestView = async (id: string, code?: string) => {
-  const query = `id=${encodeURIComponent(id)}${
-    code ? `&code=${encodeURIComponent(code)}` : ""
-  }`;
-  return await http.get<IRegistryDetails>(
-    `${endpoints.registries.publicGuestView}?${query}`,
+export const fetchRegistryGuestView = async (id: string) => {
+  return http.get<IRegistryDetails>(
+    `${endpoints.registries.publicGuestView}?id=${encodeURIComponent(id)}`,
   );
 };
 

@@ -3,7 +3,6 @@ import { CommerceText } from "@/components/Commerce";
 import ProductCard from "@/components/ProductCard";
 import { useGridLayout } from "@/components/Grid";
 import { BrandColors as colors } from "@/constants/Colors";
-import { useCart } from "@/hooks/useCart";
 import { CatalogFilter, CatalogSort } from "@/services/products.service";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
@@ -115,7 +114,6 @@ export default function CatalogProducts({
   search,
   header,
   enabled = true,
-  bottomTabs = false,
   onRefresh,
 }: {
   categoryId?: string;
@@ -123,12 +121,10 @@ export default function CatalogProducts({
   search?: string;
   header?: ReactElement;
   enabled?: boolean;
-  bottomTabs?: boolean;
   onRefresh?: () => Promise<unknown>;
 }) {
   const { t, i18n } = useTranslation();
   const { width } = useWindowDimensions();
-  const hasCart = Boolean(useCart().data?.itemCount);
   const [sort, setSort] = useState<CatalogSort>("featured");
   const [refreshing, setRefreshing] = useState(false);
   const filters = {
@@ -167,7 +163,7 @@ export default function CatalogProducts({
       )}
       columnWrapperStyle={{ gap: 12, paddingHorizontal: 16 }}
       contentContainerStyle={{
-        paddingBottom: hasCart ? (bottomTabs ? 104 : 100) : 24,
+        paddingBottom: 24,
       }}
       keyboardDismissMode="on-drag"
       keyboardShouldPersistTaps="handled"

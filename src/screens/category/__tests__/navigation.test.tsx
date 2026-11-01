@@ -15,7 +15,6 @@ jest.mock("expo-router", () => ({
   router: { push: jest.fn(), setParams: jest.fn() },
   useLocalSearchParams: () => mockParams,
 }));
-jest.mock("@/components/CartBar", () => () => null);
 jest.mock("@/components/Commerce", () => ({ CommerceText: "Text" }));
 jest.mock("@/services/products.service", () => ({
   fetchProductCategories: jest.fn(),

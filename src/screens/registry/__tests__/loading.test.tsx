@@ -62,11 +62,11 @@ const settle = async () => {
     await new Promise((resolve) => setTimeout(resolve, 30));
   });
 };
-const render = async () => {
+const render = async (registryId?: string) => {
   await act(async () => {
     tree = create(
       <QueryClientProvider client={client}>
-        <RegistryScreen />
+        <RegistryScreen registryId={registryId} />
       </QueryClientProvider>,
     );
   });
@@ -116,6 +116,20 @@ it("preserves a valid selected registry when the list refreshes", async () => {
   });
   expect(useGlobalStore.getState().selectedRegistryId).toBe("second");
   expect(fetchRegistry).toHaveBeenCalledWith("second");
+});
+
+it("opens the registry in the route even when another registry was previously selected", async () => {
+  (useGlobalStore as any).setState({ selectedRegistryId: "first" });
+  await render("second");
+  expect(fetchRegistry).toHaveBeenCalledWith("second");
+  expect(fetchRegistry).not.toHaveBeenCalledWith("first");
+  expect(useGlobalStore.getState().selectedRegistryId).toBe("second");
+});
+
+it("does not silently open a different registry when the routed registry is missing", async () => {
+  await render("deleted");
+  expect(fetchRegistry).not.toHaveBeenCalled();
+  expect(JSON.stringify(tree.toJSON())).toContain("registry.loadError");
 });
 
 it("shows Retry after a failed detail request and recovers without restarting the app", async () => {

@@ -1,3 +1,4 @@
+import PrivacySetting from "./PrivacySetting";
 import Typography from "@/components/Typography";
 import constants from "@/constants";
 import { BrandColors } from "@/constants/Colors";
@@ -51,6 +52,7 @@ export default function SettingsScreen() {
         }
       />
       <ScrollView contentContainerStyle={{ padding: 24 }}>
+        <PrivacySetting />
         <Typography.Text
           size="xs"
           weight="medium"

@@ -143,15 +143,21 @@ export default function FriendsScreen() {
               })
             }
           >
-            <Typography.Text
-              size="xs"
-              style={{ color: palette.muted, textAlign: "right", maxWidth: 85 }}
-            >
-              {t("friends.sharedRatio", {
-                shared: String(item.sharedCount),
-                total: String(item.totalRegistries),
-              })}
-            </Typography.Text>
+            {summary.data?.profileVisibility !== "Public" && (
+              <Typography.Text
+                size="xs"
+                style={{
+                  color: palette.muted,
+                  textAlign: "right",
+                  maxWidth: 85,
+                }}
+              >
+                {t("friends.sharedRatio", {
+                  shared: String(item.sharedCount),
+                  total: String(item.totalRegistries),
+                })}
+              </Typography.Text>
+            )}
           </PersonRow>
         )}
         loading={query.isLoading}

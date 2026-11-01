@@ -1,3 +1,8 @@
+import RegistryAccessGate from "./RegistryAccessGate";
+import { saveRegistryReturn } from "@/utils/auth-return";
+import { useGlobalStore } from "@/store";
+import { IApiError } from "@/api/http";
+import { useRefreshOnFocus } from "@/screens/friends/hooks";
 import { ScreenSkeleton } from "@/components/Skeleton/layouts";
 import RegistryAvatar from "@/components/RegistryAvatar";
 import AppBottomSheetModal from "@/components/BottomSheet/AppBottomSheetModal";
@@ -18,6 +23,8 @@ import {
 } from "@/types";
 import {
   formatPrice,
+  clearSessionData,
+  getDecodedToken,
   getEnArName,
   getImageUrl,
   getUserEmail,
@@ -33,7 +40,7 @@ import {
 import { useMutation, useQuery } from "@tanstack/react-query";
 import cx from "clsx";
 import { Image } from "expo-image";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React, {
   useCallback,
   useEffect,
@@ -74,68 +81,29 @@ type GuestSection = {
   data: GuestSectionItem[];
 };
 
-interface GuestPasswordGateProps {
-  registry?: IRegistryDetails;
-  passwordInput: string;
-  showPasswordRequired: boolean;
-  showInvalidPassword: boolean;
-  isSubmitting: boolean;
-  onChangePassword: (value: string) => void;
-  onSubmit: () => void;
-}
-
-const getErrorDetail = (error: unknown): string => {
-  if (
-    error &&
-    typeof error === "object" &&
-    "detail" in error &&
-    typeof (error as { detail?: unknown }).detail === "string"
-  ) {
-    return ((error as { detail: string }).detail || "").toLowerCase();
-  }
-  return "";
-};
-
-const canBePasswordError = (error: unknown, hasCode: boolean): boolean => {
-  if (hasCode) return true;
-  const detail = getErrorDetail(error);
-  return (
-    detail.includes("password") ||
-    detail.includes("code") ||
-    detail.includes("protected") ||
-    detail.includes("unauthorized") ||
-    detail.includes("forbidden")
-  );
-};
-
 interface GuestViewScreenProps {
   onHeaderTitleChange?: (title: string) => void;
 }
 
 function GuestViewScreen({ onHeaderTitleChange }: GuestViewScreenProps) {
   const { t } = useTranslation();
-  const params = useLocalSearchParams<{ id?: string; code?: string }>();
+  const params = useLocalSearchParams<{ id?: string }>();
   const registryId = Array.isArray(params.id) ? params.id[0] : params.id;
-  const initialRegistryCode = Array.isArray(params.code)
-    ? params.code[0]
-    : params.code;
-  const [registryCode, setRegistryCode] = useState(initialRegistryCode ?? "");
-  const [passwordInput, setPasswordInput] = useState(initialRegistryCode ?? "");
-  const [showPasswordRequired, setShowPasswordRequired] = useState(false);
-  const [isEditingPassword, setIsEditingPassword] = useState(false);
+  const viewerId = getDecodedToken()?.user?.id;
   const [showHeaderTitle, setShowHeaderTitle] = useState(false);
   const purchaseSheetRef = useRef<BottomSheetModal>(null);
   const [selectedItem, setSelectedItem] = useState<IRegistryItem | null>(null);
 
   const {
     data: registry,
+    refetch,
     isFetching,
     isLoading,
     error,
     isError,
   } = useQuery({
-    queryKey: ["registryGuestView", registryId, registryCode ?? ""],
-    queryFn: () => fetchRegistryGuestView(registryId, registryCode),
+    queryKey: ["registryGuestView", viewerId, registryId],
+    queryFn: () => fetchRegistryGuestView(registryId!),
     enabled: !!registryId,
     retry: false,
     staleTime: 0,
@@ -143,27 +111,33 @@ function GuestViewScreen({ onHeaderTitleChange }: GuestViewScreenProps) {
     refetchOnMount: "always",
   });
 
-  const hasRegistryDetails = Boolean(
-    registry?.registryItems || registry?.purchased,
-  );
-  const isLockedRegistry =
-    Boolean(registry?.isProtected) && !hasRegistryDetails;
-  const shouldShowPasswordPrompt =
-    isLockedRegistry ||
-    (isError && canBePasswordError(error, Boolean(registryCode)));
-
-  const showInvalidPassword =
-    shouldShowPasswordPrompt && Boolean(registryCode) && !isEditingPassword;
+  useEffect(() => {
+    if (
+      isError &&
+      (error as unknown as IApiError)?.status === 401 &&
+      registryId
+    ) {
+      saveRegistryReturn(registryId);
+      clearSessionData();
+      useGlobalStore.getState().signOut();
+      router.replace("/login");
+    }
+  }, [error, isError, registryId]);
+  useRefreshOnFocus(refetch);
 
   useEffect(() => {
-    onHeaderTitleChange?.(showHeaderTitle && registry ? registry.title : "");
+    onHeaderTitleChange?.(
+      showHeaderTitle && registry && !isError && !isFetching
+        ? registry.title
+        : "",
+    );
 
     return () => {
       onHeaderTitleChange?.("");
     };
-  }, [onHeaderTitleChange, registry, showHeaderTitle]);
+  }, [onHeaderTitleChange, registry, showHeaderTitle, isError, isFetching]);
 
-  const cacheKey = ["registryGuestView", registryId, registryCode ?? ""];
+  const cacheKey = ["registryGuestView", viewerId, registryId];
 
   const handlePurchasePress = useCallback((item: IRegistryItem) => {
     setSelectedItem(item);
@@ -185,17 +159,6 @@ function GuestViewScreen({ onHeaderTitleChange }: GuestViewScreenProps) {
     },
     [],
   );
-
-  const handlePasswordSubmit = useCallback(() => {
-    const normalizedPassword = passwordInput.trim();
-    if (!normalizedPassword) {
-      setShowPasswordRequired(true);
-      return;
-    }
-    setShowPasswordRequired(false);
-    setIsEditingPassword(false);
-    setRegistryCode(normalizedPassword);
-  }, [passwordInput]);
 
   const sections = useMemo<GuestSection[]>(() => {
     if (!registry) return [];
@@ -244,28 +207,14 @@ function GuestViewScreen({ onHeaderTitleChange }: GuestViewScreenProps) {
     );
   }
 
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return <ScreenSkeleton kind="registry" />;
   }
 
-  if (shouldShowPasswordPrompt) {
-    return (
-      <GuestRegistryPasswordGate
-        registry={registry}
-        passwordInput={passwordInput}
-        showPasswordRequired={showPasswordRequired}
-        showInvalidPassword={showInvalidPassword}
-        isSubmitting={isFetching}
-        onChangePassword={(value) => {
-          setPasswordInput(value);
-          if (showPasswordRequired && value.trim()) {
-            setShowPasswordRequired(false);
-          }
-          setIsEditingPassword(true);
-        }}
-        onSubmit={handlePasswordSubmit}
-      />
-    );
+  if (isError) {
+    const apiError = error as unknown as IApiError;
+    const access = apiError.access;
+    return <RegistryAccessGate access={access} retry={() => void refetch()} />;
   }
 
   if (!registry) {
@@ -433,111 +382,6 @@ function GuestRegistryHeader({ registry }: GuestRegistryHeaderProps) {
         </View>
       ) : null}
     </View>
-  );
-}
-
-function GuestRegistryPasswordGate({
-  registry,
-  passwordInput,
-  showPasswordRequired,
-  showInvalidPassword,
-  isSubmitting,
-  onChangePassword,
-  onSubmit,
-}: GuestPasswordGateProps) {
-  const { t } = useTranslation();
-  const colorScheme = useColorScheme();
-
-  return (
-    <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
-      <View className="flex-1 px-6 pt-6 pb-10">
-        <View className="flex-1 justify-center gap-8">
-          <View className="items-center gap-5">
-            <RegistryAvatar
-              title={registry?.title}
-              logo={registry?.logo}
-              size={88}
-            />
-
-            <View className="items-center gap-3">
-              <View className="flex-row items-center gap-2 rounded-full bg-[#FAF2F0] px-3 py-1.5">
-                <MaterialCommunityIcons
-                  name="shield-lock-outline"
-                  size={16}
-                  color="#CF8169"
-                />
-                <Typography.Text size="xs" className="text-primary-500">
-                  {t("registry.guestPasswordProtected")}
-                </Typography.Text>
-              </View>
-
-              {registry?.title ? (
-                <Typography.Text
-                  size="2xl"
-                  weight="bold"
-                  className="text-center"
-                >
-                  {registry.title}
-                </Typography.Text>
-              ) : null}
-
-              <Typography.Text
-                type="secondary"
-                className="text-center leading-6"
-              >
-                {t("registry.guestPasswordPromptSubtitle")}
-              </Typography.Text>
-            </View>
-          </View>
-
-          <View className="rounded-[24px] border border-[#F4E7E1] bg-white p-5 shadow shadow-neutral-200 gap-4">
-            <View className="gap-2">
-              <Typography.Text size="base" weight="medium">
-                {t("registry.registryPassword")}
-              </Typography.Text>
-              <Typography.Text size="sm" type="secondary">
-                {t("registry.guestPasswordPromptTitle")}
-              </Typography.Text>
-            </View>
-
-            <View className="gap-2">
-              <TextInput
-                placeholder={t("registry.registryPasswordPlaceholder")}
-                secureTextEntry
-                value={passwordInput}
-                onChangeText={onChangePassword}
-                onSubmitEditing={onSubmit}
-                editable={!isSubmitting}
-                autoCapitalize="none"
-                autoCorrect={false}
-                returnKeyType="done"
-                placeholderTextColor={
-                  Colors[colorScheme ?? "light"].placeholderTextColor
-                }
-                className="h-14 rounded-2xl bg-neutral-100 px-4 font-Poppinsregular text-black"
-              />
-              {showPasswordRequired && (
-                <Typography.Text size="xs" type="danger">
-                  {t("common.required")}
-                </Typography.Text>
-              )}
-              {showInvalidPassword && (
-                <Typography.Text size="xs" type="danger">
-                  {t("registry.invalidPassword")}
-                </Typography.Text>
-              )}
-            </View>
-
-            <Button
-              title={t("registry.unlockRegistry")}
-              type="primary"
-              onPress={onSubmit}
-              loading={isSubmitting}
-            />
-          </View>
-        </View>
-      </View>
-    </SafeAreaView>
   );
 }
 
@@ -829,8 +673,14 @@ function GuestPurchaseSheet({
       localRef.current?.dismiss();
       Toast.show({ type: "success", text1: t("registry.purchaseRecorded") });
     },
-    onError: () => {
+    onError: async (error) => {
       Toast.show({ type: "error", text1: t("common.error") });
+      if (
+        [401, 403, 404].includes((error as unknown as IApiError).status ?? 0)
+      ) {
+        localRef.current?.dismiss();
+        await queryClient.resetQueries({ queryKey });
+      }
     },
   });
 

@@ -4,7 +4,7 @@ import { fetchPersonProfile } from "@/services/friends.service";
 import { useQuery } from "@tanstack/react-query";
 import { Redirect, router, Stack, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { I18nManager, ScrollView, View } from "react-native";
+import { I18nManager, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ActionButton,
@@ -49,6 +49,12 @@ export default function PersonScreen() {
             </Typography.Text>
             <Typography.Text style={{ color: palette.muted }}>
               {profile.person.profileCode}
+              {" · "}
+              {t(
+                profile.profileVisibility === "Public"
+                  ? "common.public"
+                  : "common.private",
+              )}
             </Typography.Text>
             {profile.memberSince && (
               <Typography.Text size="xs" style={{ color: palette.muted }}>
@@ -62,7 +68,7 @@ export default function PersonScreen() {
             )}
           </View>
           <View style={{ marginHorizontal: 20, marginTop: 30 }}>
-            {profile.relationship === "NONE" ? (
+            {profile.relationship === "NONE" && profile.canRequest ? (
               <ActionButton
                 title={t("search.request")}
                 busy={action.isPending}
@@ -103,12 +109,46 @@ export default function PersonScreen() {
                   }
                 />
               </View>
-            ) : (
+            ) : profile.relationship === "SELF" ? (
               <ActionButton
                 title={t("profile.account")}
                 secondary
                 onPress={() => router.push("/profile")}
               />
+            ) : null}
+          </View>
+          <View style={{ marginHorizontal: 20, marginTop: 24 }}>
+            <Typography.Text weight="medium">
+              {t("privacy.registries")}
+            </Typography.Text>
+            {profile.registries.map((registry, index) => (
+              <Pressable
+                key={registry.id}
+                accessibilityRole="button"
+                onPress={() =>
+                  router.push({
+                    pathname: "/registry/guest-view",
+                    params: { id: registry.id },
+                  })
+                }
+                style={{
+                  paddingVertical: 18,
+                  borderBottomWidth:
+                    index < profile.registries.length - 1 ? 0.5 : 0,
+                  borderBottomColor: palette.line,
+                }}
+              >
+                <Typography.Text>{registry.title}</Typography.Text>
+              </Pressable>
+            ))}
+            {!profile.registries.length && (
+              <Typography.Text type="secondary" style={{ marginTop: 14 }}>
+                {t(
+                  profile.profileVisibility === "Private"
+                    ? "privacy.noShared"
+                    : "privacy.noRegistries",
+                )}
+              </Typography.Text>
             )}
           </View>
         </ScrollView>

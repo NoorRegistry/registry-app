@@ -46,3 +46,64 @@ selected location. It opens an unsaved address draft; it does not save an addres
 or place an order. Keep the Expo floating tools button away from Change location.
 If Simulator drags only zoom while the map gestures are enabled, restart the
 simulated device (without erasing it) and retry before changing map code.
+
+## Home
+
+`home.yaml` covers the registry carousel, the header cart, public registry search,
+optional event date selection/clearing, horizontal featured rows and their final
+See all tiles, product actions, and registry activity. It uses the original shared
+product card. Run on both iOS and Android against the local API with the backend's
+`node test/home-smoke.cjs seed` fixtures. The flow signs into the disposable Home QA
+account and completes onboarding. Disable OTP email and push delivery on the local
+API, and provide its development OTP through `QA_OTP`.
+
+```sh
+maestro --device <simulator-or-emulator-id> test \
+  -e QA_EMAIL=<fixture-email> -e QA_OTP=<development-otp> \
+  -e QA_LOGIN=true -e QA_REGISTRY_CATEGORY_ID=<fixture-category-id> \
+  -e QA_DATE_LABEL="October 15, 2026" .maestro/home.yaml
+```
+
+Set `QA_DATE_LABEL` to the 15th of the current month in English (matching the date
+picker), and `QA_LOGIN=false` only when already signed into this QA account.
+The flow adds one unit of a fixture product to the QA cart. It does not place an
+order or save the registry draft. Run the backend fixture cleanup after testing.
+
+`home-rtl.yaml` switches an English QA session to Arabic, checks the mirrored Home
+layout and featured-gift scrolling/navigation, then restores English. Run it on
+each platform after the main flow, before removing the QA fixtures.
+
+## Registry overview (iOS and Android)
+
+Use the backend's persistent fixtures from `node test/registry-overview-demo.cjs`.
+They remain in the configured development database for manual testing. The main
+account is `registry-overview-qa@example.invalid`: five owned registries, one
+shared registry, purchased items, and activity. Companion accounts are
+`registry-overview-single-qa@example.invalid` (one registry) and
+`registry-overview-empty-qa@example.invalid` (no registries).
+
+Start the local API with email/push delivery disabled and its development OTP
+configured. Metro and the installed development app must use this local API.
+
+```sh
+MAESTRO_CLI_NO_ANALYTICS=1 maestro --device <device-id> test \
+  -e QA_EMAIL=registry-overview-qa@example.invalid -e QA_OTP=<development-otp> \
+  .maestro/registry-overview-login.yaml
+MAESTRO_CLI_NO_ANALYTICS=1 maestro --device <device-id> test \
+  .maestro/registry-overview.yaml
+```
+
+The main flow checks the three-registry limit, expansion/collapse, owner and
+shared detail navigation, shared photo permissions, and Activity/Ideas/Guides.
+It uses deterministic registry IDs from the fixture script. Photo picker checks
+require a harmless image added to the simulator library. Keep these persistent
+fixtures; they are separate from the disposable checkout/Home smoke fixtures.
+
+`registry-overview-states.yaml` signs into the single-registry and empty accounts,
+checks that both stay on the overview, then restores the main QA account. Pass
+`QA_OTP` as above. The login helper signs out the current QA session first.
+`registry-overview-rtl.yaml` checks Arabic ownership tabs and the mirrored layout,
+then restores English. It reconnects to local Metro after each language reload.
+The iOS checks used the iPhone 17 Pro simulator. Native photo cancellation and
+upload were also checked with the repository's brand image. Those picker checks
+are manual; the repeatable flows do not select photos from a personal library.

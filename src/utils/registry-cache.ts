@@ -10,14 +10,14 @@ export function cacheRegistryUpdate(registry: IRegistryDetails) {
             ...item,
             title: registry.title,
             logo: registry.logo,
-            visibility: registry.visibility,
+            eventDate: registry.eventDate,
             _count: registry._count,
           }
         : item,
     ),
   );
   void queryClient.invalidateQueries({
-    queryKey: ["registryGuestView", registry.id],
+    queryKey: ["registryGuestView"],
   });
   void queryClient.invalidateQueries({ queryKey: ["friends"] });
 }

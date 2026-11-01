@@ -42,3 +42,6 @@ src/i18n/backups/
 *.backup
 
 .env.local
+
+# Local QA tooling and simulator artifacts
+.local/

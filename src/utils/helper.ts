@@ -1,3 +1,4 @@
+import { takeRegistryReturn } from "./auth-return";
 import "core-js/stable/atob";
 import i18n from "i18next";
 import { jwtDecode } from "jwt-decode";
@@ -186,7 +187,7 @@ export const navigateAfterAuth = (router: typeof expoRouter): void => {
   // Determine target route
   const targetRoute = decoded?.user?.getUserData
     ? "/complete-profile"
-    : "/(protected)/(tabs)";
+    : (takeRegistryReturn() ?? "/(protected)/(tabs)");
 
   // Try dismissAll if available and safe, otherwise just replace
   try {

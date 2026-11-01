@@ -1,0 +1,136 @@
+appId: com.shiftgiftme.mobile.dev
+env:
+  QA_FIRST_REGISTRY_ID: c9ace21c-7aaf-4011-a7b2-aae50842ecbe
+  QA_FOURTH_REGISTRY_ID: 48276d66-a15f-4037-a397-7b921793818b
+  QA_SHARED_REGISTRY_ID: 81bf5aef-b03c-47e7-af31-fc07f785d844
+---
+- stopApp
+- launchApp
+- openLink: shiftgiftme:///
+- extendedWaitUntil:
+    visible:
+      id: home-cart
+    timeout: 30000
+- tapOn:
+    id: tab-registry
+- extendedWaitUntil:
+    visible:
+      id: overview-registry-open-${QA_FIRST_REGISTRY_ID}
+    timeout: 30000
+- assertVisible: View more \(2\).*
+- assertNotVisible:
+    id: overview-registry-open-${QA_FOURTH_REGISTRY_ID}
+- takeScreenshot: registry-overview-initial
+- tapOn:
+    id: overview-view-more
+- swipe:
+    direction: UP
+    duration: 500
+- scrollUntilVisible:
+    element:
+      id: overview-registry-open-${QA_FOURTH_REGISTRY_ID}
+    direction: DOWN
+- assertVisible:
+    id: overview-registry-open-${QA_FOURTH_REGISTRY_ID}
+- scrollUntilVisible:
+    element:
+      id: overview-view-more
+    direction: DOWN
+- assertVisible: View less.*
+- takeScreenshot: registry-overview-expanded
+- tapOn:
+    id: overview-view-more
+- assertNotVisible:
+    id: overview-registry-open-${QA_FOURTH_REGISTRY_ID}
+- swipe:
+    direction: DOWN
+    duration: 500
+- scrollUntilVisible:
+    element:
+      id: overview-registry-open-${QA_FIRST_REGISTRY_ID}
+    direction: UP
+- tapOn:
+    id: overview-registry-open-${QA_FIRST_REGISTRY_ID}
+- extendedWaitUntil:
+    visible:
+      id: registry-switch
+    timeout: 30000
+- assertVisible:
+    id: registry-tab-all
+- takeScreenshot: registry-owner-detail
+- waitForAnimationToEnd
+- tapOn:
+    text: Back
+    retryTapIfNoChange: true
+- extendedWaitUntil:
+    visible:
+      id: overview-ownership-shared
+    timeout: 30000
+- tapOn:
+    id: overview-ownership-shared
+- extendedWaitUntil:
+    visible:
+      id: overview-registry-open-${QA_SHARED_REGISTRY_ID}
+    timeout: 30000
+- assertNotVisible:
+    id: overview-registry-photo-${QA_SHARED_REGISTRY_ID}
+- tapOn:
+    id: overview-registry-open-${QA_SHARED_REGISTRY_ID}
+- extendedWaitUntil:
+    visible: Lina’s baby shower
+    timeout: 30000
+- takeScreenshot: registry-shared-detail
+- waitForAnimationToEnd
+- tapOn:
+    id: screen-back
+    retryTapIfNoChange: true
+- extendedWaitUntil:
+    visible:
+      id: overview-ownership-yours
+    timeout: 30000
+- tapOn:
+    id: overview-ownership-yours
+- swipe:
+    direction: UP
+    duration: 500
+- scrollUntilVisible:
+    element:
+      id: overview-resource-ideas
+    direction: DOWN
+- tapOn:
+    id: overview-resource-ideas
+- swipe:
+    direction: UP
+    duration: 500
+- scrollUntilVisible:
+    element:
+      text: See all featured gifts
+    direction: DOWN
+    timeout: 30000
+- takeScreenshot: registry-ideas
+- swipe:
+    direction: DOWN
+    duration: 500
+- scrollUntilVisible:
+    element:
+      id: overview-resource-guides
+    direction: UP
+- tapOn:
+    id: overview-resource-guides
+- assertNotVisible: Could not load. Tap to retry
+- takeScreenshot: registry-guides
+- tapOn:
+    id: overview-resource-activity
+- scrollUntilVisible:
+    element:
+      text: .*A gift was purchased.*
+    direction: DOWN
+    timeout: 30000
+- takeScreenshot: registry-activity
+- scrollUntilVisible:
+    element:
+      id: overview-ownership-yours
+    direction: UP
+- swipe:
+    direction: DOWN
+    duration: 400

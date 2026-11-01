@@ -1,3 +1,5 @@
+import EventDateField from "@/components/EventDateField";
+import { eventDateValue } from "@/utils/event-date";
 import React, { useImperativeHandle, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -40,12 +42,16 @@ export default function RegistryDetailsSheet({
   const sheet = useRef<BottomSheetModal>(null);
   const [title, setTitle] = useState(registry.title);
   const [greeting, setGreeting] = useState(registry.greeting ?? "");
+  const [eventDate, setEventDate] = useState(
+    eventDateValue(registry.eventDate),
+  );
   const [showError, setShowError] = useState(false);
   useImperativeHandle(
     ref,
     () => ({
       present: () => {
         setTitle(registry.title);
+        setEventDate(eventDateValue(registry.eventDate));
         setGreeting(registry.greeting ?? "");
         setShowError(false);
         sheet.current?.present();
@@ -58,6 +64,9 @@ export default function RegistryDetailsSheet({
       updateRegistry(registry.id, {
         title: title.trim(),
         greeting: greeting.trim(),
+        ...(eventDate !== eventDateValue(registry.eventDate)
+          ? { eventDate }
+          : {}),
       }),
     onSuccess: (updated) => {
       cacheRegistryUpdate(updated);
@@ -72,7 +81,8 @@ export default function RegistryDetailsSheet({
   });
   const unchanged =
     title.trim() === registry.title &&
-    greeting.trim() === (registry.greeting ?? "");
+    greeting.trim() === (registry.greeting ?? "") &&
+    eventDate === eventDateValue(registry.eventDate);
   const invalid = !title.trim();
   const inputStyle = {
     fontFamily: i18n.language === "ar" ? "Tajawalregular" : "Poppinsregular",
@@ -178,6 +188,11 @@ export default function RegistryDetailsSheet({
             </Typography.Text>
           )}
         </View>
+        <EventDateField
+          value={eventDate}
+          onChange={setEventDate}
+          disabled={save.isPending}
+        />
         <View style={{ gap: 4 }}>
           <Typography.Text weight="medium">
             {t("registry.greeting")}

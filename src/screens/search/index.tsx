@@ -8,7 +8,6 @@ import {
 } from "@/screens/shop/components/Browse";
 import { useGridLayout } from "@/components/Grid";
 import ResultRowsSkeleton from "@/components/ResultRowsSkeleton";
-import { useCart } from "@/hooks/useCart";
 import Typography from "@/components/Typography";
 import { fetchSearchResults } from "@/services/search.service";
 import { fetchProductCategories } from "@/services/products.service";
@@ -71,7 +70,6 @@ function SearchContent({
   const columns = width >= 700 ? 3 : 2;
   const { itemWidth: cardWidth, onLayout: onGridLayout } =
     useGridLayout(columns);
-  const hasCart = Boolean(useCart().data?.itemCount);
   const userId = getDecodedToken()?.user?.id ?? "";
   const historyKey = `search_history_${userId}`;
   const inputRef = useRef<TextInput>(null);
@@ -292,7 +290,7 @@ function SearchContent({
       </View>
       {query.trim() ? (
         <PagedList
-          bottomPadding={hasCart ? 100 : 32}
+          bottomPadding={32}
           data={ready ? searchResultRows(data, columns) : []}
           keyExtractor={(item) => `${item.kind}:${item.id}`}
           renderItem={({ item, index }) => renderResult(item, index)}
@@ -318,7 +316,7 @@ function SearchContent({
       ) : (
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingBottom: hasCart ? 100 : 30 }}
+          contentContainerStyle={{ paddingBottom: 30 }}
         >
           {!!recent.length && (
             <View style={{ margin: 20 }}>

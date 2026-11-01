@@ -171,3 +171,31 @@ a fresh native build with `expo-camera`; no microphone permission is requested.
 
 Deploy the support database migration and backend before distributing this app.
 See the backend's `docs/support.md` for deployment and API smoke checks.
+
+## Home
+
+Home uses the shared product card from Shop and Search. Its featured gift/store
+rows scroll horizontally and end in a See all tile. Empty featured sections are
+hidden. The header cart replaces the floating cart banner across browsing screens.
+Optional registry event dates are stored as calendar dates without device-timezone
+conversion. Deploy the backend's featured-home/date migration before using this app.
+The native Home smoke flow is documented in `.maestro/README.md`.
+
+## Registry overview
+
+The Registry tab opens the overview for every user, including users with one
+registry. Each ownership tab shows three registries until View more is tapped.
+Photo targets upload independently of the registry open action; missing photos
+use the shared registry-type icon mapping. Owned registries open at
+`/registry/:id`; shared registries open in guest view. Activity, Ideas and Guides
+use the existing live feeds. English and Arabic labels are included.
+
+Deploy the backend's `GET /v1/api/users/registries/shared` endpoint alongside
+this app update. It uses the existing sharing tables; no new migration is needed.
+
+The SDK 57 patch refresh passes Expo's compatibility check. The remaining npm
+audit findings are upstream `deepmerge` (Expo/Jest), Zod 3 (Expo CLI/lint tooling),
+and `decode-uri-component` through Expo Router's `query-string`. The compatible
+available fixes for redirects, certificate verification and selector parsing are
+included in the lockfile. Do not force npm's suggested Expo/Jest downgrades to
+clear the remaining advisories; they require a separate compatible upstream update.

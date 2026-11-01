@@ -1,5 +1,4 @@
 import AppBottomSheetModal from "@/components/BottomSheet/AppBottomSheetModal";
-import CartBar from "@/components/CartBar";
 import { CommerceText } from "@/components/Commerce";
 import ProductCard from "@/components/ProductCard";
 import { useGridLayout } from "@/components/Grid";
@@ -569,7 +568,7 @@ export default function StoreScreen() {
                 pendingCategory.current = null;
               }}
               contentContainerStyle={{
-                paddingBottom: cart.data?.itemCount ? 100 : 24,
+                paddingBottom: 24,
               }}
               keyboardDismissMode="on-drag"
               keyboardShouldPersistTaps="handled"
@@ -583,7 +582,6 @@ export default function StoreScreen() {
                 />
               }
             />
-            <CartBar placement="screen" />
           </View>
         )}
       </SafeAreaView>

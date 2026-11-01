@@ -2,7 +2,6 @@ import { Tabs } from "expo-router";
 import React from "react";
 
 import Header from "@/components/Header";
-import CartBar from "@/components/CartBar";
 import {
   GuidesIcon,
   HomeIcon,
@@ -41,6 +40,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="index"
           options={{
+            headerShown: false,
             title: t("common.home"),
             tabBarIcon: ({ color }) => <HomeIcon color={color} />,
           }}
@@ -56,6 +56,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="registry"
           options={{
+            headerShown: false,
             tabBarButtonTestID: "tab-registry",
             title: t("common.registry"),
             tabBarIcon: ({ color }) => <RegistryIcon color={color} />,
@@ -87,7 +88,6 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-      <CartBar />
     </View>
   );
 }

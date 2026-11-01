@@ -26,8 +26,10 @@ export const refreshFriendData = async () => {
   // Guest registry access may have changed. Clear old details immediately rather
   // than retaining previously granted access while the next fetch runs.
   await queryClient.cancelQueries({ queryKey: ["registryGuestView"] });
-  queryClient.removeQueries({ queryKey: ["registryGuestView"] });
+  await queryClient.resetQueries({ queryKey: ["registryGuestView"] });
+  await queryClient.resetQueries({ queryKey: ["publicRegistries"] });
   await queryClient.invalidateQueries({ queryKey: ["friends"] });
+  await queryClient.invalidateQueries({ queryKey: ["home"] });
 };
 export const nextFriendsPage = (page: { page: number; totalPages: number }) =>
   page.page < page.totalPages ? page.page + 1 : undefined;

@@ -114,12 +114,12 @@ export interface IQueryState {
 export type TLoginMethod = "apple" | "facebook" | "google" | "email";
 
 export interface IRegistry {
+  eventDate?: string | null;
   id: string;
   title: string;
   logo: string;
   categoryId?: string;
   isActive: boolean;
-  visibility: "Private" | "Public";
   _count: {
     totalItems: number;
     totalPurchased: number;
@@ -129,15 +129,15 @@ export interface IRegistry {
     nameEn?: string;
     nameAr?: string;
     name?: string;
+    registryBackground?: string | null;
+    registryPlaceHolder?: string | null;
   };
 }
 
 export interface IRegistryDetails extends IRegistry {
   greeting: string | null;
   ownerName?: string | null;
-  isProtected: boolean;
   isOwner?: boolean;
-  code?: string | null;
   purchased: {
     items: IRegistryPurchaseCategorySection[];
   };
@@ -225,7 +225,6 @@ export interface IUpdateRegistryItemPayload {
 export interface ISearchRegistry {
   id: string;
   title: string;
-  isProtected: boolean;
   logo: string | null;
 }
 
@@ -279,20 +278,18 @@ export interface IRegistryCategory {
 }
 
 export interface ICreateRegistryPayload {
+  eventDate?: string | null;
   title: string;
   categoryId: string;
   logo?: string;
   greeting?: string;
-  code?: string;
 }
 
 export interface IUpdateRegistryPayload {
+  eventDate?: string | null;
   title?: string;
   greeting?: string;
   logo?: string;
-  visibility?: "Private" | "Public";
-  isProtected?: boolean;
-  code?: string;
 }
 
 export interface IGuideHomeCategory {

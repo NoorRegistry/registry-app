@@ -4,8 +4,12 @@ import { Pressable, StyleSheet, View } from "react-native";
 import Toast, { ToastConfig } from "react-native-toast-message";
 import { BrandColors } from "@/constants/Colors";
 import Typography from "../Typography";
+import RegistryAddedToast from "../RegistryAddedToast";
 
 const config: ToastConfig = {
+  registryAdded: ({ text1, text2 }) => (
+    <RegistryAddedToast title={text1} registry={text2} />
+  ),
   error: ({ text1, text2 }) => (
     <Pressable
       accessibilityRole="alert"

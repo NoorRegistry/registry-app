@@ -1,0 +1,33 @@
+appId: com.shiftgiftme.mobile.dev
+---
+- runFlow:
+    file: registry-overview-login.yaml
+    env:
+      QA_EMAIL: registry-overview-single-qa@example.invalid
+- assertVisible:
+    id: overview-registry-open-975323d1-bd86-4bb8-ac13-b4cae1bed8a6
+- assertVisible:
+    id: overview-create-registry
+- assertNotVisible:
+    id: registry-switch
+- assertNotVisible:
+    id: overview-view-more
+- takeScreenshot: registry-overview-single
+- runFlow:
+    file: registry-overview-login.yaml
+    env:
+      QA_EMAIL: registry-overview-empty-qa@example.invalid
+- assertVisible: No registries yet
+- assertVisible:
+    id: overview-create-registry
+- assertNotVisible:
+    id: registry-switch
+- assertNotVisible:
+    id: overview-view-more
+- takeScreenshot: registry-overview-empty
+- runFlow:
+    file: registry-overview-login.yaml
+    env:
+      QA_EMAIL: registry-overview-qa@example.invalid
+- assertVisible:
+    id: overview-registry-open-c9ace21c-7aaf-4011-a7b2-aae50842ecbe

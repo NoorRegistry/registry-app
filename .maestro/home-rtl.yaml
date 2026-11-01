@@ -1,0 +1,51 @@
+appId: com.shiftgiftme.mobile.dev
+---
+- openLink: shiftgiftme:///settings
+- tapOn:
+    text: "Arabic|العربية"
+    waitToSettleTimeoutMs: 1000
+- openLink: shiftgiftme:///
+- scrollUntilVisible:
+    element:
+      id: home-cart
+    direction: UP
+    timeout: 20000
+- extendedWaitUntil:
+    visible: خطوتك التالية
+    timeout: 30000
+- assertVisible:
+    id: home-cart
+- takeScreenshot: home-rtl-top
+- scrollUntilVisible:
+    element:
+      id: home-featured-gifts
+    direction: DOWN
+    centerElement: true
+- repeat:
+    times: 2
+    commands:
+      - swipe:
+          from:
+            id: home-featured-gifts
+            point: 10%, 50%
+          direction: RIGHT
+          duration: 500
+- tapOn:
+    text: عرض جميع الهدايا المميزة
+    waitToSettleTimeoutMs: 1000
+- assertVisible: هدايا مميزة
+- assertVisible: ".*هدية اختبار.*"
+- takeScreenshot: home-rtl-gifts
+- openLink: shiftgiftme:///settings
+- tapOn:
+    text: English
+    waitToSettleTimeoutMs: 1000
+- openLink: shiftgiftme:///
+- scrollUntilVisible:
+    element:
+      id: home-cart
+    direction: UP
+    timeout: 20000
+- extendedWaitUntil:
+    visible: Your next step
+    timeout: 30000

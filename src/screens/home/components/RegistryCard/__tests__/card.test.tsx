@@ -137,20 +137,28 @@ it("opens a browsed registry and makes it the active registry", async () => {
   await act(async () => {
     const props = carousel().props;
     const row = props.renderItem({ item: rows[2] });
-    row.props.onPress();
+    row.props.children
+      .find((child: any) => child?.props?.testID === "home-registry-2")
+      .props.onPress();
   });
   expect((useGlobalStore as any).getState().selectedRegistryId).toBe("2");
-  expect(router.push).toHaveBeenCalledWith("/(protected)/(tabs)/registry");
+  expect(router.push).toHaveBeenCalledWith({
+    pathname: "/(protected)/registry/[id]",
+    params: { id: "2" },
+  });
   expect(carousel().props.data[0].id).toBe("2");
 });
 
-it("keeps the single registry chevron and navigation, with no pagination dots", async () => {
+it("keeps the single registry open action and navigation, with no pagination dots", async () => {
   await render([rows[0]]);
   expect(
-    tree.root.findAll((node) => node.props.name === "chevron-right"),
+    tree.root.findAll((node) => node.props.name === "arrow-up-right"),
   ).toHaveLength(1);
   await press("home-registry-0");
-  expect(router.push).toHaveBeenCalledWith("/(protected)/(tabs)/registry");
+  expect(router.push).toHaveBeenCalledWith({
+    pathname: "/(protected)/registry/[id]",
+    params: { id: "0" },
+  });
   expect(tree.root.findAllByType("Carousel" as any)).toHaveLength(0);
   expect(
     tree.root.findAll(

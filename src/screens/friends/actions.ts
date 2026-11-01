@@ -7,11 +7,12 @@ import { router } from "expo-router";
 import { Alert } from "react-native";
 import Toast from "react-native-toast-message";
 import { useTranslation } from "react-i18next";
-import { refreshFriendData } from "./hooks";
+import { refreshFriendData, useFriendsSummary } from "./hooks";
 import { getApiErrorMessage } from "@/utils/api-error";
 
 export function useFriendActions() {
   const { t } = useTranslation();
+  const summary = useFriendsSummary();
   return useMutation({
     mutationFn: (action: {
       kind: "send" | "accept" | "decline" | "cancel";
@@ -24,7 +25,10 @@ export function useFriendActions() {
         : respondToFriendRequest(action.id, action.kind),
     onSuccess: async (result, action) => {
       await refreshFriendData();
-      if (action.kind === "accept") {
+      if (
+        action.kind === "accept" &&
+        summary.data?.profileVisibility !== "Public"
+      ) {
         Alert.alert(
           t("friends.connectedTitle"),
           t("friends.connectedDescription"),
@@ -43,7 +47,10 @@ export function useFriendActions() {
       } else
         Toast.show({
           type: "success",
-          text1: t(`friends.${action.kind}Success`),
+          text1:
+            action.kind === "accept"
+              ? t("friends.connectedTitle")
+              : t(`friends.${action.kind}Success`),
         });
     },
     onError: async (error) => {

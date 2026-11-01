@@ -10,7 +10,7 @@ import {
 import { useGlobalStore } from "@/store";
 import { IAccessToken } from "@/types";
 import { getApiErrorMessage } from "@/utils/api-error";
-import { getDecodedToken } from "@/utils/helper";
+import { getDecodedToken, navigateAfterAuth } from "@/utils/helper";
 import { setStorageItem } from "@/utils/storage";
 import { useHeaderHeight } from "expo-router/react-navigation";
 import { useMutation } from "@tanstack/react-query";
@@ -62,7 +62,7 @@ export default function CompleteProfileScreen() {
       setStorageItem(constants.ACCESS_TOKEN, JSON.stringify(data));
       Toast.show({ type: "success", text1: t("common.saved") });
       signIn();
-      router.replace("/(protected)/(tabs)");
+      navigateAfterAuth(router);
     },
     onError: (error) => {
       Toast.show({

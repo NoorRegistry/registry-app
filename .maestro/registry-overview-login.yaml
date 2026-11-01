@@ -1,0 +1,70 @@
+appId: com.shiftgiftme.mobile.dev
+---
+- runFlow:
+    when:
+      visible:
+        id: Cancel
+    commands:
+      - tapOn:
+          id: Cancel
+- runFlow:
+    when:
+      visible: Continue
+    commands:
+      - tapOn: Continue
+- runFlow:
+    when:
+      visible: Close
+    commands:
+      - tapOn: Close
+- openLink: shiftgiftme:///profile
+- runFlow:
+    when:
+      visible:
+        id: tab-registry
+    commands:
+      - swipe:
+          direction: UP
+          duration: 500
+      - scrollUntilVisible:
+          element:
+            text: Log out
+          direction: DOWN
+      - tapOn: Log out
+- openLink: shiftgiftme:///onboard
+- runFlow:
+    when:
+      visible: Start Exploring
+    commands:
+      - tapOn: Start Exploring
+- openLink: shiftgiftme:///login
+- tapOn: example@gmail.com
+- eraseText: 100
+- inputText: ${QA_EMAIL}
+- tapOn: Sign in to your Account
+- tapOn: LOG IN
+- extendedWaitUntil:
+    visible:
+      id: otp-input
+    timeout: 30000
+- tapOn:
+    id: otp-input
+    index: 0
+- inputText: ${QA_OTP}
+- runFlow:
+    when:
+      visible:
+        text: Don.t allow
+    commands:
+      - tapOn:
+          text: Don.t allow
+- extendedWaitUntil:
+    visible:
+      id: home-cart
+    timeout: 30000
+- tapOn:
+    id: tab-registry
+- extendedWaitUntil:
+    visible:
+      id: overview-ownership-yours
+    timeout: 30000

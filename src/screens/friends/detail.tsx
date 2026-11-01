@@ -255,7 +255,7 @@ export default function FriendDetailScreen() {
                   >
                     {t(
                       value === "received"
-                        ? "friends.sharedWithYou"
+                        ? "privacy.registries"
                         : "friends.sharedByYou",
                     )}
                   </Typography.Text>
@@ -289,6 +289,12 @@ export default function FriendDetailScreen() {
                     {t("friends.noSharedWithYou")}
                   </Typography.Text>
                 )}
+              </View>
+            ) : data.profileVisibility === "Public" ? (
+              <View style={styles.sectionContent}>
+                <Typography.Text type="secondary">
+                  {t("privacy.publicDescription")}
+                </Typography.Text>
               </View>
             ) : (
               <View style={styles.sectionContent}>

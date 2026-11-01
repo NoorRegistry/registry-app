@@ -1,14 +1,29 @@
+import { saveRegistryReturn } from "@/utils/auth-return";
 import BackButton from "@/components/BackButton";
 import constants from "@/constants";
 import { useGlobalStore } from "@/store";
 import { getDecodedToken } from "@/utils/helper";
 import { getStorageItem } from "@/utils/storage";
-import { Redirect, Stack } from "expo-router";
+import {
+  Redirect,
+  Stack,
+  usePathname,
+  useLocalSearchParams,
+} from "expo-router";
 import React from "react";
 
 const AuthLayout = () => {
+  const pathname = usePathname();
+  const params = useLocalSearchParams<{ id?: string }>();
   const isAuthenticated = useGlobalStore.use.isAuthenticated();
   const isOnboarded = getStorageItem(constants.ONBOARDING_STORAGE_KEY);
+
+  if (
+    (!isAuthenticated || !isOnboarded) &&
+    pathname === "/registry/guest-view" &&
+    typeof params.id === "string"
+  )
+    saveRegistryReturn(params.id);
 
   if (!isOnboarded) {
     return <Redirect href="/onboard" />;

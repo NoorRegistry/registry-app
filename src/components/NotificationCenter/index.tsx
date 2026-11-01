@@ -70,6 +70,8 @@ export default function NotificationCenter() {
     void Notifications.getLastNotificationResponseAsync().then(capture);
     const received = Notifications.addNotificationReceivedListener(() => {
       void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      void queryClient.invalidateQueries({ queryKey: ["home"] });
+      void queryClient.invalidateQueries({ queryKey: ["registries"] });
       void queryClient.invalidateQueries({ queryKey: ["friends"] });
       void queryClient.invalidateQueries({ queryKey: ["support"] });
     });

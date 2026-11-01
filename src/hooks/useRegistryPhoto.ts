@@ -8,11 +8,11 @@ import {
   uploadRegistryLogo,
   deleteUploadedImageByPath,
 } from "@/services/upload.service";
-import { IRegistryDetails } from "@/types";
+import { IRegistry } from "@/types";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { cacheRegistryUpdate } from "@/utils/registry-cache";
 
-export function useRegistryPhoto(registry: IRegistryDetails) {
+export function useRegistryPhoto(registry: Pick<IRegistry, "id">) {
   const { t } = useTranslation();
   const busy = useRef(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -59,10 +59,15 @@ export function useRegistryPhoto(registry: IRegistryDetails) {
       if (uploadedPath && status && status >= 400 && status < 500) {
         void deleteUploadedImageByPath(uploadedPath).catch(() => undefined);
       }
-      if (uploadedPath)
+      if (uploadedPath) {
         void queryClient.invalidateQueries({
           queryKey: ["registryById", registryId],
         });
+        void queryClient.invalidateQueries({
+          queryKey: ["registries"],
+          exact: true,
+        });
+      }
       Toast.show({
         type: "error",
         text1: getApiErrorMessage(error, t("registry.logoUploadFailed")),
