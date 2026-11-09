@@ -1,0 +1,60 @@
+{
+  "sourceCommit": "8906dda39218f9fc66f976406b58d26f4a58b194",
+  "method": "Native iOS simulator captures with deterministic brand framing; no generated or redrawn application UI.",
+  "pages": [
+    {
+      "file": "/Users/ashfaqpatwari/Old-Mac-D/noor/registry-app/docs/app-store/2026-11-01/iphone-large-1320x2868/01-home.png",
+      "width": 1320,
+      "height": 2868,
+      "headline": "Gifts you love. One simple registry."
+    },
+    {
+      "file": "/Users/ashfaqpatwari/Old-Mac-D/noor/registry-app/docs/app-store/2026-11-01/iphone-large-1320x2868/02-registries.png",
+      "width": 1320,
+      "height": 2868,
+      "headline": "Every occasion. One place."
+    },
+    {
+      "file": "/Users/ashfaqpatwari/Old-Mac-D/noor/registry-app/docs/app-store/2026-11-01/iphone-large-1320x2868/03-categories.png",
+      "width": 1320,
+      "height": 2868,
+      "headline": "Find gifts by category."
+    },
+    {
+      "file": "/Users/ashfaqpatwari/Old-Mac-D/noor/registry-app/docs/app-store/2026-11-01/iphone-large-1320x2868/04-stores.png",
+      "width": 1320,
+      "height": 2868,
+      "headline": "Explore stores you’ll love."
+    },
+    {
+      "file": "/Users/ashfaqpatwari/Old-Mac-D/noor/registry-app/docs/app-store/2026-11-01/iphone-large-1320x2868/05-registry.png",
+      "width": 1320,
+      "height": 2868,
+      "headline": "Your registry. Ready to share."
+    },
+    {
+      "file": "/Users/ashfaqpatwari/Old-Mac-D/noor/registry-app/docs/app-store/2026-11-01/ipad-13-2064x2752/01-home.png",
+      "width": 2064,
+      "height": 2752,
+      "headline": "Gifts you love. One simple registry."
+    },
+    {
+      "file": "/Users/ashfaqpatwari/Old-Mac-D/noor/registry-app/docs/app-store/2026-11-01/ipad-13-2064x2752/03-categories.png",
+      "width": 2064,
+      "height": 2752,
+      "headline": "Find gifts by category."
+    },
+    {
+      "file": "/Users/ashfaqpatwari/Old-Mac-D/noor/registry-app/docs/app-store/2026-11-01/ipad-13-2064x2752/04-stores.png",
+      "width": 2064,
+      "height": 2752,
+      "headline": "Explore stores you’ll love."
+    },
+    {
+      "file": "/Users/ashfaqpatwari/Old-Mac-D/noor/registry-app/docs/app-store/2026-11-01/ipad-13-2064x2752/05-registry.png",
+      "width": 2064,
+      "height": 2752,
+      "headline": "Your registry. Ready to share."
+    }
+  ]
+}

@@ -1,0 +1,114 @@
+[
+  {
+    "file": "iphone-large-1320x2868/01-home.png",
+    "width": 1320,
+    "height": 2868,
+    "channels": 3,
+    "space": "srgb",
+    "alpha": false
+  },
+  {
+    "file": "iphone-large-1320x2868/02-registries.png",
+    "width": 1320,
+    "height": 2868,
+    "channels": 3,
+    "space": "srgb",
+    "alpha": false
+  },
+  {
+    "file": "iphone-large-1320x2868/03-categories.png",
+    "width": 1320,
+    "height": 2868,
+    "channels": 3,
+    "space": "srgb",
+    "alpha": false
+  },
+  {
+    "file": "iphone-large-1320x2868/04-stores.png",
+    "width": 1320,
+    "height": 2868,
+    "channels": 3,
+    "space": "srgb",
+    "alpha": false
+  },
+  {
+    "file": "iphone-large-1320x2868/05-registry.png",
+    "width": 1320,
+    "height": 2868,
+    "channels": 3,
+    "space": "srgb",
+    "alpha": false
+  },
+  {
+    "file": "iphone-1206x2622/01-home.png",
+    "width": 1206,
+    "height": 2622,
+    "channels": 3,
+    "space": "srgb",
+    "alpha": false
+  },
+  {
+    "file": "iphone-1206x2622/02-registries.png",
+    "width": 1206,
+    "height": 2622,
+    "channels": 3,
+    "space": "srgb",
+    "alpha": false
+  },
+  {
+    "file": "iphone-1206x2622/03-categories.png",
+    "width": 1206,
+    "height": 2622,
+    "channels": 3,
+    "space": "srgb",
+    "alpha": false
+  },
+  {
+    "file": "iphone-1206x2622/04-stores.png",
+    "width": 1206,
+    "height": 2622,
+    "channels": 3,
+    "space": "srgb",
+    "alpha": false
+  },
+  {
+    "file": "iphone-1206x2622/05-registry.png",
+    "width": 1206,
+    "height": 2622,
+    "channels": 3,
+    "space": "srgb",
+    "alpha": false
+  },
+  {
+    "file": "ipad-13-2064x2752/01-home.png",
+    "width": 2064,
+    "height": 2752,
+    "channels": 3,
+    "space": "srgb",
+    "alpha": false
+  },
+  {
+    "file": "ipad-13-2064x2752/03-categories.png",
+    "width": 2064,
+    "height": 2752,
+    "channels": 3,
+    "space": "srgb",
+    "alpha": false
+  },
+  {
+    "file": "ipad-13-2064x2752/04-stores.png",
+    "width": 2064,
+    "height": 2752,
+    "channels": 3,
+    "space": "srgb",
+    "alpha": false
+  },
+  {
+    "file": "ipad-13-2064x2752/05-registry.png",
+    "width": 2064,
+    "height": 2752,
+    "channels": 3,
+    "space": "srgb",
+    "alpha": false
+  }
+]
