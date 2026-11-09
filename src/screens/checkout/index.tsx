@@ -18,6 +18,7 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { randomUUID } from "expo-crypto";
+import { recordRegistryOrder } from "@/utils/registry-purchase-context";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useRef, useState } from "react";
@@ -68,6 +69,7 @@ export default function CheckoutScreen() {
       });
     },
     onSuccess: async (result) => {
+      recordRegistryOrder(userId, result);
       await Promise.all([
         client.invalidateQueries({ queryKey: ["cart", userId] }),
         client.invalidateQueries({ queryKey: ["orders", userId] }),

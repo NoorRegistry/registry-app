@@ -84,6 +84,17 @@ export const postRegistryItemPurchase = async (
   return await http.post<IRegistry>(endpoints.registries.purchase, payload);
 };
 
+export type RegistryOrderPurchase = {
+  id: string;
+  registryId: string;
+  registryItemsId: string;
+  qty: number;
+};
+export const fetchRegistryOrderPurchases = (orderId: string) =>
+  http.get<RegistryOrderPurchase[]>(
+    `${endpoints.registries.purchase}/orders/${encodeURIComponent(orderId)}`,
+  );
+
 export const updateRegistry = async (
   id: string,
   payload: IUpdateRegistryPayload,

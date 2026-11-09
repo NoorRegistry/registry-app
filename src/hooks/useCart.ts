@@ -8,12 +8,21 @@ import {
 } from "@/services/cart.service";
 import { useGlobalStore } from "@/store";
 import { getUserSub } from "@/utils/helper";
+import {
+  forgetCartGift,
+  rememberRegistryGift,
+  RegistryGift,
+} from "@/utils/registry-purchase-context";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import Toast from "react-native-toast-message";
 
 type CartAction =
-  | { kind: "add"; productId: string }
+  | {
+      kind: "add";
+      productId: string;
+      registryGift?: Omit<RegistryGift, "quantity">;
+    }
   | { kind: "set"; productId: string; quantity: number }
   | { kind: "remove"; productId: string };
 
@@ -38,8 +47,15 @@ export function useCartActions() {
       if (action.kind === "remove") return removeCartItem(action.productId);
       return setCartQuantity(action.productId, action.quantity);
     },
-    onSuccess: (cart) => {
+    onSuccess: (cart, action) => {
       queryClient.setQueryData(["cart", userId], cart);
+      if (action.kind === "add" && action.registryGift)
+        rememberRegistryGift(userId, { ...action.registryGift, quantity: 1 });
+      if (
+        action.kind === "remove" ||
+        (action.kind === "set" && action.quantity === 0)
+      )
+        forgetCartGift(userId, action.productId);
     },
     onError: (error) => {
       Toast.show({ type: "error", text1: error.detail || t("common.error") });

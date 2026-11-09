@@ -3,7 +3,7 @@ import { BrandColors } from "@/constants/Colors";
 import Typography from "@/components/Typography";
 import { addressLine } from "@/hooks/useAddresses";
 import { fetchOrder } from "@/services/orders.service";
-import { formatPrice, getUserFirstName, getUserSub } from "@/utils/helper";
+import { formatPrice, getUserSub } from "@/utils/helper";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useQuery } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
@@ -18,6 +18,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import RegistryPurchasePrompt from "./RegistryPurchasePrompt";
 export default function OrderConfirmationScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useTranslation();
@@ -48,9 +49,8 @@ export default function OrderConfirmationScreen() {
       <View
         style={{
           paddingHorizontal: 20,
-          height: 48,
+          height: 40,
           alignItems: "flex-end",
-          justifyContent: "center",
         }}
       >
         <Pressable
@@ -72,23 +72,23 @@ export default function OrderConfirmationScreen() {
           flexGrow: 1,
           paddingHorizontal: 26,
           paddingBottom: 25,
-          justifyContent: "center",
         }}
       >
         <View
           style={{
+            flexDirection: "row",
             alignItems: "center",
             paddingTop: 10,
-            paddingBottom: 32,
-            gap: 17,
+            paddingBottom: 28,
+            gap: 14,
           }}
         >
           <Animated.View
             style={[
               {
-                width: 88,
-                height: 88,
-                borderRadius: 44,
+                width: 48,
+                height: 48,
+                borderRadius: 24,
                 backgroundColor: "#E9F0E6",
                 alignItems: "center",
                 justifyContent: "center",
@@ -96,19 +96,19 @@ export default function OrderConfirmationScreen() {
               checkStyle,
             ]}
           >
-            <Ionicons name="checkmark" size={47} color="#4D7043" />
+            <Ionicons name="checkmark" size={26} color="#4D7043" />
           </Animated.View>
           <Animated.View
             entering={FadeInDown.duration(300).reduceMotion(
               ReduceMotion.System,
             )}
-            style={{ alignItems: "center", gap: 8 }}
+            style={{ flex: 1, gap: 6 }}
           >
             <Typography.Text size="2xl" weight="bold">
-              {t("orders.thankYou", { name: getUserFirstName() })}
+              {t("orders.placedTitle")}
             </Typography.Text>
             <Typography.Text style={{ color: "#767C77" }}>
-              {t("orders.confirmation", { reference: data?.reference ?? "…" })}
+              {data?.reference ?? "…"}
             </Typography.Text>
           </Animated.View>
         </View>
@@ -162,6 +162,7 @@ export default function OrderConfirmationScreen() {
                 {formatPrice(data.total, "KWD")}
               </Typography.Text>
             </View>
+            <RegistryPurchasePrompt order={data} />
           </Animated.View>
         ) : (
           <Pressable
@@ -172,7 +173,16 @@ export default function OrderConfirmationScreen() {
           </Pressable>
         )}
       </ScrollView>
-      <View style={{ paddingHorizontal: 22, paddingVertical: 12, gap: 10 }}>
+      <View
+        style={{
+          paddingHorizontal: 22,
+          paddingVertical: 16,
+          gap: 10,
+          flexDirection: "row",
+          borderTopWidth: 1,
+          borderTopColor: BrandColors.line,
+        }}
+      >
         <Pressable
           accessibilityRole="button"
           onPress={() =>
@@ -181,12 +191,13 @@ export default function OrderConfirmationScreen() {
           style={{
             minHeight: 52,
             borderRadius: 12,
-            backgroundColor: BrandColors.primary,
+            backgroundColor: BrandColors.soft,
+            flex: 1,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <Typography.Text weight="medium" style={{ color: "#fff" }}>
+          <Typography.Text weight="medium" style={{ color: BrandColors.deep }}>
             {t("orders.viewOrder")}
           </Typography.Text>
         </Pressable>
@@ -194,12 +205,16 @@ export default function OrderConfirmationScreen() {
           accessibilityRole="button"
           onPress={() => router.replace("/shop")}
           style={{
-            minHeight: 44,
+            flex: 1,
+            minHeight: 52,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <Typography.Text weight="medium">
+          <Typography.Text
+            size="sm"
+            style={{ color: BrandColors.muted, textAlign: "center" }}
+          >
             {t("orders.keepShopping")}
           </Typography.Text>
         </Pressable>

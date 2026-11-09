@@ -10,7 +10,8 @@ import { useAddProductToRegistry } from "@/hooks/useAddProductToRegistry";
 import { useCart, useCartActions } from "@/hooks/useCart";
 import { useCartAddedAnimation } from "@/hooks/useCartAddedAnimation";
 import { fetchProductById } from "@/services/products.service";
-import { formatPrice, getEnArName } from "@/utils/helper";
+import { fetchRegistryGuestView } from "@/services/registries.service";
+import { formatPrice, getDecodedToken, getEnArName } from "@/utils/helper";
 import { useQuery } from "@tanstack/react-query";
 import { Link, router, Stack, useLocalSearchParams } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -29,7 +30,36 @@ import ProductImages from "./components/ProductImages";
 
 function ProductScreen() {
   const { t } = useTranslation();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, giftRegistryId, giftItemId } = useLocalSearchParams<{
+    id: string;
+    giftRegistryId?: string;
+    giftItemId?: string;
+  }>();
+  const giftRegistry = useQuery({
+    queryKey: [
+      "registryGuestView",
+      getDecodedToken()?.user?.id,
+      giftRegistryId,
+    ],
+    queryFn: () => fetchRegistryGuestView(giftRegistryId!),
+    enabled: !!giftRegistryId && !!giftItemId,
+    retry: false,
+    staleTime: 0,
+    gcTime: 0,
+  });
+  const giftItem =
+    !giftRegistry.isFetching &&
+    !giftRegistry.isError &&
+    giftRegistry.data?.isOwner === false
+      ? giftRegistry.data.registryItems.items
+          .flatMap((section) => section.data)
+          .find(
+            (item) =>
+              item.id === giftItemId &&
+              item.product.id === id &&
+              item.qtyLeft > 0,
+          )
+      : undefined;
   const cart = useCart();
   const { iconStyle: cartIconStyle } = useCartAddedAnimation(
     cart.data?.itemCount,
@@ -213,6 +243,11 @@ function ProductScreen() {
           <ProductImages images={product?.images ?? []} />
           <View className="px-4 py-6">
             <View className="gap-2">
+              {giftItem && (
+                <Typography.Text size="sm" style={{ color: BrandColors.deep }}>
+                  {t("registry.giftFor", { title: giftRegistry.data!.title })}
+                </Typography.Text>
+              )}
               <Link
                 href={{
                   pathname: "/stores/[id]",
@@ -283,6 +318,7 @@ function ProductScreen() {
         >
           <View style={{ flexDirection: "row", gap: 10, paddingBottom: 6 }}>
             <Pressable
+              testID="product-add-to-registry"
               accessibilityRole="button"
               disabled={isAddingProductToRegistry || !product}
               onPress={() => addProductToRegistry()}
@@ -308,11 +344,25 @@ function ProductScreen() {
               )}
             </Pressable>
             <Pressable
+              testID="product-add-to-cart"
               accessibilityRole="button"
               disabled={cartAction.isPending || !product || product.qty <= 0}
-              onPress={() =>
-                cartAction.mutate({ kind: "add", productId: product!.id })
-              }
+              onPress={() => {
+                cartAction.mutate({
+                  kind: "add",
+                  productId: product!.id,
+                  ...(giftItem && giftRegistry.data
+                    ? {
+                        registryGift: {
+                          registryId: giftRegistry.data.id,
+                          registryTitle: giftRegistry.data.title,
+                          itemId: giftItem.id,
+                          productId: product!.id,
+                        },
+                      }
+                    : {}),
+                });
+              }}
               style={{
                 flex: 1,
                 minHeight: 52,

@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-query";
 import OrderDetailScreen from "../detail";
 import { fetchOrder } from "@/services/orders.service";
+jest.mock("../RegistryPurchasePrompt", () => () => null);
 
 jest.mock("@/components/Typography", () => ({
   __esModule: true,

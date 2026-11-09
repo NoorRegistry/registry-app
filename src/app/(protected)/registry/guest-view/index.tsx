@@ -24,7 +24,7 @@ export default function GuestView() {
               )
             : "",
           headerShadowVisible: false,
-          headerLeft: () => <BackButton filled />,
+          headerLeft: () => <BackButton />,
         }}
       />
       <GuestViewScreen onHeaderTitleChange={setHeaderTitle} />

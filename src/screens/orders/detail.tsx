@@ -24,6 +24,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import OrderProgress from "./Progress";
+import RegistryPurchasePrompt from "./RegistryPurchasePrompt";
 
 export default function OrderDetailScreen() {
   const { id, placed } = useLocalSearchParams<{
@@ -307,6 +308,7 @@ export default function OrderDetailScreen() {
                   </CommerceText>
                 </View>
               </View>
+              <RegistryPurchasePrompt order={data} autoPresent={false} />
               <PriceSummary
                 subtotal={data.subtotal}
                 deliveryFee={data.deliveryFee}
